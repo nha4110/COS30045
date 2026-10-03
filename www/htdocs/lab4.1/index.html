@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f4eb">
+  <title>Field Notes 04 — Draw SVGs</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+
+    :root {
+      color-scheme: light;
+      --paper: #f3f4eb;
+      --ink: #22342e;
+      --muted: #65746c;
+      --line: #d6dbcd;
+      --red: #c94e36;
+      --green: #3e7156;
+      --serif: "Fraunces", Georgia, serif;
+      --sans: "DM Sans", sans-serif;
+      --mono: "DM Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 30px 0 54px;
+    }
+
+    .topline, .meta, .toolbar, .legend, .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topline {
+      min-height: 38px;
+      border-bottom: 1px solid var(--line);
+      font: 11px var(--mono);
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .topline .course { color: var(--muted); }
+
+    header { padding: 42px 0 25px; }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--red);
+      font: 11px var(--mono);
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font: 600 clamp(36px, 5vw, 62px)/1.02 var(--serif);
+      letter-spacing: 0;
+    }
+
+    .intro {
+      max-width: 670px;
+      margin: 15px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .toolbar {
+      gap: 20px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .figure-label, .button-label { font: 11px var(--mono); }
+    .figure-label { color: var(--muted); text-transform: uppercase; }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--ink);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--ink);
+      font: 11px var(--mono);
+      cursor: pointer;
+    }
+
+    button:hover, button[aria-pressed="true"] { background: var(--ink); color: white; }
+    button:focus-visible { outline: 3px solid #e58b59; outline-offset: 3px; }
+    button svg { width: 15px; height: 15px; }
+
+    figure { margin: 0; }
+
+    .art-frame {
+      overflow: hidden;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      background: #dce9dd;
+      box-shadow: 0 12px 30px #31453712;
+    }
+
+    .art-frame svg { display: block; width: 100%; height: auto; }
+
+    figcaption {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 11px 2px 0;
+      color: var(--muted);
+      font: 10px var(--mono);
+    }
+
+    .legend {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 9px 23px;
+      padding: 17px 0 25px;
+      border-bottom: 1px solid var(--line);
+      font: 10px var(--mono);
+      color: var(--muted);
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+    .legend .svg-dot { background: var(--green); }
+
+    .notes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 44px;
+      padding: 32px 0 28px;
+    }
+
+    h2 { margin: 0 0 17px; font: 500 25px/1.15 var(--serif); }
+
+    .coord-list { margin: 0; padding: 0; list-style: none; }
+    .coord-list li {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr);
+      gap: 12px;
+      padding: 9px 0;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .coord-list li > span { min-width: 0; overflow-wrap: anywhere; }
+
+    code { color: var(--red); font: 11px var(--mono); }
+    .coord-list strong { font-weight: 600; }
+    .notes p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+
+    .dom-snippet {
+      overflow: auto;
+      margin: 14px 0 0;
+      padding: 14px 16px;
+      border-left: 2px solid var(--green);
+      background: #e8ebdf;
+      color: #314b3d;
+      font: 11px/1.7 var(--mono);
+      white-space: pre;
+    }
+
+    .notes p.dom-caption { margin-top: 14px; }
+
+    .footer {
+      gap: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font: 10px var(--mono);
+    }
+
+    .coord-layer { opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+    .show-coordinates .coord-layer { opacity: 1; }
+
+    @media (max-width: 680px) {
+      .page { width: min(100% - 30px, 560px); padding-top: 17px; }
+      header { padding: 32px 0 21px; }
+      .intro { font-size: 14px; }
+      .toolbar { align-items: flex-start; flex-direction: column; gap: 10px; }
+      .notes { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 26px; }
+      figcaption { flex-direction: column; gap: 5px; }
+      .legend { gap: 10px 16px; }
+      .topline { font-size: 9px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topline">
+      <span>COS30045 / Data Visualisation</span>
+      <span class="course">Studio exercise · Week 04</span>
+    </div>
+
+    <header>
+      <p class="eyebrow">Exercise 4.1 / SVG primitives</p>
+      <h1>A little house<br>at the end of the garden</h1>
+      <p class="intro">A small study in SVG geometry. Every mark is drawn in the same viewBox coordinate space; switch on the guides to see how those numbers map onto the picture.</p>
+    </header>
+
+    <div class="toolbar">
+      <span class="figure-label">01 — The garden, drawn in vectors</span>
+      <button id="coordinate-toggle" type="button" aria-pressed="false" aria-controls="house-illustration">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 6h16M2 14h16M6 2v16M14 2v16" stroke="currentColor" stroke-width="1.4"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg>
+        <span class="button-label">Show coordinate guides</span>
+      </button>
+    </div>
+
+    <figure>
+      <div class="art-frame">
+        <svg id="house-illustration" viewBox="0 0 900 650" role="img" aria-labelledby="svg-title svg-desc" xmlns="http://www.w3.org/2000/svg">
+          <title id="svg-title">A beige cottage between two garden trees</title>
+          <desc id="svg-desc">A simple illustration of a beige house with a red roof, two paneled windows, a centered door, two round green trees, a golden sun and a curved tan path.</desc>
+          <defs>
+            <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+              <path d="M50 0H0V50" fill="none" stroke="#ffffff" stroke-opacity=".4" stroke-width="1"/>
+            </pattern>
+          </defs>
+
+          <rect width="900" height="650" fill="#b8d6df"/>
+          <circle cx="758" cy="92" r="46" fill="#e7bf57"/>
+          <rect x="0" y="390" width="900" height="260" fill="#78a644"/>
+
+          <ellipse cx="220" cy="526" rx="64" ry="19" fill="#aa835a"/>
+          <rect x="109" y="292" width="34" height="196" fill="#78503c"/>
+          <rect x="740" y="300" width="32" height="185" fill="#78503c"/>
+          <circle cx="126" cy="220" r="101" fill="#326b49"/>
+          <circle cx="756" cy="230" r="89" fill="#326b49"/>
+
+          <path d="M447 516 C423 552 449 579 439 650" fill="none" stroke="#bd9b69" stroke-width="44" stroke-linecap="round"/>
+          <path d="M447 516 C423 552 449 579 439 650" fill="none" stroke="#d0b783" stroke-width="28" stroke-linecap="round"/>
+
+          <rect x="282" y="270" width="328" height="245" fill="#d9c18d" stroke="#755744" stroke-width="4"/>
+          <polygon points="250,280 446,115 642,280" fill="#a74b47" stroke="#70433e" stroke-width="4" stroke-linejoin="round"/>
+          <polyline points="267,273 446,125 625,273" fill="none" stroke="#c9796b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="250" y1="280" x2="642" y2="280" stroke="#70433e" stroke-width="4"/>
+
+          <g class="windows" transform="translate(320 315)" fill="#b5d5dc" stroke="#f0e6cb" stroke-width="8">
+            <g transform="translate(0 0)">
+              <rect width="82" height="72"/>
+              <path d="M41 0V72M0 36H82" fill="none" stroke="#e8e4d2" stroke-width="5"/>
+            </g>
+            <g transform="translate(185 0)">
+              <rect width="82" height="72"/>
+              <path d="M41 0V72M0 36H82" fill="none" stroke="#e8e4d2" stroke-width="5"/>
+            </g>
+          </g>
+          <rect x="405" y="397" width="86" height="118" fill="#e8e2ce" stroke="#9a8065" stroke-width="4"/>
+          <circle cx="475" cy="457" r="5" fill="#514a3e"/>
+
+          <g class="coord-layer" font-family="'DM Mono', monospace" font-size="12" fill="#1d342e">
+            <rect width="900" height="650" fill="url(#grid)"/>
+            <path d="M0 620H900M25 0V650" fill="none" stroke="#1d342e" stroke-opacity=".68" stroke-width="1.5"/>
+            <g fill="#1d342e" font-size="11">
+              <text x="35" y="614">(0,0) upper-left</text>
+              <text x="400" y="614">x increases right</text>
+              <text x="30" y="25">y increases down</text>
+            </g>
+            <g stroke="#c94e36" stroke-width="1.5" fill="#c94e36">
+              <path d="M758 92h45l24-41" fill="none"/><circle cx="758" cy="92" r="3"/>
+              <path d="M446 115v-48h38" fill="none"/><circle cx="446" cy="115" r="3"/>
+              <path d="M282 270h-63l-20 18" fill="none"/><circle cx="282" cy="270" r="3"/>
+              <path d="M320 315h-78v40" fill="none"/><circle cx="320" cy="315" r="3"/>
+              <path d="M220 526l-43 38" fill="none"/><circle cx="220" cy="526" r="3"/>
+              <path d="M447 516l48 42" fill="none"/><circle cx="447" cy="516" r="3"/>
+              <path d="M250 280l-48-51" fill="none"/><circle cx="250" cy="280" r="3"/>
+            </g>
+            <g fill="#1d342e" font-size="10" font-weight="500">
+              <text x="830" y="48">circle (758,92)</text>
+              <text x="486" y="67">polygon (446,115)</text>
+              <text x="130" y="291">rect (282,270)</text>
+              <text x="154" y="366">g translate (320,315)</text>
+              <text x="111" y="576">ellipse (220,526)</text>
+              <text x="500" y="569">path starts (447,516)</text>
+              <text x="62" y="211">polyline (267,273)</text>
+              <text x="450" y="294">line (250,280) to (642,280)</text>
+              <text x="30" y="43">text starts (25,30)</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <figcaption><span>FIG. 01 / COTTAGE BETWEEN TWO GARDEN TREES</span><span>VIEWBOX 0 0 900 650</span></figcaption>
+    </figure>
+
+    <div class="legend" role="group" aria-label="SVG primitive key">
+      <span><i class="svg-dot"></i> rect · circle · ellipse</span>
+      <span><i></i> polygon · polyline · path</span>
+      <span><i class="svg-dot"></i> line · text · g</span>
+      <span><i></i> all coordinates in viewBox units</span>
+    </div>
+
+    <section class="notes" aria-label="Coordinate and DOM notes">
+      <div>
+        <p class="eyebrow">02 — Reading the drawing</p>
+        <h2>Coordinates, made visible.</h2>
+        <p>The viewBox is 900 units wide by 650 high. Its origin sits at the upper-left; x increases to the right and y increases down. The grid is only a guide, not extra artwork.</p>
+        <ul class="coord-list">
+          <li><code>circle</code><span><strong>Sun:</strong> centre <code>(758,92)</code>, radius <code>46</code>.</span></li>
+          <li><code>polygon</code><span><strong>Roof:</strong> apex <code>(446,115)</code>; base corners <code>(250,280)</code> and <code>(642,280)</code>.</span></li>
+          <li><code>rect</code><span><strong>House:</strong> top-left <code>(282,270)</code>, width <code>328</code>, height <code>245</code>.</span></li>
+          <li><code>g + translate</code><span><strong>Windows:</strong> group starts <code>(320,315)</code>; second window translates <code>185</code> units.</span></li>
+          <li><code>ellipse</code><span><strong>Tree shadow:</strong> centre <code>(220,526)</code>, radii <code>64 × 19</code>.</span></li>
+          <li><code>line</code><span><strong>Eave:</strong> from <code>(250,280)</code> to <code>(642,280)</code>.</span></li>
+          <li><code>polyline</code><span><strong>Roof highlight:</strong> points <code>(267,273) (446,125) (625,273)</code>.</span></li>
+          <li><code>path</code><span><strong>Garden path:</strong> starts at <code>(447,516)</code> and curves to the bottom edge.</span></li>
+          <li><code>text</code><span><strong>Coordinate label:</strong> guide text begins at <code>(30,25)</code>.</span></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="eyebrow">03 — One group, two windows</p>
+        <h2>Shared styling. Separate position.</h2>
+        <p>The parent group gives both windows the same fill and outline. Nested groups use local translations, so each window can be positioned without repeating its pane styling.</p>
+            <pre class="dom-snippet"><code>&lt;g class="windows" transform="translate(320 315)"&gt;
+  &lt;g transform="translate(0 0)"&gt;...window...&lt;/g&gt;
+          &lt;g transform="translate(185 0)"&gt;...window...&lt;/g&gt;
+&lt;/g&gt;</code></pre>
+        <p class="dom-caption">Inspect the live SVG in your browser’s Elements panel to follow these groups and their child shapes in the DOM.</p>
+      </div>
+    </section>
+
+    <div class="footer">
+      <span>SVG PRIMITIVES / COORDINATE SYSTEM / GROUPS</span>
+      <span>COS30045 · WEEK 04</span>
+      <span>AI ASSISTANCE: GITHUB COPILOT</span>
+    </div>
+  </main>
+  <script>
+    const toggle = document.querySelector('#coordinate-toggle');
+    const label = toggle.querySelector('.button-label');
+
+    toggle.addEventListener('click', () => {
+      const enabled = toggle.getAttribute('aria-pressed') !== 'true';
+      toggle.setAttribute('aria-pressed', String(enabled));
+      label.textContent = enabled ? 'Hide coordinate guides' : 'Show coordinate guides';
+      document.body.classList.toggle('show-coordinates', enabled);
+    });
+  </script>
+</body>
+</html>
