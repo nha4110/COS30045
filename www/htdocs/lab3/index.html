@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Appliance Energy Data Story</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-link">
+                <img src="assets/img/PowerIcon.png" alt="Power Logo" class="nav-logo">
+                <span class="site-title">EnergySense AU</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="televisions.html">Televisions Data Story</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero">
+            <h1>Australian Television Energy Consumption Story</h1>
+            <p>Helping Australian households make energy-smart television purchasing choices.</p>
+        </section>
+
+        <!-- Executive Summary / Story Introduction -->
+        <section class="content-section">
+            <h2>Executive Summary</h2>
+            <p>
+                With rising electricity prices across Australian states, consumer home entertainment electronics contribute heavily to quarterly power bills. This project presents an empirical data story analyzing the energy efficiency, screen dimensions, brand market distribution, and display panel technologies across televisions available in the Australian market.
+            </p>
+            <p>
+                By exploring government Energy Rating label datasets through KNIME analytics and web visualisations, Australian buyers can evaluate the long-term running costs before committing to a purchase.
+            </p>
+        </section>
+
+        <!-- Interactive FAQ Accordion -->
+        <section class="content-section faq-section">
+            <h2>Frequently Asked Questions (FAQ)</h2>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button type="button" class="accordion-header" aria-expanded="false">
+                        <span>How is annual TV energy cost calculated in Australia?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Annual running cost is calculated using the official Energy Rating Label metric: multiplying labelled annual energy consumption (kWh/year) by your regional electricity tariff rate (e.g., 30.0 cents per kWh).</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button type="button" class="accordion-header" aria-expanded="false">
+                        <span>Does screen size impact electricity draw more than display technology?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Yes. Data reveals that physical screen size is the single largest factor driving kilowatt-hour consumption. However, OLED and LCD LED technologies show notable efficiency differences within identical size categories.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button type="button" class="accordion-header" aria-expanded="false">
+                        <span>Where does the underlying television energy data come from?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Data is published directly by the Australian Government Equipment Energy Efficiency (E3) Program (energyrating.gov.au).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>&copy; <span id="current-year"></span> Lữ Nhật Hoàng (ID: 105234956) | Bachelor of Computer Science - Software Development</p>
+            <p class="ai-ack">Developed with design concept and layout assistance from Generative AI tools.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

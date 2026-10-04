@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Data Methodology And Ethics</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-link">
+                <img src="assets/img/PowerIcon.png" alt="Power Logo" class="nav-logo">
+                <span class="site-title">EnergySense AU</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="televisions.html">Televisions Data Story</a></li>
+                    <li><a href="about.html" class="active">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero">
+            <h1>About This Project</h1>
+            <p>Unit context, data processing methodology, and governance ethics.</p>
+        </section>
+
+        <section class="content-section">
+            <h2>Project Overview &amp; Educational Context</h2>
+            <p>
+                This web application was developed for <strong>Exercise 3: Communicating Data Insights</strong> in COS30045 Data Visualisation at Swinburne University of Technology. It combines front-end technology foundations (HTML5, CSS, vanilla JS) with backend data wrangling executed in KNIME Analytics Platform.
+            </p>
+        </section>
+
+        <section class="content-section">
+            <h2>About the Data</h2>
+            <ul class="styled-list">
+                <li><strong>Data Source:</strong> Official Australian Government Equipment Energy Efficiency (E3) Program dataset (energyrating.gov.au).</li>
+                <li><strong>Data Processing:</strong> Cleaned string variations, filtered non-Australian/unavailable models, converted centimeters to inches, and aggregated energy metrics using KNIME Analytics Platform.</li>
+                <li><strong>Privacy &amp; Ethics:</strong> All data consists strictly of public government product appliance specifications. No personally identifiable information (PII) is involved.</li>
+                <li><strong>Accuracy &amp; Limitations:</strong> Energy values reflect standardized laboratory test conditions and labelled star ratings; actual home consumption varies based on screen brightness settings, user viewing hours, and HDR content usage.</li>
+            </ul>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>&copy; <span id="current-year"></span> Lữ Nhật Hoàng (ID: 105234956) | Bachelor of Computer Science - Software Development</p>
+            <p class="ai-ack">Developed with design concept and layout assistance from Generative AI tools.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

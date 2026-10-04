@@ -8,7 +8,7 @@
      - Background:     #f4f6f8 (Off-White/Cool Grey)
    ========================================================================== */
 
-/* --- CSS Reset & Global Base --- */
+/* --- CSS Reset & Base Setup --- */
 * {
     margin: 0;
     padding: 0;
@@ -25,7 +25,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- Navigation Bar --- */
+/* --- Sticky Top Navigation Bar --- */
 .navbar {
     background-color: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -79,7 +79,6 @@ body {
     transition: all 0.2s ease-in-out;
 }
 
-/* Hover & Active States */
 .nav-links a:hover {
     color: #2e7d32;
     background-color: #e8f5e9;
@@ -90,7 +89,7 @@ body {
     background-color: #2e7d32;
 }
 
-/* --- Layout & Core Sections --- */
+/* --- Layout Structure & Hero Banner --- */
 .main-content {
     flex: 1;
     max-width: 1100px;
@@ -209,7 +208,7 @@ body {
     border-top: 1px solid #f0f0f0;
 }
 
-/* --- Interactive Appliance Energy Calculator --- */
+/* --- Interactive Energy Calculator Form --- */
 .calc-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -238,7 +237,7 @@ body {
     border: 1px solid #cccccc;
     border-radius: 6px;
     font-size: 1rem;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-group input:focus,
@@ -276,13 +275,14 @@ body {
     transform: scale(0.99);
 }
 
-/* --- Results Panel --- */
+/* --- Results Panel with Animated 2D Bar Transitions --- */
 .results-panel {
     margin-top: 2rem;
     padding: 1.5rem;
     background-color: #e8f5e9;
     border: 1px solid #c8e6c9;
     border-radius: 8px;
+    animation: fadeIn 0.4s ease-in-out;
 }
 
 .results-panel.hidden {
@@ -291,7 +291,7 @@ body {
 
 .results-panel h3 {
     color: #1b5e20;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     text-align: center;
 }
 
@@ -303,10 +303,15 @@ body {
 
 .result-box {
     background-color: #ffffff;
-    padding: 1rem;
-    border-radius: 6px;
+    padding: 1.25rem 1rem;
+    border-radius: 8px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease;
+}
+
+.result-box:hover {
+    transform: translateY(-2px);
 }
 
 .result-box.highlight {
@@ -319,17 +324,29 @@ body {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
-    opacity: 0.8;
+    margin-bottom: 0.4rem;
+    opacity: 0.85;
 }
 
 .result-value {
     display: block;
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 700;
 }
 
-/* --- Site Footer --- */
+/* --- Animated Keyframe for Calculator Results --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Footer --- */
 .site-footer {
     background-color: #1b5e20;
     color: #ffffff;
@@ -351,7 +368,7 @@ body {
     opacity: 0.75;
 }
 
-/* --- Responsive Adjustments --- */
+/* --- Responsive Layout Adjustments --- */
 @media (max-width: 768px) {
     .nav-container {
         flex-direction: column;

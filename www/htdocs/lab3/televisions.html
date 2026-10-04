@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Televisions Data Story - Appliance Energy Consumption</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-link">
+                <img src="assets/img/PowerIcon.png" alt="Power Logo" class="nav-logo">
+                <span class="site-title">EnergySense AU</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="televisions.html" class="active">Televisions Data Story</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero">
+            <h1>Television Energy Consumption Data Story</h1>
+            <p>An empirical analysis of market availability, screen sizes, and display technologies in Australia.</p>
+        </section>
+
+        <!-- Chapter 1: Market Availability & Brands -->
+        <section class="content-section">
+            <h2>Chapter 1: Brand Market Distribution in Australia</h2>
+            <p>
+                To understand consumer choice, we first examined which brands offer the highest number of television models currently available for sale in Australia.
+            </p>
+            <div class="visualisation-container">
+                <img src="assets/img/chart_brand_bar.png" alt="Bar chart showing TV model count by brand in Australia" class="chart-image">
+                <p class="caption">Figure 1.1: Total available television models per registered brand in the Australian retail market.</p>
+            </div>
+            <div class="visualisation-container">
+                <img src="assets/img/chart_brand_pie.png" alt="Pie chart showing market share proportion of top TV brands" class="chart-image">
+                <p class="caption">Figure 1.2: Market share breakdown highlighting dominant manufacturers alongside aggregate smaller brands.</p>
+            </div>
+            <p class="narrative">
+                <strong>Insight:</strong> Retail brands such as Eko, JVC, Blaupunkt, Bauhn, and Aiwa lead model diversity in retail stores, giving budget-conscious shoppers a vast array of choices.
+            </p>
+        </section>
+
+        <!-- Chapter 2: Screen Size vs Energy Consumption -->
+        <section class="content-section">
+            <h2>Chapter 2: Screen Size vs. Energy Consumption</h2>
+            <p>
+                Does opting for a larger television dramatically impact annual electricity draw? We analyzed continuous screen dimensions against labelled annual power consumption.
+            </p>
+            <div class="visualisation-container">
+                <img src="assets/img/chart_size_histogram.png" alt="Histogram showing frequency distribution of screen sizes" class="chart-image">
+                <p class="caption">Figure 2.1: Frequency distribution histogram of television screen dimensions available in market.</p>
+            </div>
+            <div class="visualisation-container">
+                <img src="assets/img/chart_size_scatter.png" alt="Scatter plot comparing screen size versus annual energy consumption" class="chart-image">
+                <p class="caption">Figure 2.2: Scatter plot of screen size (cm) versus labelled annual energy consumption (kWh/year).</p>
+            </div>
+            <p class="narrative">
+                <strong>Insight:</strong> As shown in Figure 2.2, there is a strong positive correlation between screen surface area and annual kilowatt-hour draw. Energy consumption rises non-linearly once screen sizes exceed 150 cm (~60 inches).
+            </p>
+        </section>
+
+        <!-- Chapter 3: Size Tiers & Panel Technology Comparison -->
+        <section class="content-section">
+            <h2>Chapter 3: Size Tiers &amp; Panel Technology Trade-offs</h2>
+            <p>
+                To provide actionable consumer guidance, televisions were categorized into Small (&lt;43"), Medium (44"–65"), and Large (&gt;66") tiers, cross-analyzed with display panel technologies (LCD, LCD LED, OLED).
+            </p>
+            <div class="visualisation-container">
+                <img src="assets/img/chart_size_category_bar.png" alt="Bar chart displaying mean energy consumption by size category" class="chart-image">
+                <p class="caption">Figure 3.1: Average annual energy consumption across Small, Medium, and Large screen size categories.</p>
+            </div>
+            <div class="visualisation-container">
+                <img src="assets/img/chart_tech_pivot_bar.png" alt="Grouped bar chart comparing screen technology energy draw across size categories" class="chart-image">
+                <p class="caption">Figure 3.2: Cross-tabulated bar chart comparing mean energy draw by Screen Technology across size tiers.</p>
+            </div>
+            <p class="narrative">
+                <strong>Insight:</strong> Large televisions average ~750 kWh/year compared to Medium (~400 kWh/year) and Small (~150 kWh/year). Furthermore, OLED display technology shows higher baseline power consumption in small/medium sizes due to self-emissive subpixel drive requirements.
+            </p>
+        </section>
+
+        <!-- Interactive Energy Calculator -->
+        <section class="content-section calculator-card">
+            <h2>Interactive Appliance Energy Calculator</h2>
+            <p>Estimate your home running costs using preset profiles or custom wattage inputs.</p>
+
+            <form id="energy-calculator" class="calc-form" novalidate>
+                <div class="form-group">
+                    <label for="appliance-preset">Select Television Preset (Optional):</label>
+                    <select id="appliance-preset">
+                        <option value="custom">-- Custom Input --</option>
+                        <option value="100">55&quot; LED TV (~100W)</option>
+                        <option value="160">65&quot; OLED TV (~160W)</option>
+                        <option value="230">75&quot; QLED 4K TV (~230W)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="appliance-watts">Appliance Power Rating (Watts):</label>
+                    <input type="number" id="appliance-watts" min="1" max="10000" placeholder="e.g. 150" required>
+                    <span class="error-msg" id="watts-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="daily-hours">Average Hours of Use Per Day:</label>
+                    <input type="number" id="daily-hours" min="0.1" max="24" step="0.5" placeholder="e.g. 5" required>
+                    <span class="error-msg" id="hours-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="electricity-rate">Electricity Rate (Cents per kWh):</label>
+                    <input type="number" id="electricity-rate" min="1" max="200" step="0.1" value="30.0" required>
+                    <span class="error-msg" id="rate-error"></span>
+                </div>
+
+                <button type="submit" class="btn-submit">Calculate Energy Consumption</button>
+            </form>
+
+            <!-- Results Panel -->
+            <div id="calculator-results" class="results-panel hidden" aria-live="polite">
+                <h3>Estimated Energy Usage &amp; Cost</h3>
+                <div class="results-grid">
+                    <div class="result-box">
+                        <span class="result-label">Daily Consumption</span>
+                        <span class="result-value" id="res-daily-kwh">0 kWh</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">Monthly Consumption</span>
+                        <span class="result-value" id="res-monthly-kwh">0 kWh</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">Yearly Consumption</span>
+                        <span class="result-value" id="res-yearly-kwh">0 kWh</span>
+                    </div>
+                    <div class="result-box highlight">
+                        <span class="result-label">Estimated Yearly Cost</span>
+                        <span class="result-value" id="res-yearly-cost">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>&copy; <span id="current-year"></span> Lữ Nhật Hoàng (ID: 105234956) | Bachelor of Computer Science - Software Development</p>
+            <p class="ai-ack">Developed with design concept and layout assistance from Generative AI tools.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
