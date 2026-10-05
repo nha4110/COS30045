@@ -1,266 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f3f4eb">
-  <title>Field Notes 04.2 — D3 in the DOM</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
-
-    :root {
-      color-scheme: light;
-      --paper: #f3f4eb;
-      --ink: #22342e;
-      --muted: #65746c;
-      --line: #d6dbcd;
-      --red: #c94e36;
-      --green: #3e7156;
-      --pale-green: #dce9dd;
-      --serif: "Fraunces", Georgia, serif;
-      --sans: "DM Sans", sans-serif;
-      --mono: "DM Mono", monospace;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--paper);
-      color: var(--ink);
-      font-family: var(--sans);
-    }
-
-    .page {
-      width: min(1000px, calc(100% - 48px));
-      margin: 0 auto;
-      padding: 30px 0 48px;
-    }
-
-    .topline, .footer, .figure-caption {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .topline {
-      min-height: 38px;
-      border-bottom: 1px solid var(--line);
-      font: 11px var(--mono);
-      text-transform: uppercase;
-    }
-
-    .course, .figure-caption { color: var(--muted); }
-
-    header { padding: 44px 0 30px; }
-
-    .eyebrow {
-      margin: 0 0 10px;
-      color: var(--red);
-      font: 11px var(--mono);
-      text-transform: uppercase;
-    }
-
-    h1 {
-      max-width: 760px;
-      margin: 0;
-      font: 600 clamp(38px, 6vw, 68px)/1.02 var(--serif);
-      letter-spacing: 0;
-    }
-
-    .intro {
-      max-width: 660px;
-      margin: 16px 0 0;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .section-heading {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 13px 0;
-      border-top: 1px solid var(--line);
-      font: 11px var(--mono);
-      text-transform: uppercase;
-    }
-
-    h2 {
-      margin: 0;
-      font: 500 25px/1.2 var(--serif);
-      letter-spacing: 0;
-      text-transform: none;
-    }
-
-    .number { color: var(--red); }
-
-    .dom-demo {
-      padding: 22px 24px;
-      border: 1px solid var(--line);
-      background: #e8ebdf;
-    }
-
-    .dom-demo p {
-      max-width: 680px;
-      margin: 0;
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .dom-demo p + p {
-      margin-top: 13px;
-      padding-top: 13px;
-      border-top: 1px solid #cfd6c7;
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    .visualization { margin: 32px 0 0; }
-
-    .svg-frame {
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: var(--pale-green);
-    }
-
-    .svg-frame svg { display: block; width: 100%; height: auto; }
-
-    .figure-caption {
-      padding: 10px 2px 0;
-      font: 10px var(--mono);
-      text-transform: uppercase;
-    }
-
-    .lessons {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 28px;
-      padding: 31px 0;
-      margin-top: 28px;
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .lesson h3 {
-      margin: 0 0 10px;
-      font: 500 18px/1.2 var(--serif);
-    }
-
-    .lesson p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.65;
-    }
-
-    pre {
-      overflow-x: auto;
-      margin: 13px 0 0;
-      padding: 12px 13px;
-      border-left: 2px solid var(--green);
-      background: #e8ebdf;
-      color: #314b3d;
-      font: 10px/1.7 var(--mono);
-      white-space: pre;
-    }
-
-    code { color: var(--red); font: 10px var(--mono); }
-
-    .footer {
-      padding-top: 14px;
-      color: var(--muted);
-      font: 10px var(--mono);
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 700px) {
-      .page { width: min(100% - 30px, 560px); padding-top: 17px; }
-      header { padding: 34px 0 25px; }
-      .intro { font-size: 14px; }
-      .lessons { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 24px 0; }
-      .section-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
-      .figure-caption { align-items: flex-start; flex-direction: column; gap: 5px; }
-      .topline, .footer { font-size: 9px; }
-      .footer { align-items: flex-start; flex-direction: column; gap: 6px; }
-      .dom-demo { padding: 18px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Appliance Energy Consumption</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-  <main class="page">
-    <div class="topline">
-      <span>COS30045 / Data Visualisation</span>
-      <span class="course">Studio exercise · Week 04</span>
-    </div>
 
-    <header>
-      <p class="eyebrow">Exercise 4.2 / D3 selections</p>
-      <h1>D3 reaches into the page.</h1>
-      <p class="intro">Selections let D3 change existing HTML and build new elements in the document. Here, one small energy-consumption page shows three moves: style a heading, append a paragraph, and draw a rectangle in SVG.</p>
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-link">
+                <img src="assets/img/PowerIcon.png" alt="Power Logo" class="nav-logo">
+                <span class="site-title">EnergySense AU</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="televisions.html">Televisions</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <section aria-labelledby="html-heading">
-      <div class="section-heading">
-        <span class="number">01 — Change and append HTML</span>
-        <h2 id="html-heading">A message for the household</h2>
-      </div>
-      <div class="dom-demo" id="energy-note">
-        <p>This paragraph was already part of the HTML document.</p>
-      </div>
-    </section>
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero">
+            <h1>Appliance Energy Consumption in Australia</h1>
+            <p>Understanding household energy usage to save money and reduce carbon emissions.</p>
+        </section>
 
-    <figure class="visualization" aria-labelledby="svg-caption">
-      <div class="section-heading">
-        <span class="number">02 — Append an SVG shape</span>
-        <h2>A rectangle in the DOM</h2>
-      </div>
-      <div class="svg-frame">
-        <svg id="energy-visual" viewBox="0 0 640 130" role="img" aria-labelledby="svg-title svg-desc" xmlns="http://www.w3.org/2000/svg">
-          <title id="svg-title">A green rectangle added with D3</title>
-          <desc id="svg-desc">A green rectangle positioned 50 units from the top and left of the SVG.</desc>
-        </svg>
-      </div>
-      <figcaption class="figure-caption" id="svg-caption">
-        <span>FIG. 01 / SVG RECTANGLE</span>
-        <span>x 50 · y 50 · width 100 · height 30</span>
-      </figcaption>
-    </figure>
+        <section class="content-section">
+            <h2>Understanding Household Energy Usage</h2>
+            <p>
+                In Australian homes, household appliances account for a significant portion of overall electricity consumption and energy bills. As electricity tariffs fluctuate across different states, understanding the wattage and operational hours of major home appliances such as televisions, refrigerators, and air conditioners is crucial for efficient energy management.
+            </p>
+            <p>
+                By making informed purchasing choices and choosing higher Energy Rating Label appliances, Australian consumers can significantly lower their annual grid energy costs and environmental footprint.
+            </p>
+            <div id="energy-note">
+                <p>Efficient appliances can reduce household energy use.</p>
+            </div>
+            <svg id="energy-visual" width="640" height="130" viewBox="0 0 640 130" role="img" aria-label="Energy use represented by a green rectangle" ></svg>
+        </section>
 
-    <section class="lessons" aria-label="D3 operations">
-      <article class="lesson">
-        <h3>1. Select and style</h3>
-        <p>The heading is selected and its text color is changed with D3.</p>
-        <pre><code>d3.select("h1")
-  .style("color", "#3e7156");</code></pre>
-      </article>
-      <article class="lesson">
-        <h3>2. Append a paragraph</h3>
-        <p>A new paragraph is added at the end of the existing container.</p>
-        <pre><code>d3.select("#energy-note")
-  .append("p")
-        .text("Purchasing a low energy consumption TV will help with your energy bills!");</code></pre>
-      </article>
-      <article class="lesson">
-        <h3>3. Append an SVG rect</h3>
-        <p>SVG attributes define its position and size; a style makes it visible.</p>
-        <pre><code>d3.select("#energy-visual")
-  .append("rect")
-        .attr("x", 50).attr("y", 50)
-        .attr("width", 100).attr("height", 30)
-        .style("fill", "#3e7156");</code></pre>
-      </article>
-    </section>
+        <!-- FAQ Section -->
+        <section class="content-section faq-section">
+            <h2>Frequently Asked Questions (FAQ)</h2>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button type="button" class="accordion-header" aria-expanded="false">
+                        <span>How is appliance energy cost calculated in Australia?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Energy cost is calculated by multiplying the power rating of the appliance (in kilowatts, kW) by the number of hours used, and then multiplying that total by your local electricity tariff rate (cents per kWh).</p>
+                    </div>
+                </div>
 
-    <div class="footer">
-      <span>SELECT / STYLE / APPEND</span>
-      <span>COS30045 · WEEK 04</span>
-      <span>D3.JS V7</span>
-    </div>
-  </main>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="js/main.js"></script>
+                <div class="accordion-item">
+                    <button type="button" class="accordion-header" aria-expanded="false">
+                        <span>What is the Energy Rating Label scheme?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>The Energy Rating Label is an Australian Government initiative that allows consumers to compare the energy efficiency and running costs of appliances before purchasing.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button type="button" class="accordion-header" aria-expanded="false">
+                        <span>Which household appliances consume the most electricity?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Space heating and cooling generally consume the most power, followed by water heaters, refrigerators, laundry appliances, and home entertainment devices like televisions and gaming consoles.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>&copy; <span id="current-year"></span> Lữ Nhật Hoàng (ID: 105234956) | Bachelor of Computer Science - Software Development</p>
+            <p class="ai-ack">Developed with design concept and layout assistance from Generative AI tools.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="assets/js/d3-exercise.js"></script>
 </body>
 </html>
