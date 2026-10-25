@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise 5.3 - Donut Chart</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <main class="page-container">
+        <section class="chart-section" aria-label="TV energy consumption by screen type">
+            <div
+                id="bar-chart"
+                class="responsive-svg-container"
+                role="img"
+                aria-label="Vertical bar chart comparing annual energy consumption across TV screen types">
+            </div>
+        </section>
+        <section class="chart-section" aria-label="Australian electricity prices over time">
+            <div
+                id="line-chart"
+                class="responsive-svg-container"
+                role="img"
+                aria-label="Scatter plot and line chart of average Australian electricity spot prices from 1998 to 2024">
+            </div>
+        </section>
+        <section class="chart-section" aria-label="Australian annual average electricity prices">
+            <div
+                id="average-price-chart"
+                class="responsive-svg-container"
+                role="img"
+                aria-label="Step area chart of average Australian electricity spot prices by year from 1998 to 2024">
+            </div>
+        </section>
+        <section class="chart-section" aria-label="TV models by screen size">
+            <div
+                id="donut-chart"
+                class="responsive-svg-container"
+                role="img"
+                aria-label="Donut chart showing counts and proportions of small, medium, and large TV models">
+            </div>
+        </section>
+    </main>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="assets/js/bar-chart.js"></script>
+    <script src="assets/js/line-chart.js"></script>
+    <script src="assets/js/average-price-chart.js"></script>
+    <script src="assets/js/donut-chart.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise 6.1 - TV Energy Consumption Histogram</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/visualisation.css">
+</head>
+<body>
+    <main class="page-container">
+        <h1>TV Energy Consumption</h1>
+        <section class="chart-section" aria-label="TV energy consumption frequency histogram">
+            <div
+                id="histogram"
+                class="visualisation-container"
+                role="img"
+                aria-label="Histogram showing the frequency of TV energy consumption in 200 kilowatt-hour bins">
+            </div>
+        </section>
+    </main>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="js/load-data.js"></script>
+    <script src="js/shared-constants.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/histogram.js"></script>
+</body>
+</html>

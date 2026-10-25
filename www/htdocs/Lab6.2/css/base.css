@@ -1,0 +1,116 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #fff;
+    color: #222;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.page-container {
+    width: min(100%, 1000px);
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+h1 {
+    margin: 0 0 1rem;
+    font-size: 1.4rem;
+}
+
+.chart-section {
+    width: 100%;
+}
+
+.filter-section {
+    margin-bottom: 1rem;
+}
+
+.filter-section h2 {
+    margin: 0 0 0.65rem;
+    font-size: 1rem;
+}
+
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.filter-button {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid #626767;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.filter-button:hover {
+    border-color: #1d5b83;
+}
+
+.filter-button.is-active {
+    border-color: #1d5b83;
+    background: #1d5b83;
+    color: #fff;
+}
+
+.filter-button:focus-visible {
+    outline: 3px solid #87bde0;
+    outline-offset: 2px;
+}
+
+.filter-status {
+    min-height: 1.25em;
+    margin: 0.65rem 0 0;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.size-filter-section {
+    margin-top: 0.75rem;
+}
+
+.size-filter-section .filter-controls {
+    gap: 0.65rem;
+}
+
+.size-filter-button {
+    min-width: 7.2rem;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 5px;
+    background: #d96512;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 700;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.size-filter-button:hover {
+    background: #bf570d;
+}
+
+.size-filter-button.is-active {
+    background: #ffc86e;
+    color: #fff;
+}
+
+.size-filter-button:focus-visible {
+    outline-color: #8b470e;
+}
+
+.visualisation-container {
+    width: 100%;
+}
+
+.visualisation-container svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
