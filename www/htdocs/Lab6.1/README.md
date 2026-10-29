@@ -1,12 +1,19 @@
-# Exercise 6.1: Histogram
+# 6.1
 
-This folder contains a D3 histogram of TV energy consumption.
+## File structure
 
-## Structure
-
-- `css/` contains the page and visualization styles.
-- `data/Ex6_TVdata_withStar.csv` contains the TV dataset.
-- `js/` contains the data loader, shared chart configuration, interactions, and histogram.
-- `index.html` loads the styles and scripts in dependency order.
-
-Open `index.html` through a local web server so D3 can load the CSV file.
+```text
+Lab6.1/
+├── README.md
+├── index.html
+├── css/
+│   ├── base.css
+│   └── visualisation.css
+├── data/
+│   └── Ex6_TVdata_withStar.csv
+└── js/
+    ├── histogram.js
+    ├── interactions.js
+    ├── load-data.js
+    └── shared-constants.js
+```
