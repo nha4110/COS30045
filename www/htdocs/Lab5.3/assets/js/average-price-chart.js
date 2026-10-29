@@ -38,7 +38,7 @@
             .attr("x", -25)
             .attr("y", -12)
             .style("font-size", "11px")
-            .text("Average Price ($ per mWh)");
+            .text("Average Price ($ per MWh)");
 
         const areaGenerator = d3.area()
             .x(d => xScale(d.year))
@@ -52,13 +52,13 @@
 
         innerChart.append("path")
             .datum(data)
-            .attr("fill", "#d7ead5")
+            .attr("fill", "#d8eee6")
             .attr("d", areaGenerator);
 
         innerChart.append("path")
             .datum(data)
             .attr("fill", "none")
-            .attr("stroke", "green")
+            .attr("stroke", "#147d70")
             .attr("stroke-width", 1)
             .attr("d", lineGenerator);
 
@@ -69,19 +69,19 @@
             .attr("r", 2.8)
             .attr("cx", d => xScale(d.year))
             .attr("cy", d => yScale(d.averagePrice))
-            .attr("fill", "green");
+            .attr("fill", "#147d70");
 
         innerChart.append("circle")
             .attr("cx", width + 10)
             .attr("cy", 20)
             .attr("r", 2.8)
-            .attr("fill", "green");
+            .attr("fill", "#147d70");
 
         innerChart.append("text")
             .attr("x", width + 18)
             .attr("y", 23)
-            .attr("fill", "green")
+            .attr("fill", "#147d70")
             .style("font-size", "11px")
-            .text("Average Price ($ per mWh)");
+            .text("Average Price ($ per MWh)");
     };
 })();

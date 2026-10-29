@@ -3,37 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercise 6.4 - TV Scatterplot Tooltips</title>
+    <title>Lab 6.4 | Television Energy Explorer</title>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/visualisation.css">
 </head>
 <body>
     <main class="page-container">
-        <h1>TV Energy Consumption by Star Rating</h1>
-        <section class="filter-section" aria-label="Filter TVs by screen technology">
-            <h2>Screen technology</h2>
-            <div id="filters_screen" class="filter-controls"></div>
-            <p id="filter-status" class="filter-status" aria-live="polite"></p>
-        </section>
-        <section class="chart-section" aria-label="TV energy consumption frequency histogram">
-            <div
-                id="histogram"
-                class="visualisation-container"
-                role="img"
-                aria-label="Histogram showing the frequency of TV energy consumption in 200 kilowatt-hour bins">
+        <header class="page-header">
+            <p class="eyebrow"><span class="eyebrow-mark"></span>Data fieldnotes <span>/</span> Lab 6.4</p>
+            <h1>Television energy, explored</h1>
+            <p class="page-intro">Explore how annual energy use is distributed across TV models, then compare consumption with star ratings, screen technology, and size.</p>
+            <div class="header-meta">
+                <span>Interactive dataset</span>
+                <span>Energy in kWh/year</span>
+                <span>Filters update both charts</span>
+            </div>
+        </header>
+
+        <section class="chart-section" aria-labelledby="distribution-title">
+            <div class="chart-heading">
+                <p class="chart-index">01 <span>/</span> Consumption distribution</p>
+                <h2 id="distribution-title">How much energy do TV models use?</h2>
+                <p>Each bar counts models within a 200 kWh/year range. The shape reveals the most common consumption bands and the spread toward higher-use models.</p>
+            </div>
+            <section class="filter-section" aria-label="Filter TVs by screen technology">
+                <h3>Screen technology</h3>
+                <div id="filters_screen" class="filter-controls"></div>
+                <p id="filter-status" class="filter-status" aria-live="polite"></p>
+            </section>
+            <div class="visualisation-frame">
+                <div
+                    id="histogram"
+                    class="visualisation-container"
+                    role="img"
+                    aria-label="Histogram showing the frequency of TV energy consumption in 200 kilowatt-hour bins">
+                </div>
+            </div>
+            <div class="chart-note">
+                <p><span class="note-label">How to read it</span> Taller bars mean more models fall in that energy range. Hover over or focus a bar to see its exact count.</p>
+                <p class="source-line">Source: TV model dataset · Annual labelled energy consumption · 200 kWh/year bins</p>
             </div>
         </section>
-        <section class="filter-section size-filter-section" aria-label="Filter TVs by screen size">
-            <h2>Screen size</h2>
-            <div id="filters_size" class="filter-controls"></div>
-        </section>
-        <section class="chart-section" aria-label="TV energy consumption by star rating">
-            <h2>Energy consumption by star rating</h2>
-            <div
-                id="scatterplot"
-                class="visualisation-container"
-                role="img"
-                aria-label="Scatterplot of TV energy consumption by star rating, colored by screen technology">
+
+        <section class="chart-section" aria-labelledby="rating-title">
+            <div class="chart-heading">
+                <p class="chart-index">02 <span>/</span> Ratings and consumption</p>
+                <h2 id="rating-title">Energy use by star rating</h2>
+                <p>Each point represents a TV model. Compare the ratings along the horizontal axis with annual energy use on the vertical axis; color identifies screen technology.</p>
+            </div>
+            <section class="filter-section size-filter-section" aria-label="Filter TVs by screen size">
+                <h3>Screen size</h3>
+                <div id="filters_size" class="filter-controls"></div>
+            </section>
+            <div class="visualisation-frame">
+                <div
+                    id="scatterplot"
+                    class="visualisation-container"
+                    role="img"
+                    aria-label="Scatterplot of TV energy consumption by star rating, colored by screen technology">
+                </div>
+            </div>
+            <div class="chart-note">
+                <p><span class="note-label">What to compare</span> Look across points at similar ratings to see how screen technology and size relate to different levels of annual use. Hover or focus a point to reveal its screen size.</p>
+                <p class="source-line">Source: TV model dataset · Each point is one model · Filters combine across both charts</p>
             </div>
         </section>
     </main>

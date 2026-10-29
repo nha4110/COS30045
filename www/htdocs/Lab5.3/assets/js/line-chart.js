@@ -56,7 +56,7 @@
             .attr("r", 3)
             .attr("cx", d => xScale(d.year))
             .attr("cy", d => yScale(d.averagePrice))
-            .attr("fill", "steelblue");
+            .attr("fill", "#147d70");
 
         const lineGenerator = d3.line()
             .x(d => xScale(d.year))
@@ -65,7 +65,7 @@
         innerChart.append("path")
             .datum(data)
             .attr("fill", "none")
-            .attr("stroke", "steelblue")
+            .attr("stroke", "#147d70")
             .attr("stroke-width", 2)
             .attr("d", lineGenerator);
     };

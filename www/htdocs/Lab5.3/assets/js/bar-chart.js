@@ -54,7 +54,7 @@ const drawBarChart = data => {
         .attr("y", d => yScale(d.energy))
         .attr("width", xScale.bandwidth())
         .attr("height", d => height - yScale(d.energy))
-        .attr("fill", "green");
+        .attr("fill", "#147d70");
 
     innerChart.selectAll(".value-label")
         .data(data)

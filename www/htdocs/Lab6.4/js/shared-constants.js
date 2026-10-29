@@ -2,9 +2,9 @@ window.histogramConfig = {
     svgWidth: 900,
     svgHeight: 450,
     margin: { top: 35, right: 30, bottom: 65, left: 60 },
-    bodyBackgroundColor: "#fffaf0",
-    barColor: "#626767",
-    highlightColor: "#1d5b83",
+    bodyBackgroundColor: "#ffffff",
+    barColor: "#147d70",
+    highlightColor: "#e8785d",
     filters: [
         { id: "all", label: "All", isActive: true },
         { id: "LCD", label: "LCD", isActive: false },
