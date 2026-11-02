@@ -99,23 +99,82 @@
         });
     }
 
-    function ringPath(ring, arcs, project) {
+    function ringCoordinates(ring, arcs) {
         const points = [];
         ring.forEach((arcId, index) => {
             const arc = arcs[arcId < 0 ? ~arcId : arcId];
             const sequence = arcId < 0 ? [...arc].reverse() : arc;
             points.push(...(index ? sequence.slice(1) : sequence));
         });
-        if (!points.length) return "";
-        return `M${points.map(point => {
-            const [x, y] = project(point);
-            return `${x.toFixed(1)},${y.toFixed(1)}`;
-        }).join("L")}Z`;
+        if (points.length > 1) {
+            const first = points[0];
+            const last = points[points.length - 1];
+            if (Math.abs(first[1] - last[1]) < 1e-6 &&
+                (Math.abs(first[0] - last[0]) < 1e-6 || Math.abs(Math.abs(first[0] - last[0]) - 360) < 1e-6)) {
+                points.pop();
+            }
+        }
+        return points;
     }
 
-    function geometryPath(geometry, arcs, project) {
+    function unwrapRing(points) {
+        const unwrapped = [];
+        points.forEach((point, index) => {
+            if (!index) {
+                unwrapped.push(point);
+                return;
+            }
+            const previousLongitude = unwrapped[index - 1][0];
+            const longitude = point[0] + 360 * Math.round((previousLongitude - point[0]) / 360);
+            unwrapped.push([longitude, point[1]]);
+        });
+        return unwrapped;
+    }
+
+    function clipRingToWorld(points) {
+        let clipped = points;
+        [-180, 180].forEach(boundary => {
+            const keepGreater = boundary === -180;
+            const output = [];
+            for (let index = 0; index < clipped.length; index += 1) {
+                const current = clipped[index];
+                const previous = clipped[(index + clipped.length - 1) % clipped.length];
+                const currentInside = keepGreater ? current[0] >= boundary : current[0] <= boundary;
+                const previousInside = keepGreater ? previous[0] >= boundary : previous[0] <= boundary;
+                if (currentInside !== previousInside) {
+                    const fraction = (boundary - previous[0]) / (current[0] - previous[0]);
+                    output.push([boundary, previous[1] + fraction * (current[1] - previous[1])]);
+                }
+                if (currentInside) output.push(current);
+            }
+            clipped = output;
+        });
+        return clipped;
+    }
+
+    function ringPath(ring, arcs, project, antarctica) {
+        const points = ringCoordinates(ring, arcs);
+        const crossesDateline = points.some((point, index) =>
+            Math.abs(points[(index + 1) % points.length][0] - point[0]) > 180
+        );
+        const antarcticaCap = antarctica && crossesDateline;
+        const continuous = antarcticaCap ? points : unwrapRing(points);
+        const pathParts = [];
+        const shifts = crossesDateline && !antarcticaCap ? [-360, 0, 360] : [0];
+        shifts.forEach(shift => {
+            const shifted = continuous.map(([longitude, latitude]) => [longitude + shift, latitude]);
+            const clipped = antarcticaCap ? shifted : clipRingToWorld(shifted);
+            if (clipped.length < 3) return;
+            const copy = clipped.map(point => project(point));
+            if (antarcticaCap) copy.push(project([180 + shift, -90]), project([-180 + shift, -90]));
+            pathParts.push(`M${copy.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join("L")}Z`);
+        });
+        return pathParts.join("");
+    }
+
+    function geometryPath(geometry, arcs, project, isAntarctica) {
         const polygons = geometry.type === "Polygon" ? [geometry.arcs] : geometry.arcs;
-        return polygons.map(polygon => polygon.map(ring => ringPath(ring, arcs, project)).join("")).join("");
+        return polygons.map(polygon => polygon.map(ring => ringPath(ring, arcs, project, isAntarctica)).join("")).join("");
     }
 
     function makeMapTooltip(path, map, item) {
@@ -238,16 +297,47 @@
     }
 
     function projectPoint([longitude, latitude]) {
-        return [(longitude + 180) / 360 * mapWidth, (90 - latitude) / 180 * mapHeight];
+        const radians = Math.PI / 180;
+        const lambda = longitude * radians;
+        const phi = latitude * radians;
+        const phi2 = phi * phi;
+        const phi4 = phi2 * phi2;
+        const phi6 = phi4 * phi2;
+        const phi8 = phi4 * phi4;
+        const phi10 = phi8 * phi2;
+        const phi12 = phi6 * phi6;
+        const xFactor = 0.8707 + phi12 * (-0.013791 + phi2 * (0.003971 * phi2 - 0.001529 * phi4)) - 0.131979 * phi2;
+        const yFactor = 1.007226 + phi2 * (0.015085 + phi4 * (-0.044475 + 0.028874 * phi2 - 0.005916 * phi4));
+        const maxY = Math.PI / 2 * (1.007226 + Math.PI ** 2 / 4 * (
+            0.015085 + (Math.PI ** 4 / 16) * (-0.044475 + 0.028874 * Math.PI ** 2 / 4 - 0.005916 * Math.PI ** 4 / 16)
+        ));
+        return [
+            mapWidth / 2 + lambda * xFactor * mapWidth / (2 * Math.PI * 0.8707),
+            mapHeight / 2 - phi * yFactor * mapHeight / (2 * maxY)
+        ];
     }
 
     function setMapRegion(region) {
         if (!regions[region] || !mapSvg) return;
-        const [minLongitude, minLatitude, maxLongitude, maxLatitude] = regions[region].bounds;
-        const [left, top] = projectPoint([minLongitude, maxLatitude]);
-        const [right, bottom] = projectPoint([maxLongitude, minLatitude]);
-        const padding = region === "world" ? 0 : 12;
-        mapSvg.setAttribute("viewBox", `${left - padding} ${top - padding} ${right - left + padding * 2} ${bottom - top + padding * 2}`);
+        if (region === "world") {
+            mapSvg.setAttribute("viewBox", `0 0 ${mapWidth} ${mapHeight}`);
+        } else {
+            const [minLongitude, minLatitude, maxLongitude, maxLatitude] = regions[region].bounds;
+            const corners = [
+                projectPoint([minLongitude, minLatitude]),
+                projectPoint([minLongitude, maxLatitude]),
+                projectPoint([maxLongitude, minLatitude]),
+                projectPoint([maxLongitude, maxLatitude])
+            ];
+            const xs = corners.map(point => point[0]);
+            const ys = corners.map(point => point[1]);
+            const padding = 12;
+            const left = Math.min(...xs) - padding;
+            const top = Math.min(...ys) - padding;
+            const width = Math.max(...xs) - Math.min(...xs) + padding * 2;
+            const height = Math.max(...ys) - Math.min(...ys) + padding * 2;
+            mapSvg.setAttribute("viewBox", `${left} ${top} ${width} ${height}`);
+        }
         mapSvg.classList.toggle("regional-zoom", region !== "world");
         document.querySelectorAll(".region-button").forEach(button => {
             const active = button.dataset.region === region;
@@ -265,6 +355,13 @@
         const arcs = decodeArcs(topology);
         const project = projectPoint;
         const svg = svgElement("svg", { viewBox: `0 0 ${mapWidth} ${mapHeight}`, role: "group", "aria-label": container.getAttribute("aria-label") });
+        const defs = svgElement("defs");
+        const clipPath = svgElement("clipPath", { id: "world-map-clip" });
+        clipPath.appendChild(svgElement("rect", { x: 0, y: 0, width: mapWidth, height: mapHeight }));
+        defs.appendChild(clipPath);
+        svg.appendChild(defs);
+        const countryLayer = svgElement("g", { "clip-path": "url(#world-map-clip)" });
+        svg.appendChild(countryLayer);
         const countries = topology.objects.countries.geometries;
         countryRows = countries.map(geometry => {
             const id = String(geometry.id).padStart(3, "0");
@@ -293,7 +390,7 @@
             const item = rowsById.get(String(geometry.id).padStart(3, "0"));
             const hasRate = item && item.value !== null;
             const path = svgElement("path", {
-                d: geometryPath(geometry, arcs, project),
+                d: geometryPath(geometry, arcs, project, item && item.name === "Antarctica"),
                 class: hasRate ? `country ${item.isPew ? "selected" : "illustrative"} bin-${rateBin(item.value)}` : "country"
             });
             if (hasRate) {
@@ -311,9 +408,13 @@
                 });
             } else if (item) {
                 path.setAttribute("role", "img");
-                path.setAttribute("aria-label", `${item.name}: no national rate represented.`);
+                path.setAttribute("aria-label", `${item.name}: no national rate represented. Activate to zoom out.`);
+                path.addEventListener("click", () => setMapRegion("world"));
             }
-            svg.appendChild(path);
+            countryLayer.appendChild(path);
+        });
+        svg.addEventListener("click", event => {
+            if (event.target === svg || event.target === countryLayer) setMapRegion("world");
         });
 
         [
@@ -332,88 +433,6 @@
             }))
         );
         setMapRegion("world");
-    }
-
-    function drawBars() {
-        const container = document.getElementById("country-bars");
-        const entries = Object.values(pewRates).sort((a, b) => b.value - a.value);
-        const width = 900;
-        const rowHeight = 38;
-        const top = 12;
-        const left = 175;
-        const right = 54;
-        const max = 700;
-        const plotWidth = width - left - right;
-        const height = top + entries.length * rowHeight + 32;
-        const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "group", "aria-label": container.getAttribute("aria-label") });
-        const ticks = [0, 175, 350, 525, 700];
-        container.replaceChildren(svg);
-
-        ticks.forEach(value => {
-            const x = left + value / max * plotWidth;
-            svg.appendChild(svgElement("line", { x1: x, y1: 2, x2: x, y2: height - 23, class: "bar-grid" }));
-            svg.appendChild(svgElement("text", { x, y: height - 5, "text-anchor": "middle", class: "axis-label" }, String(value)));
-        });
-
-        entries.forEach((item, index) => {
-            const y = top + index * rowHeight;
-            const length = item.value / max * plotWidth;
-            svg.appendChild(svgElement("text", { x: left - 12, y: y + 22, "text-anchor": "end", class: "bar-label" }, item.name));
-            const bar = svgElement("rect", {
-                x: left, y: y + 4, width: length, height: 25, rx: 3,
-                class: item.name === "United States" ? "rate-bar highlight" : "rate-bar",
-                tabindex: "0", role: "img", "aria-label": `${item.name}: ${item.value} per 100,000`
-            });
-            addTooltip(bar, container, item.name, `${item.value} per 100,000`, item.detail);
-            svg.appendChild(bar);
-            svg.appendChild(svgElement("text", {
-                x: Math.min(left + length + 8, width - 42), y: y + 22, class: "bar-value"
-            }, String(item.value)));
-        });
-    }
-
-    function drawUSMilestones() {
-        const container = document.getElementById("us-milestones");
-        const width = 900;
-        const height = 270;
-        const left = 72;
-        const right = 36;
-        const top = 22;
-        const bottom = 52;
-        const plotHeight = height - top - bottom;
-        const plotWidth = width - left - right;
-        const max = 1100;
-        const data = [
-            { year: "1995", value: 810, note: "The 2019 rate returned to this level.", detail: "810 inmates per 100,000 adults." },
-            { year: "2006–08", value: 1000, note: "Peak period", detail: "About 1,000 inmates per 100,000 adults during this three-year period." },
-            { year: "2019", value: 810, note: "Lowest since 1995", detail: "810 inmates per 100,000 adults at year-end." }
-        ];
-        const yFor = value => top + (max - value) / max * plotHeight;
-        const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "group", "aria-label": container.getAttribute("aria-label") });
-        container.replaceChildren(svg);
-
-        [0, 500, 1000].forEach(value => {
-            const y = yFor(value);
-            svg.appendChild(svgElement("line", { x1: left, y1: y, x2: width - right, y2: y, class: "bar-grid" }));
-            svg.appendChild(svgElement("text", { x: left - 12, y: y + 4, "text-anchor": "end", class: "axis-label" }, String(value)));
-        });
-
-        const groupWidth = plotWidth / data.length;
-        data.forEach((item, index) => {
-            const barWidth = 96;
-            const x = left + groupWidth * index + (groupWidth - barWidth) / 2;
-            const y = yFor(item.value);
-            const bar = svgElement("rect", {
-                x, y, width: barWidth, height: height - bottom - y, rx: 4,
-                class: index === 1 ? "milestone-bar peak" : "milestone-bar",
-                tabindex: "0", role: "img", "aria-label": `${item.year}: ${item.value.toLocaleString()} per 100,000 adults`
-            });
-            addTooltip(bar, container, item.year, `${item.value.toLocaleString()} per 100,000 adults`, item.detail);
-            svg.appendChild(bar);
-            svg.appendChild(svgElement("text", { x: x + barWidth / 2, y: y - 10, "text-anchor": "middle", class: "milestone-text" }, item.value.toLocaleString()));
-            svg.appendChild(svgElement("text", { x: x + barWidth / 2, y: height - 25, "text-anchor": "middle", class: "milestone-text" }, item.year));
-            svg.appendChild(svgElement("text", { x: x + barWidth / 2, y: height - 8, "text-anchor": "middle", class: "milestone-subtext" }, item.note));
-        });
     }
 
     function setupTabs() {
@@ -446,7 +465,7 @@
     }
 
     setupTabs();
-    Promise.all([drawWorldMap(), Promise.resolve(drawBars()), Promise.resolve(drawUSMilestones())])
+    drawWorldMap()
         .catch(error => {
             const status = document.querySelector("#world-map .map-status");
             if (status) status.textContent = "The map could not be loaded. Please view this page through the local web server so its map data file is available.";

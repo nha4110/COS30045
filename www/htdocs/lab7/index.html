@@ -12,8 +12,7 @@
         <a class="brand" href="#top">COS30045 <span>/ EXERCISE 7.1</span></a>
         <nav aria-label="Page navigation">
             <a href="#map">World map</a>
-            <a href="#comparison">Compare</a>
-            <a href="#us-trend">U.S. trend</a>
+            <a href="#design-answers">Design questions</a>
         </nav>
     </header>
 
@@ -68,7 +67,7 @@
                         <button class="region-button" type="button" data-region="asia" aria-pressed="false">Asia</button>
                         <button class="region-button" type="button" data-region="oceania" aria-pressed="false">Oceania</button>
                     </div>
-                    <p class="map-interaction-hint">Choose a region or click a country to zoom. The country list below shows every mapped country in the selected region.</p>
+                    <p class="map-interaction-hint">Choose a region or click a country to zoom in. Click the water or select World to zoom out.</p>
                     <div class="map-wrap">
                         <div id="world-map" class="world-map" role="group" aria-label="Interactive world choropleth of reported and illustrative incarceration rates.">
                             <p class="map-status" role="status">Loading world map…</p>
@@ -135,66 +134,37 @@
                     <p class="source-note">Counts and percentage changes transcribed from the table supplied for this exercise. * and superscript footnote markers are retained as shown in the source.</p>
                 </div>
             </div>
-            <div class="design-note">
-                <strong>How to read this chart</strong>
-                <p><b>Choropleth map:</b> country areas are the marks; color bins encode the rate. It makes geographic patterns easy to spot, but exact values are harder to compare than on a shared bar scale. Hover or keyboard-focus a highlighted country for its value.</p>
-            </div>
         </section>
 
-        <section class="visual-section" id="comparison">
+        <section class="design-answers visual-section" id="design-answers">
             <div class="section-head">
-                <div><span class="eyebrow dark">02 / RATE COMPARISON</span><h2>Same unit. Very different rates.</h2></div>
-                <p>Bars start at zero. Labels keep the map’s key comparisons precise.</p>
+                <div><span class="eyebrow dark">DESIGN REVIEW</span><h2>Reading the map</h2></div>
+                <p>Exercise 7.1 · Visualisation 2</p>
             </div>
-            <div class="chart-panel">
-                <div class="chart-heading">
-                    <div><h3>Selected countries and territories</h3><p>Latest available data in Pew’s 2021 comparison</p></div>
-                    <span class="unit-pill">PER 100,000 · ALL AGES</span>
-                </div>
-                <div id="country-bars" class="chart chart-scroll" role="group" aria-label="Horizontal bar chart of selected incarceration rates: United States 639, El Salvador 564, Turkmenistan 552, Rwanda 545, Cuba 510, Brazil 357, Turkey 335, France 93, and Germany 69, per 100,000 residents.">
-                    <p class="map-status" role="status">Loading comparison…</p>
-                </div>
-                <p class="source-note">The U.S. rate of 639 is 13% higher than El Salvador’s 564 in this comparison. Country data years vary; Pew found the U.S. highest among countries with available data.</p>
-                <div class="design-note">
-                    <strong>Design:</strong>
-                    <p><b>Ranked bar chart:</b> country labels identify categories; bar length encodes rate. Hover or focus for a value. Best for comparing exact differences.</p>
-                </div>
-            </div>
-            <div class="design-note">
-                <strong>Why add bars to a map?</strong>
-                <p>Map color is good for location and broad patterns. Aligned bar lengths are better for ranking and judging the size of differences.</p>
-            </div>
-        </section>
-
-        <section class="visual-section" id="us-trend">
-            <div class="section-head">
-                <div><span class="eyebrow dark">03 / U.S. OVER TIME</span><h2>A fall from the peak</h2></div>
-                <p>The rate returned to its 1995 level by the end of 2019.</p>
-            </div>
-            <div class="chart-panel">
-                <div class="chart-heading">
-                    <div><h3>U.S. incarceration rate · selected milestones</h3><p>Prison and jail inmates per 100,000 adult residents</p></div>
-                    <span class="unit-pill">ADULTS · AGES 18+</span>
-                </div>
-                <div id="us-milestones" class="chart" role="group" aria-label="Selected U.S. incarceration rate milestones: 810 per 100,000 adults in 1995, approximately 1,000 during 2006 to 2008, and 810 in 2019.">
-                    <p class="map-status" role="status">Loading U.S. rate chart…</p>
-                </div>
-                <p class="source-note">Only the milestones reported in the article are shown; this is not an annual time series. Pew reports the 2019 rate was 810, the same as 1995.</p>
-                <div class="design-note">
-                    <strong>Design:</strong>
-                    <p><b>Milestone columns:</b> year sets horizontal position; height encodes rate. Hover or focus for details. Useful for the peak and endpoints, not year-by-year change.</p>
-                </div>
-            </div>
-            <div class="article-context">
-                <div><strong>2,086,600</strong><span>people in U.S. prisons and jails at the end of 2019</span><small>Also reported: 1.43m under state/federal prison jurisdiction; about 735k in local jail custody. Jurisdiction and custody counts can overlap.</small></div>
-                <p>Pew reports that the rate peaked at about 1,000 during 2006–08, then declined. It discusses lower crime and arrest rates, and changes in laws and sentencing, as factors in that decline—not a single explanation.</p>
-            </div>
-        </section>
-
-        <section class="verdict">
-            <span class="eyebrow">DESIGN TAKEAWAY</span>
-            <h2>Map for <em>where.</em><br>Bars for <em>how much.</em></h2>
-            <p>The map shows location and rate bands, but most country values here are illustrative mock data. Use the ranked bars for the nine reported Pew comparisons; the timeline shows the U.S. trend.</p>
+            <article class="answer-card">
+                <h3>What appears to be the purpose of the chart?</h3>
+                <p>To show how incarceration rates vary by location and emphasize that the U.S. rate is high compared with other countries with available data.</p>
+            </article>
+            <article class="answer-card">
+                <h3>What kind of chart is this?</h3>
+                <p>A choropleth world map: countries are shaded according to rate ranges.</p>
+            </article>
+            <article class="answer-card">
+                <h3>What data does it encode, and how?</h3>
+                <p>It encodes incarceration rates per 100,000 people of any age. Country shapes are the marks; fill color is the channel, grouped into ordered rate bands. Labels call out selected country names and exact rates.</p>
+            </article>
+            <article class="answer-card">
+                <h3>Are there interactive features?</h3>
+                <p>Yes. Hover or focus a country for its rate. Choose a region or click a country to zoom in and see a country-by-country list. Click the water or choose World to zoom out. The tabs switch to the country table or the supplied U.S. correctional-status table.</p>
+            </article>
+            <article class="answer-card">
+                <h3>What features help get its message across?</h3>
+                <p>A graduated color legend, high-contrast country outlines, a clear unit, and a few direct labels make the geographic pattern readable. The U.S. label draws attention to the central comparison. Source-year differences and illustrative mock values are disclosed above.</p>
+            </article>
+            <article class="answer-card">
+                <h3>Which design do you think is best and why?</h3>
+                <p>For showing where rates are high, this map is strongest because geography is immediately visible. For precise ranking and comparing small differences, a sorted bar chart is better; no single design is best for every question.</p>
+            </article>
         </section>
     </main>
 

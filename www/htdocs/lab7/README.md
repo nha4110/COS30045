@@ -6,12 +6,10 @@ The page is an original teaching redraw based on the Pew Research Center article
 
 - A world choropleth with a map/country-table/Table 1 view switch, region zoom controls, and a country list for the selected region.
 - Pew's nine explicit country rates and clearly marked illustrative mock values for other countries. Mock values approximate the reference map's broad color pattern; they are not official statistics and must not be used as evidence. Antarctica has no national rate in the redraw.
-- A sorted bar chart using the same selected international rates.
-- A chart of Pew's U.S. rate milestones for 1995, 2006–08, and 2019.
 - The supplied 2009–2019 U.S. adult correctional-population table.
-- Short notes on chart purpose, marks/channels, interaction, units, and source limitations.
+- Concise answers to the six visualisation-design questions.
 
-The map uses country boundaries from the `world-atlas` TopoJSON project, based on Natural Earth map data. The Pew graphic itself is not copied. The nine source values in the international map are from figures quoted by Pew in 2021; source years vary. Other map values are mock data and visibly labelled as such. The U.S. international rate (639) uses all ages, while the U.S. historical rate (810) uses adults ages 18 and older.
+The map uses country boundaries from the `world-atlas` TopoJSON project, based on Natural Earth map data, rendered with a Natural Earth projection that wraps the dateline and clips paths to the world frame. Clicking a country zooms to its region; clicking map water resets the world view. The Pew graphic itself is not copied. The nine source values in the international map are from figures quoted by Pew in 2021; source years vary. Other map values are mock data and visibly labelled as such. The U.S. international rate (639) uses all ages, while the U.S. historical rate (810) uses adults ages 18 and older.
 
 ## Source
 
