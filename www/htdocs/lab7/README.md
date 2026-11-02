@@ -8,7 +8,7 @@ The page is an original teaching redraw based on the Pew Research Center article
 - Country-table filters for name, region, and source.
 - A compact map-use guide, higher-contrast map labels, and a light/dark theme switch that follows the system setting until manually changed.
 - Pew's nine explicit country rates and clearly marked illustrative mock values for other countries. Mock values approximate the reference map's broad color pattern; they are not official statistics and must not be used as evidence. Antarctica has no national rate in the redraw.
-- A top-five-by-region bar chart with exact rates and Pew/mock distinction.
+- A top-five-by-region bar chart with exact rates, gold stars and bars for Pew figures, and teal bars for illustrative mock values.
 - Concise answers to the six visualisation-design questions.
 - A teal-to-blue rate palette and page colors that follow the system light/dark appearance.
 

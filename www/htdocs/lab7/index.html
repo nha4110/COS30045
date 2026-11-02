@@ -85,7 +85,7 @@
                         </div>
                     </div>
                     <p class="map-mobile-hint">On a small screen, swipe sideways to explore the map.</p>
-                    <div class="map-legend" aria-label="Map color key">
+                    <div class="map-legend" role="group" aria-label="Map color key">
                         <span class="legend-note">PEOPLE PER 100,000 · ALL AGES</span>
                         <span><i class="swatch swatch-0"></i>0–99</span>
                         <span><i class="swatch swatch-1"></i>100–199</span>
@@ -101,10 +101,10 @@
                 <div id="country-table-panel" class="tab-panel" role="tabpanel" aria-labelledby="country-table-tab" hidden>
                     <p class="table-intro">Search by country, region, or value source.</p>
                     <div class="table-filters" role="group" aria-label="Filter country data">
-                        <label for="country-search">Country name
+                        <label>Country name
                             <input id="country-search" type="search" autocomplete="off" placeholder="Search countries">
                         </label>
-                        <label for="country-region-filter">Region
+                        <label>Region
                             <select id="country-region-filter">
                                 <option value="all">All regions</option>
                                 <option value="northAmerica">North America</option>
@@ -115,7 +115,7 @@
                                 <option value="oceania">Oceania</option>
                             </select>
                         </label>
-                        <label for="country-source-filter">Value source
+                        <label>Value source
                             <select id="country-source-filter">
                                 <option value="all">All values</option>
                                 <option value="pew">Pew article figure</option>
@@ -131,7 +131,11 @@
                 </div>
                 <div id="top5-panel" class="tab-panel" role="tabpanel" aria-labelledby="top5-tab" hidden>
                     <h4 class="table-title">Highest incarceration rates by region</h4>
-                    <p class="table-intro">Top five countries and territories in each region by all-ages rate per 100,000 residents. Bars start at zero and are sorted from highest to lowest; ★ marks the nine Pew-sourced figures.</p>
+                    <p class="table-intro">Top five countries and territories in each region by all-ages rate per 100,000 residents. Bars start at zero and are sorted from highest to lowest.</p>
+                    <div class="top5-key" role="group" aria-label="Top five chart key">
+                        <span><i class="top5-key-star" aria-hidden="true">★</i> Pew article figure</span>
+                        <span><i class="top5-key-swatch" aria-hidden="true"></i> Illustrative mock value</span>
+                    </div>
                     <div class="region-controls top5-controls" role="group" aria-label="Choose a region for the top 5 chart">
                         <button class="top5-region-button active" type="button" data-top5-region="world" aria-pressed="true">World</button>
                         <button class="top5-region-button" type="button" data-top5-region="northAmerica" aria-pressed="false">North America</button>

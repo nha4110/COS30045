@@ -575,7 +575,10 @@
             const y = top + index * rowHeight;
             const length = item.value / max * plotWidth;
             svg.appendChild(svgElement("text", { x: 18, y: y + 27, class: "bar-rank" }, `${index + 1}`));
-            svg.appendChild(svgElement("text", { x: left - 12, y: y + 27, "text-anchor": "end", class: "bar-label" }, `${item.name}${item.isPew ? " ★" : ""}`));
+            const label = svgElement("text", { x: left - 12, y: y + 27, "text-anchor": "end", class: "bar-label" });
+            label.appendChild(svgElement("tspan", {}, item.name));
+            if (item.isPew) label.appendChild(svgElement("tspan", { class: "pew-star" }, " ★"));
+            svg.appendChild(label);
             const bar = svgElement("rect", {
                 x: left, y: y + 6, width: Math.max(length, 1), height: 26, rx: 3,
                 class: item.isPew ? "rate-bar highlight" : "rate-bar",

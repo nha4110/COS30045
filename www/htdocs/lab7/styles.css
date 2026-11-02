@@ -18,6 +18,8 @@
     --map-label-line: #455e63;
     --map-label-dot: #203d4b;
     --tooltip: rgba(255, 255, 255, .96);
+    --rate-bar: #168b87;
+    --rate-bar-pew: #8a6200;
     --rate-bin-0: #e3f1ef;
     --rate-bin-1: #c2e2de;
     --rate-bin-2: #94d0c9;
@@ -48,6 +50,8 @@
         --map-label-line: #d2e0dc;
         --map-label-dot: #173b4a;
         --tooltip: rgba(21, 40, 52, .97);
+        --rate-bar: #58c8bd;
+        --rate-bar-pew: #f0cd79;
         --rate-bin-0: #d4efeb;
         --rate-bin-1: #a8dcd5;
         --rate-bin-2: #78c8bd;
@@ -78,6 +82,8 @@
     --map-label-line: #d2e0dc;
     --map-label-dot: #173b4a;
     --tooltip: rgba(21, 40, 52, .97);
+    --rate-bar: #58c8bd;
+    --rate-bar-pew: #f0cd79;
     --rate-bin-0: #d4efeb;
     --rate-bin-1: #a8dcd5;
     --rate-bin-2: #78c8bd;
@@ -328,5 +334,10 @@ footer a { color: var(--teal); }
 .bar-value { fill: var(--ink); font-size: 13px; font-weight: 700; }
 .bar-grid { stroke: var(--line); stroke-width: 1; }
 .axis-label { fill: var(--muted); font-size: 11px; }
-.rate-bar { fill: #568b84; }
-.rate-bar.highlight { fill: #344f63; }
+.rate-bar { fill: var(--rate-bar); }
+.rate-bar.highlight { fill: var(--rate-bar-pew); }
+.bar-label .pew-star { fill: var(--rate-bar-pew); font-size: 15px; font-weight: 700; }
+.top5-key { align-items: center; color: var(--ink); display: flex; flex-wrap: wrap; font-size: .88rem; gap: .55rem 1.2rem; margin: .35rem 0 .75rem; }
+.top5-key > span { align-items: center; display: inline-flex; gap: .4rem; }
+.top5-key-star { color: var(--rate-bar-pew); font-size: 1.15rem; font-style: normal; line-height: 1; }
+.top5-key-swatch { background: var(--rate-bar); border-radius: 2px; display: inline-block; height: 14px; width: 20px; }
