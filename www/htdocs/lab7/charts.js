@@ -489,6 +489,29 @@
         setMapRegion("world");
     }
 
+    function initializeThemeToggle() {
+        const themeToggle = document.getElementById("theme-toggle");
+        const themeLabel = themeToggle.querySelector(".theme-toggle-label");
+        const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+        const isDark = () => document.documentElement.dataset.theme
+            ? document.documentElement.dataset.theme === "dark"
+            : colorScheme.matches;
+        const updateThemeLabel = () => {
+            const nextMode = isDark() ? "light" : "dark";
+            themeLabel.textContent = `${nextMode[0].toUpperCase()}${nextMode.slice(1)} mode`;
+            themeToggle.setAttribute("aria-label", `Switch to ${nextMode} mode`);
+            themeToggle.title = `Switch to ${nextMode} mode`;
+        };
+        themeToggle.addEventListener("click", () => {
+            document.documentElement.dataset.theme = isDark() ? "light" : "dark";
+            updateThemeLabel();
+        });
+        colorScheme.addEventListener("change", () => {
+            if (!document.documentElement.dataset.theme) updateThemeLabel();
+        });
+        updateThemeLabel();
+    }
+
     function setupTabs() {
         const tabs = [...document.querySelectorAll(".chart-tab")];
         const activateTab = (tab, moveFocus) => {
@@ -518,6 +541,7 @@
         });
     }
 
+    initializeThemeToggle();
     setupTabs();
     drawWorldMap()
         .catch(error => {
