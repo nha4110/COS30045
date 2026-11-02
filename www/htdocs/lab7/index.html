@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="An interactive, source-labelled look at incarceration rates and trends from Pew Research Center's 2021 report.">
+    <title>Incarceration, on the map — COS30045</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="#top">COS30045 <span>/ EXERCISE 7.1</span></a>
+        <nav aria-label="Page navigation">
+            <a href="#map">World map</a>
+            <a href="#comparison">Compare</a>
+            <a href="#us-trend">U.S. trend</a>
+        </nav>
+    </header>
+
+    <main id="top">
+        <section class="hero">
+            <p class="eyebrow">DATA VISUALISATION DESIGN · PEW RESEARCH CENTER · 2021</p>
+            <h1>Incarceration,<br><em>on the map.</em></h1>
+            <p class="hero-intro">The U.S. rate declined to its lowest point since 1995. Yet it remained the highest among countries with available international data.</p>
+            <div class="hero-bottom">
+                <span>Explore the countries <span aria-hidden="true">↓</span></span>
+                <span>Global rates · U.S. trend · chart design</span>
+            </div>
+            <div class="hero-stat"><strong>639</strong><span>people per 100,000<br>in the U.S. <small>2018 · all ages</small></span></div>
+        </section>
+
+        <section class="key-facts" aria-label="Key figures from the Pew article">
+            <article><span class="fact-label">U.S. RATE · 2019</span><strong>810</strong><span>per 100,000 adults</span></article>
+            <article><span class="fact-label">PEAK · 2006–08</span><strong>~1,000</strong><span>per 100,000 adults</span></article>
+            <article><span class="fact-label">BEHIND BARS · 2019</span><strong>2.09m</strong><span>people in U.S. prisons and jails</span></article>
+        </section>
+
+        <section class="intro-note">
+            <div>
+                <span class="eyebrow dark">READ THE MEASURE</span>
+                <h2>Rates are not headcounts.</h2>
+            </div>
+            <p>Rates adjust for population size. Pew’s U.S. trend uses adults; the international map uses residents of all ages. Country data years also vary. Those rates should not be compared as if they were one identical dataset.</p>
+        </section>
+
+        <section class="visual-section" id="map">
+            <div class="section-head">
+                <div><span class="eyebrow dark">01 / GLOBAL VIEW</span><h2>Where incarceration rates stand out</h2></div>
+                <p>Hover a country or keyboard-focus a Pew figure; region controls list every country and value.</p>
+            </div>
+            <div class="map-panel">
+                <div class="map-heading">
+                    <div><h3>Incarceration rate by country</h3><p>Nine Pew figures with illustrative values for map coverage</p></div>
+                    <span class="unit-pill">PEOPLE PER 100,000 · ALL AGES</span>
+                </div>
+                <div class="chart-tabs" role="tablist" aria-label="Incarceration data views">
+                    <button id="map-tab" class="chart-tab" type="button" role="tab" aria-selected="true" aria-controls="map-panel" tabindex="0">Map</button>
+                    <button id="country-table-tab" class="chart-tab" type="button" role="tab" aria-selected="false" aria-controls="country-table-panel" tabindex="-1">Country data</button>
+                    <button id="us-table-tab" class="chart-tab" type="button" role="tab" aria-selected="false" aria-controls="us-table-panel" tabindex="-1">Table 1 · U.S. corrections</button>
+                </div>
+                <div id="map-panel" class="tab-panel" role="tabpanel" aria-labelledby="map-tab">
+                    <div class="region-controls" role="group" aria-label="Zoom to a map region">
+                        <button class="region-button active" type="button" data-region="world" aria-pressed="true">World</button>
+                        <button class="region-button" type="button" data-region="northAmerica" aria-pressed="false">North America</button>
+                        <button class="region-button" type="button" data-region="southAmerica" aria-pressed="false">South America</button>
+                        <button class="region-button" type="button" data-region="europe" aria-pressed="false">Europe</button>
+                        <button class="region-button" type="button" data-region="africa" aria-pressed="false">Africa</button>
+                        <button class="region-button" type="button" data-region="asia" aria-pressed="false">Asia</button>
+                        <button class="region-button" type="button" data-region="oceania" aria-pressed="false">Oceania</button>
+                    </div>
+                    <p class="map-interaction-hint">Choose a region or click a country to zoom. The country list below shows every mapped country in the selected region.</p>
+                    <div class="map-wrap">
+                        <div id="world-map" class="world-map" role="group" aria-label="Interactive world choropleth of reported and illustrative incarceration rates.">
+                            <p class="map-status" role="status">Loading world map…</p>
+                        </div>
+                    </div>
+                    <p class="map-mobile-hint">On a small screen, swipe sideways to explore the map.</p>
+                    <div class="map-legend" aria-label="Map color key">
+                        <span class="legend-note">PEOPLE PER 100,000 · ALL AGES</span>
+                        <span><i class="swatch swatch-0"></i>0–99</span>
+                        <span><i class="swatch swatch-1"></i>100–199</span>
+                        <span><i class="swatch swatch-2"></i>200–299</span>
+                        <span><i class="swatch swatch-3"></i>300–399</span>
+                        <span><i class="swatch swatch-4"></i>400–499</span>
+                        <span><i class="swatch swatch-5"></i>500–599</span>
+                        <span><i class="swatch swatch-6"></i>600+</span>
+                        <span><i class="swatch swatch-none"></i>No national rate</span>
+                    </div>
+                    <p class="source-note"><strong>Data note:</strong> The nine figures quoted in the supplied Pew article are preserved. Other countries use illustrative mock values, created only to approximate the reference map’s color pattern. They are not official data and must not be used as factual country rates. Antarctica is neutral because no national rate is represented. In the world view, names and values are shown for the five highest Pew-reported countries.</p>
+                    <div id="region-rates" class="region-rates" aria-live="polite"></div>
+                </div>
+                <div id="country-table-panel" class="tab-panel" role="tabpanel" aria-labelledby="country-table-tab" hidden>
+                    <p class="table-intro">All countries drawn on the map. Mock values are illustrative only; the nine Pew figures are marked in the source column.</p>
+                    <div id="country-data-table" class="data-table-wrap">
+                        <p class="map-status" role="status">Loading country data…</p>
+                    </div>
+                </div>
+                <div id="us-table-panel" class="tab-panel" role="tabpanel" aria-labelledby="us-table-tab" hidden>
+                    <h4 class="table-title">Number of persons supervised by adult correctional systems in the U.S., by correctional status, 2009–2019</h4>
+                    <div class="data-table-wrap">
+                        <table class="data-table correctional-table">
+                            <caption>Table 1. U.S. adult correctional population counts</caption>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" scope="col">Year</th>
+                                    <th rowspan="2" scope="col">Total correctional population<sup>b</sup></th>
+                                    <th colspan="3" scope="colgroup">Community supervision</th>
+                                    <th colspan="3" scope="colgroup">Incarcerated<sup>a</sup></th>
+                                </tr>
+                                <tr>
+                                    <th scope="col">Total<sup>c</sup></th><th scope="col">Probation</th><th scope="col">Parole</th>
+                                    <th scope="col">Total<sup>d</sup></th><th scope="col">Prison</th><th scope="col">Local jail<sup>e</sup></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><th scope="row">2009</th><td>7,239,100</td><td>5,019,900</td><td>4,199,800</td><td>824,600</td><td>2,297,700</td><td>1,615,500</td><td>767,400<sup>†</sup></td></tr>
+                                <tr><th scope="row">2010</th><td>7,089,000</td><td>4,888,500</td><td>4,055,900</td><td>840,800</td><td>2,279,100</td><td>1,613,800</td><td>748,700<sup>†</sup></td></tr>
+                                <tr><th scope="row">2011</th><td>6,994,500</td><td>4,818,300</td><td>3,973,800</td><td>855,500</td><td>2,252,500</td><td>1,599,000</td><td>735,600</td></tr>
+                                <tr><th scope="row">2012</th><td>6,949,800</td><td>4,790,700</td><td>3,944,900</td><td>858,400</td><td>2,231,300</td><td>1,570,400</td><td>744,500</td></tr>
+                                <tr><th scope="row">2013</th><td>6,899,700</td><td>4,749,800</td><td>3,912,900</td><td>849,500</td><td>2,222,500</td><td>1,577,000</td><td>731,200</td></tr>
+                                <tr><th scope="row">2014</th><td>6,856,900</td><td>4,713,200</td><td>3,868,400</td><td>857,700</td><td>2,225,100</td><td>1,562,300</td><td>744,600</td></tr>
+                                <tr><th scope="row">2015</th><td>6,740,300</td><td>4,650,900</td><td>3,789,800</td><td>870,500</td><td>2,172,800</td><td>1,526,600</td><td>727,400</td></tr>
+                                <tr><th scope="row">2016</th><td>6,616,200</td><td>4,537,100</td><td>3,673,100</td><td>874,800</td><td>2,165,100</td><td>1,508,100</td><td>740,700</td></tr>
+                                <tr><th scope="row">2017</th><td>6,549,700</td><td>4,508,900</td><td>3,647,200</td><td>875,000</td><td>2,153,600</td><td>1,489,200</td><td>745,200</td></tr>
+                                <tr><th scope="row">2018</th><td>6,409,200</td><td>4,399,000</td><td>3,540,000</td><td>878,000</td><td>2,122,300</td><td>1,464,400</td><td>738,400</td></tr>
+                                <tr><th scope="row">2019*</th><td>6,344,000</td><td>4,357,700</td><td>3,492,900</td><td>878,900</td><td>2,086,600</td><td>1,430,800</td><td>734,500</td></tr>
+                            </tbody>
+                            <tbody class="summary-rows">
+                                <tr><th scope="row">Average annual percent change, 2009–2019</th><td>-1.3%</td><td>-1.4%</td><td>-1.8%</td><td>0.6%</td><td>-1.0%</td><td>-1.2%</td><td>-0.4%</td></tr>
+                                <tr><th scope="row">Percent change, 2009–2019</th><td>-12.4%</td><td>-13.2%</td><td>-16.8%</td><td>6.6%</td><td>-9.2%</td><td>-11.4%</td><td>-4.3%</td></tr>
+                                <tr><th scope="row">Percent change, 2018–2019</th><td>-1.0%</td><td>-0.9%</td><td>-1.3%</td><td>0.1%</td><td>-1.7%</td><td>-2.3%</td><td>-0.5%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="source-note">Counts and percentage changes transcribed from the table supplied for this exercise. * and superscript footnote markers are retained as shown in the source.</p>
+                </div>
+            </div>
+            <div class="design-note">
+                <strong>How to read this chart</strong>
+                <p><b>Choropleth map:</b> country areas are the marks; color bins encode the rate. It makes geographic patterns easy to spot, but exact values are harder to compare than on a shared bar scale. Hover or keyboard-focus a highlighted country for its value.</p>
+            </div>
+        </section>
+
+        <section class="visual-section" id="comparison">
+            <div class="section-head">
+                <div><span class="eyebrow dark">02 / RATE COMPARISON</span><h2>Same unit. Very different rates.</h2></div>
+                <p>Bars start at zero. Labels keep the map’s key comparisons precise.</p>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-heading">
+                    <div><h3>Selected countries and territories</h3><p>Latest available data in Pew’s 2021 comparison</p></div>
+                    <span class="unit-pill">PER 100,000 · ALL AGES</span>
+                </div>
+                <div id="country-bars" class="chart chart-scroll" role="group" aria-label="Horizontal bar chart of selected incarceration rates: United States 639, El Salvador 564, Turkmenistan 552, Rwanda 545, Cuba 510, Brazil 357, Turkey 335, France 93, and Germany 69, per 100,000 residents.">
+                    <p class="map-status" role="status">Loading comparison…</p>
+                </div>
+                <p class="source-note">The U.S. rate of 639 is 13% higher than El Salvador’s 564 in this comparison. Country data years vary; Pew found the U.S. highest among countries with available data.</p>
+                <div class="design-note">
+                    <strong>Design:</strong>
+                    <p><b>Ranked bar chart:</b> country labels identify categories; bar length encodes rate. Hover or focus for a value. Best for comparing exact differences.</p>
+                </div>
+            </div>
+            <div class="design-note">
+                <strong>Why add bars to a map?</strong>
+                <p>Map color is good for location and broad patterns. Aligned bar lengths are better for ranking and judging the size of differences.</p>
+            </div>
+        </section>
+
+        <section class="visual-section" id="us-trend">
+            <div class="section-head">
+                <div><span class="eyebrow dark">03 / U.S. OVER TIME</span><h2>A fall from the peak</h2></div>
+                <p>The rate returned to its 1995 level by the end of 2019.</p>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-heading">
+                    <div><h3>U.S. incarceration rate · selected milestones</h3><p>Prison and jail inmates per 100,000 adult residents</p></div>
+                    <span class="unit-pill">ADULTS · AGES 18+</span>
+                </div>
+                <div id="us-milestones" class="chart" role="group" aria-label="Selected U.S. incarceration rate milestones: 810 per 100,000 adults in 1995, approximately 1,000 during 2006 to 2008, and 810 in 2019.">
+                    <p class="map-status" role="status">Loading U.S. rate chart…</p>
+                </div>
+                <p class="source-note">Only the milestones reported in the article are shown; this is not an annual time series. Pew reports the 2019 rate was 810, the same as 1995.</p>
+                <div class="design-note">
+                    <strong>Design:</strong>
+                    <p><b>Milestone columns:</b> year sets horizontal position; height encodes rate. Hover or focus for details. Useful for the peak and endpoints, not year-by-year change.</p>
+                </div>
+            </div>
+            <div class="article-context">
+                <div><strong>2,086,600</strong><span>people in U.S. prisons and jails at the end of 2019</span><small>Also reported: 1.43m under state/federal prison jurisdiction; about 735k in local jail custody. Jurisdiction and custody counts can overlap.</small></div>
+                <p>Pew reports that the rate peaked at about 1,000 during 2006–08, then declined. It discusses lower crime and arrest rates, and changes in laws and sentencing, as factors in that decline—not a single explanation.</p>
+            </div>
+        </section>
+
+        <section class="verdict">
+            <span class="eyebrow">DESIGN TAKEAWAY</span>
+            <h2>Map for <em>where.</em><br>Bars for <em>how much.</em></h2>
+            <p>The map shows location and rate bands, but most country values here are illustrative mock data. Use the ranked bars for the nine reported Pew comparisons; the timeline shows the U.S. trend.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>Exercise 7.1 · Data visualisation design</p>
+        <p>Source: <a href="https://www.pewresearch.org/short-reads/2021/08/16/americas-incarceration-rate-lowest-since-1995/">Pew Research Center, August 16, 2021</a>. International figures: World Prison Brief, Institute for Crime &amp; Justice Policy Research at Birkbeck, accessed August 10, 2021.</p>
+        <p class="footer-note">Map geography: Natural Earth via world-atlas, public-domain map data. Only nine map rates are quoted Pew figures; all other colored rates are clearly marked illustrative mock data, not official statistics.</p>
+    </footer>
+    <script src="charts.js"></script>
+</body>
+</html>
