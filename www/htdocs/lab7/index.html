@@ -42,7 +42,7 @@
             <strong>Quick guide</strong>
             <span><b>Hover or focus</b> a country for its rate and source.</span>
             <span><b>Choose a region</b> or click a country to zoom.</span>
-            <span><b>Open a data tab</b> to search countries or view the U.S. table.</span>
+            <span><b>Open a data tab</b> to search countries or compare regional top fives.</span>
         </aside>
 
         <section class="intro-note">
@@ -66,7 +66,7 @@
                 <div class="chart-tabs" role="tablist" aria-label="Incarceration data views">
                     <button id="map-tab" class="chart-tab" type="button" role="tab" aria-selected="true" aria-controls="map-panel" tabindex="0">Map</button>
                     <button id="country-table-tab" class="chart-tab" type="button" role="tab" aria-selected="false" aria-controls="country-table-panel" tabindex="-1">Country data</button>
-                    <button id="us-table-tab" class="chart-tab" type="button" role="tab" aria-selected="false" aria-controls="us-table-panel" tabindex="-1">Table 1 · U.S. corrections</button>
+                    <button id="top5-tab" class="chart-tab" type="button" role="tab" aria-selected="false" aria-controls="top5-panel" tabindex="-1">Top 5 · by region</button>
                 </div>
                 <div id="map-panel" class="tab-panel" role="tabpanel" aria-labelledby="map-tab">
                     <div class="region-controls" role="group" aria-label="Zoom to a map region">
@@ -129,44 +129,22 @@
                         <p class="map-status" role="status">Loading country data…</p>
                     </div>
                 </div>
-                <div id="us-table-panel" class="tab-panel" role="tabpanel" aria-labelledby="us-table-tab" hidden>
-                    <h4 class="table-title">Number of persons supervised by adult correctional systems in the U.S., by correctional status, 2009–2019</h4>
-                    <div class="data-table-wrap">
-                        <table class="data-table correctional-table">
-                            <caption>Table 1. U.S. adult correctional population counts</caption>
-                            <thead>
-                                <tr>
-                                    <th rowspan="2" scope="col">Year</th>
-                                    <th rowspan="2" scope="col">Total correctional population<sup>b</sup></th>
-                                    <th colspan="3" scope="colgroup">Community supervision</th>
-                                    <th colspan="3" scope="colgroup">Incarcerated<sup>a</sup></th>
-                                </tr>
-                                <tr>
-                                    <th scope="col">Total<sup>c</sup></th><th scope="col">Probation</th><th scope="col">Parole</th>
-                                    <th scope="col">Total<sup>d</sup></th><th scope="col">Prison</th><th scope="col">Local jail<sup>e</sup></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><th scope="row">2009</th><td>7,239,100</td><td>5,019,900</td><td>4,199,800</td><td>824,600</td><td>2,297,700</td><td>1,615,500</td><td>767,400<sup>†</sup></td></tr>
-                                <tr><th scope="row">2010</th><td>7,089,000</td><td>4,888,500</td><td>4,055,900</td><td>840,800</td><td>2,279,100</td><td>1,613,800</td><td>748,700<sup>†</sup></td></tr>
-                                <tr><th scope="row">2011</th><td>6,994,500</td><td>4,818,300</td><td>3,973,800</td><td>855,500</td><td>2,252,500</td><td>1,599,000</td><td>735,600</td></tr>
-                                <tr><th scope="row">2012</th><td>6,949,800</td><td>4,790,700</td><td>3,944,900</td><td>858,400</td><td>2,231,300</td><td>1,570,400</td><td>744,500</td></tr>
-                                <tr><th scope="row">2013</th><td>6,899,700</td><td>4,749,800</td><td>3,912,900</td><td>849,500</td><td>2,222,500</td><td>1,577,000</td><td>731,200</td></tr>
-                                <tr><th scope="row">2014</th><td>6,856,900</td><td>4,713,200</td><td>3,868,400</td><td>857,700</td><td>2,225,100</td><td>1,562,300</td><td>744,600</td></tr>
-                                <tr><th scope="row">2015</th><td>6,740,300</td><td>4,650,900</td><td>3,789,800</td><td>870,500</td><td>2,172,800</td><td>1,526,600</td><td>727,400</td></tr>
-                                <tr><th scope="row">2016</th><td>6,616,200</td><td>4,537,100</td><td>3,673,100</td><td>874,800</td><td>2,165,100</td><td>1,508,100</td><td>740,700</td></tr>
-                                <tr><th scope="row">2017</th><td>6,549,700</td><td>4,508,900</td><td>3,647,200</td><td>875,000</td><td>2,153,600</td><td>1,489,200</td><td>745,200</td></tr>
-                                <tr><th scope="row">2018</th><td>6,409,200</td><td>4,399,000</td><td>3,540,000</td><td>878,000</td><td>2,122,300</td><td>1,464,400</td><td>738,400</td></tr>
-                                <tr><th scope="row">2019*</th><td>6,344,000</td><td>4,357,700</td><td>3,492,900</td><td>878,900</td><td>2,086,600</td><td>1,430,800</td><td>734,500</td></tr>
-                            </tbody>
-                            <tbody class="summary-rows">
-                                <tr><th scope="row">Average annual percent change, 2009–2019</th><td>-1.3%</td><td>-1.4%</td><td>-1.8%</td><td>0.6%</td><td>-1.0%</td><td>-1.2%</td><td>-0.4%</td></tr>
-                                <tr><th scope="row">Percent change, 2009–2019</th><td>-12.4%</td><td>-13.2%</td><td>-16.8%</td><td>6.6%</td><td>-9.2%</td><td>-11.4%</td><td>-4.3%</td></tr>
-                                <tr><th scope="row">Percent change, 2018–2019</th><td>-1.0%</td><td>-0.9%</td><td>-1.3%</td><td>0.1%</td><td>-1.7%</td><td>-2.3%</td><td>-0.5%</td></tr>
-                            </tbody>
-                        </table>
+                <div id="top5-panel" class="tab-panel" role="tabpanel" aria-labelledby="top5-tab" hidden>
+                    <h4 class="table-title">Highest incarceration rates by region</h4>
+                    <p class="table-intro">Top five countries and territories in each region by all-ages rate per 100,000 residents. Bars start at zero and are sorted from highest to lowest; ★ marks the nine Pew-sourced figures.</p>
+                    <div class="region-controls top5-controls" role="group" aria-label="Choose a region for the top 5 chart">
+                        <button class="top5-region-button active" type="button" data-top5-region="world" aria-pressed="true">World</button>
+                        <button class="top5-region-button" type="button" data-top5-region="northAmerica" aria-pressed="false">North America</button>
+                        <button class="top5-region-button" type="button" data-top5-region="southAmerica" aria-pressed="false">South America</button>
+                        <button class="top5-region-button" type="button" data-top5-region="europe" aria-pressed="false">Europe</button>
+                        <button class="top5-region-button" type="button" data-top5-region="africa" aria-pressed="false">Africa</button>
+                        <button class="top5-region-button" type="button" data-top5-region="asia" aria-pressed="false">Asia</button>
+                        <button class="top5-region-button" type="button" data-top5-region="oceania" aria-pressed="false">Oceania</button>
                     </div>
-                    <p class="source-note">Counts and percentage changes transcribed from the table supplied for this exercise. * and superscript footnote markers are retained as shown in the source.</p>
+                    <div id="top5-chart" class="chart" role="group" aria-label="Horizontal bar chart of the five highest incarceration rates in the selected region.">
+                        <p class="map-status" role="status">Loading top 5 chart…</p>
+                    </div>
+                    <p class="source-note"><strong>Data note:</strong> Regions use a simplified UN-style grouping. Only the nine Pew figures are official for this exercise; every other bar is an illustrative mock value included for coverage, not an official country statistic.</p>
                 </div>
             </div>
         </section>
@@ -178,27 +156,27 @@
             </div>
             <article class="answer-card">
                 <h3>What appears to be the purpose of the chart?</h3>
-                <p>To show how incarceration rates vary by location and emphasize that the U.S. rate is high compared with other countries with available data.</p>
+                <p>To show where incarceration rates stand out geographically and to support Pew's point that the U.S. rate, though falling, remained the highest among countries with available data. It invites comparison between the U.S. and a few high-rate countries (El Salvador, Turkmenistan, Rwanda, Cuba) rather than a full global ranking.</p>
             </article>
             <article class="answer-card">
                 <h3>What kind of chart is this?</h3>
-                <p>A choropleth world map: countries are shaded according to rate ranges.</p>
+                <p>A choropleth world map: each country is a polygon filled according to its incarceration-rate band. The scale is stepped (binned) rather than a continuous gradient, and countries without a represented rate use a neutral fill.</p>
             </article>
             <article class="answer-card">
                 <h3>What data does it encode, and how?</h3>
-                <p>It encodes incarceration rates per 100,000 people of any age. Country shapes are the marks; fill color is the channel, grouped into ordered rate bands. Labels call out selected country names and exact rates.</p>
+                <p>Rates per 100,000 residents of any age, for about 177 countries. Country area is the mark, geographic position encodes location, and fill color encodes the rate in eight ordered bins (0–99 up to 600+, plus “no national rate”). Only nine values are Pew figures (e.g. U.S. 639, El Salvador 564); the rest are clearly labelled illustrative mock values.</p>
             </article>
             <article class="answer-card">
                 <h3>Are there interactive features?</h3>
-                <p>Yes. Hover or focus a country for its rate. Choose a region or click a country to zoom in and see a country-by-country list. Click the water or choose World to zoom out. The tabs switch to the country table or the supplied U.S. correctional-status table.</p>
+                <p>Yes. Hovering or keyboard-focusing a country shows a tooltip with its rate and data note, and the nine Pew countries are keyboard focusable. Region buttons (World, North America, Europe, Asia, etc.) zoom the map and list every country in that region with its value, and clicking a country zooms to its region. Tabs switch between the map, the full country table, and a top-five-by-region bar chart with exact values.</p>
             </article>
             <article class="answer-card">
                 <h3>What features help get its message across?</h3>
-                <p>A graduated color legend, high-contrast country outlines, a clear unit, and a few direct labels make the geographic pattern readable. The U.S. label draws attention to the central comparison. Source-year differences and illustrative mock values are disclosed above.</p>
+                <p>A graduated legend with an explicit unit, white country borders for contrast, and neutral gray for missing data keep the pattern readable. Direct labels with leader lines for the five highest Pew countries point to the key comparison, and source notes disclose mixed data years and the illustrative mock values so the map is not over-read.</p>
             </article>
             <article class="answer-card">
                 <h3>Which design do you think is best and why?</h3>
-                <p>For showing where rates are high, this map is strongest because geography is immediately visible. For precise ranking and comparing small differences, a sorted bar chart is better; no single design is best for every question.</p>
+                <p>The map is best for “where” — the geographic pattern (high rates in the U.S., parts of Latin America, Central Asia and southern Africa) is immediately visible. But color bins make exact values hard to compare, so for ranking and judging differences the sorted bar chart is stronger; together they beat either design alone, which is why the page pairs them.</p>
             </article>
         </section>
     </main>

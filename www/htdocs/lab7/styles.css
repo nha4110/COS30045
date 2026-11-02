@@ -212,11 +212,11 @@ button, input, select, textarea { font: inherit; }
 .chart-tabs { border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: .35rem; margin: 1rem 0 .8rem; }
 .chart-tab { background: transparent; border: 0; border-bottom: 3px solid transparent; color: var(--muted); cursor: pointer; font-size: .92rem; font-weight: 700; margin-bottom: -1px; padding: .7rem .85rem; }
 .chart-tab[aria-selected="true"] { border-bottom-color: var(--teal); color: var(--teal); }
-.chart-tab:focus-visible, .region-button:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.chart-tab:focus-visible, .region-button:focus-visible, .top5-region-button:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
 .tab-panel[hidden] { display: none; }
 .region-controls { display: flex; flex-wrap: wrap; gap: .4rem; margin: .25rem 0 .2rem; }
-.region-button { background: var(--soft-surface-alt); border: 1px solid var(--line); border-radius: 18px; color: var(--ink); cursor: pointer; font-size: .85rem; padding: .4rem .8rem; }
-.region-button.active { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 700; }
+.region-button, .top5-region-button { background: var(--soft-surface-alt); border: 1px solid var(--line); border-radius: 18px; color: var(--ink); cursor: pointer; font-size: .85rem; padding: .4rem .8rem; }
+.region-button.active, .top5-region-button.active { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 700; }
 .map-interaction-hint, .table-intro { color: var(--muted); font-size: .9rem; margin: .45rem 0; }
 .map-wrap { margin-top: .6rem; overflow-x: auto; }
 .map-mobile-hint { color: var(--muted); display: none; font-size: .78rem; margin: .3rem 0 0; }
@@ -264,14 +264,6 @@ button, input, select, textarea { font: inherit; }
 .data-table thead th { background: var(--soft-surface); color: var(--ink); font-weight: 700; }
 .data-table tbody th { background: var(--soft-surface-alt); font-weight: 700; white-space: nowrap; }
 .data-table tbody tr:nth-child(even) td { background: var(--soft-surface-alt); }
-.correctional-table { min-width: 1050px; }
-.correctional-table td { text-align: right; white-space: nowrap; }
-.correctional-table tbody th { min-width: 180px; }
-.correctional-table thead th { position: sticky; top: 0; z-index: 1; }
-.correctional-table thead tr:first-child th { top: 0; }
-.correctional-table thead tr:nth-child(2) th { top: 36px; }
-.summary-rows th, .summary-rows td { background: var(--accent-soft) !important; font-weight: 700; }
-.summary-rows th { white-space: normal !important; min-width: 220px; }
 .table-filters { align-items: end; display: flex; flex-wrap: wrap; gap: .8rem; margin: .9rem 0 .3rem; }
 .table-filters label { color: var(--ink); display: grid; font-size: .88rem; font-weight: 700; gap: .25rem; min-width: 170px; }
 .table-filters input, .table-filters select { background: var(--panel); border: 1px solid var(--muted); border-radius: 4px; color: var(--ink); font-size: .95rem; min-height: 44px; padding: .5rem .65rem; }
@@ -328,3 +320,13 @@ footer a { color: var(--teal); }
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
 }
+
+/* Top 5 bar chart */
+.bar-rank { fill: var(--muted); font-size: 12px; font-weight: 700; }
+.top5-controls { margin: 0 0 .5rem; }
+.bar-label { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.bar-value { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.bar-grid { stroke: var(--line); stroke-width: 1; }
+.axis-label { fill: var(--muted); font-size: 11px; }
+.rate-bar { fill: #568b84; }
+.rate-bar.highlight { fill: #344f63; }

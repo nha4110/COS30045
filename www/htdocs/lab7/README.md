@@ -4,11 +4,11 @@ Open `index.html` through a local web server so the page can load `data/countrie
 
 The page is an original teaching redraw based on the Pew Research Center article and map shared for this exercise. It includes:
 
-- A world choropleth with a map/country-table/Table 1 view switch, animated region zoom (disabled for reduced-motion preferences), water-click zoom-out, and a country list for the selected region.
+- A world choropleth with a map/country-table/top-5 view switch, animated region zoom (disabled for reduced-motion preferences), water-click zoom-out, and a country list for the selected region.
 - Country-table filters for name, region, and source.
 - A compact map-use guide, higher-contrast map labels, and a light/dark theme switch that follows the system setting until manually changed.
 - Pew's nine explicit country rates and clearly marked illustrative mock values for other countries. Mock values approximate the reference map's broad color pattern; they are not official statistics and must not be used as evidence. Antarctica has no national rate in the redraw.
-- The supplied 2009–2019 U.S. adult correctional-population table.
+- A top-five-by-region bar chart with exact rates and Pew/mock distinction.
 - Concise answers to the six visualisation-design questions.
 - A teal-to-blue rate palette and page colors that follow the system light/dark appearance.
 

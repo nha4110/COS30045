@@ -231,17 +231,31 @@
         return [total[0] / points.length, total[1] / points.length];
     }
 
+    const regionOverrides = {
+        Russia: "asia", Turkey: "asia", Cyprus: "asia", Georgia: "asia", Armenia: "asia",
+        Azerbaijan: "asia", Israel: "asia", Jordan: "asia", Iraq: "asia", Syria: "asia",
+        Lebanon: "asia", Palestine: "asia", "Timor-Leste": "asia", "East Timor": "asia",
+        Indonesia: "asia", Malaysia: "asia", Brunei: "asia", Malta: "europe",
+        Panama: "northAmerica", "Costa Rica": "northAmerica", "Trinidad and Tobago": "northAmerica",
+        Trinidad: "northAmerica", Samoa: "oceania", Tonga: "oceania", Kiribati: "oceania",
+        Micronesia: "oceania", "Federated States of Micronesia": "oceania", Palau: "oceania",
+        "Marshall Islands": "oceania", Nauru: "oceania", Tuvalu: "oceania",
+        "New Caledonia": "oceania", "French Polynesia": "oceania", "Cook Islands": "oceania",
+        Niue: "oceania", Fiji: "oceania", Australia: "oceania", "New Zealand": "oceania",
+        "Papua New Guinea": "oceania", Vanuatu: "oceania", "Solomon Islands": "oceania"
+    };
+
     function regionFor([longitude, latitude], name) {
-        if (name === "Russia") return "asia";
-        if (["Australia", "New Zealand", "Fiji", "Papua New Guinea"].includes(name)) return "oceania";
+        if (regionOverrides[name]) return regionOverrides[name];
         if (longitude < -30) return latitude > 12 ? "northAmerica" : "southAmerica";
-        if (longitude >= -25 && longitude <= 45 && latitude > 34) return "europe";
-        if (longitude >= 105 && latitude < 5) return "oceania";
+        if (longitude <= 45 && latitude > 36) return "europe";
+        if (longitude >= 105 && latitude < -5) return "oceania";
+        if (longitude >= 45 && longitude < 60 && latitude < 13) return "africa";
         if (longitude >= 45 && latitude > -15) return "asia";
         return "africa";
     }
 
-    function createCountryTable(container, rows) {
+    function createCountryTable(container, rows, showSource = true) {
         const table = document.createElement("table");
         table.className = "data-table";
         const caption = document.createElement("caption");
@@ -249,7 +263,7 @@
         table.appendChild(caption);
         const thead = document.createElement("thead");
         const header = document.createElement("tr");
-        ["Country", "Rate", "Data note"].forEach(label => {
+        (showSource ? ["Country", "Rate", "Data note"] : ["Country", "Rate"]).forEach(label => {
             const cell = document.createElement("th");
             cell.scope = "col";
             cell.textContent = label;
@@ -261,7 +275,10 @@
         const tbody = document.createElement("tbody");
         rows.forEach(item => {
             const row = document.createElement("tr");
-            [item.name, item.value === null ? "—" : item.value.toLocaleString(), item.source].forEach(value => {
+            const cells = showSource
+                ? [item.name, item.value === null ? "—" : item.value.toLocaleString(), item.source]
+                : [item.name, item.value === null ? "—" : item.value.toLocaleString()];
+            cells.forEach(value => {
                 const cell = document.createElement("td");
                 cell.textContent = value;
                 row.appendChild(cell);
@@ -315,7 +332,7 @@
                 ...item,
                 source: item.isPew ? "Pew article figure" : item.value === null ? "No national rate" : "Illustrative mock · not official"
             }));
-        createCountryTable(document.getElementById("country-data-table"), rows);
+        createCountryTable(document.getElementById("country-data-table"), rows, false);
         const noun = rows.length === 1 ? "country" : "countries";
         document.getElementById("country-result-count").textContent = `Showing ${rows.length} ${noun}.`;
     }
@@ -512,6 +529,69 @@
         updateThemeLabel();
     }
 
+    function drawTop5(region) {
+        const container = document.getElementById("top5-chart");
+        if (!container) return;
+        const rows = countryRows
+            .filter(item => item.value !== null && (region === "world" || item.region === region))
+            .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+            .slice(0, 5);
+        document.querySelectorAll(".top5-region-button").forEach(button => {
+            const active = button.dataset.top5Region === region;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+        });
+        if (!rows.length) {
+            const empty = document.createElement("p");
+            empty.className = "map-status";
+            empty.textContent = "No country rates are available for this region.";
+            container.replaceChildren(empty);
+            return;
+        }
+        const scope = region === "world" ? "worldwide" : `in ${regions[region].label}`;
+        const width = 900;
+        const rowHeight = 44;
+        const top = 18;
+        const left = 210;
+        const right = 84;
+        const max = Math.max(100, Math.ceil(Math.max(...rows.map(item => item.value)) / 100) * 100);
+        const plotWidth = width - left - right;
+        const height = top + rows.length * rowHeight + 34;
+        const svg = svgElement("svg", {
+            viewBox: `0 0 ${width} ${height}`,
+            role: "group",
+            "aria-label": `Five highest incarceration rates ${scope}: ${rows.map((item, index) => `${index + 1}. ${item.name}, ${item.value} per 100,000`).join("; ")}.`
+        });
+        container.replaceChildren(svg);
+
+        const step = max / 4;
+        for (let value = 0; value <= max + 0.001; value += step) {
+            const x = left + value / max * plotWidth;
+            svg.appendChild(svgElement("line", { x1: x, y1: top - 6, x2: x, y2: height - 26, class: "bar-grid" }));
+            svg.appendChild(svgElement("text", { x, y: height - 8, "text-anchor": "middle", class: "axis-label" }, String(Math.round(value))));
+        }
+
+        rows.forEach((item, index) => {
+            const y = top + index * rowHeight;
+            const length = item.value / max * plotWidth;
+            svg.appendChild(svgElement("text", { x: 18, y: y + 27, class: "bar-rank" }, `${index + 1}`));
+            svg.appendChild(svgElement("text", { x: left - 12, y: y + 27, "text-anchor": "end", class: "bar-label" }, `${item.name}${item.isPew ? " ★" : ""}`));
+            const bar = svgElement("rect", {
+                x: left, y: y + 6, width: Math.max(length, 1), height: 26, rx: 3,
+                class: item.isPew ? "rate-bar highlight" : "rate-bar",
+                tabindex: "0", role: "img",
+                "aria-label": `${item.name}: ${item.value} per 100,000${item.isPew ? ", Pew article figure" : ", illustrative mock value"}`
+            });
+            addTooltip(bar, container, item.name, `${item.value} per 100,000`, item.isPew
+                ? `Pew article figure. ${item.detail}`
+                : "Illustrative mock value for map coverage; not an official statistic.");
+            svg.appendChild(bar);
+            svg.appendChild(svgElement("text", {
+                x: Math.min(left + length + 8, width - 46), y: y + 27, class: "bar-value"
+            }, String(item.value)));
+        });
+    }
+
     function setupTabs() {
         const tabs = [...document.querySelectorAll(".chart-tab")];
         const activateTab = (tab, moveFocus) => {
@@ -539,11 +619,15 @@
         document.querySelectorAll(".region-button").forEach(button => {
             button.addEventListener("click", () => setMapRegion(button.dataset.region));
         });
+        document.querySelectorAll(".top5-region-button").forEach(button => {
+            button.addEventListener("click", () => drawTop5(button.dataset.top5Region));
+        });
     }
 
     initializeThemeToggle();
     setupTabs();
     drawWorldMap()
+        .then(() => drawTop5("world"))
         .catch(error => {
             const status = document.querySelector("#world-map .map-status");
             if (status) status.textContent = "The map could not be loaded. Please view this page through the local web server so its map data file is available.";
