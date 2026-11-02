@@ -23,7 +23,7 @@
             <p class="hero-intro">The U.S. rate declined to its lowest point since 1995. Yet it remained the highest among countries with available international data.</p>
             <div class="hero-bottom">
                 <span>Explore the countries <span aria-hidden="true">↓</span></span>
-                <span>Global rates · U.S. trend · chart design</span>
+                <span>World map · source context · design questions</span>
             </div>
             <div class="hero-stat"><strong>639</strong><span>people per 100,000<br>in the U.S. <small>2018 · all ages</small></span></div>
         </section>
@@ -85,11 +85,35 @@
                         <span><i class="swatch swatch-6"></i>600+</span>
                         <span><i class="swatch swatch-none"></i>No national rate</span>
                     </div>
-                    <p class="source-note"><strong>Data note:</strong> The nine figures quoted in the supplied Pew article are preserved. Other countries use illustrative mock values, created only to approximate the reference map’s color pattern. They are not official data and must not be used as factual country rates. Antarctica is neutral because no national rate is represented. In the world view, names and values are shown for the five highest Pew-reported countries.</p>
                     <div id="region-rates" class="region-rates" aria-live="polite"></div>
                 </div>
                 <div id="country-table-panel" class="tab-panel" role="tabpanel" aria-labelledby="country-table-tab" hidden>
-                    <p class="table-intro">All countries drawn on the map. Mock values are illustrative only; the nine Pew figures are marked in the source column.</p>
+                    <p class="table-intro">Search by country, region, or value source.</p>
+                    <div class="table-filters" role="group" aria-label="Filter country data">
+                        <label for="country-search">Country name
+                            <input id="country-search" type="search" autocomplete="off" placeholder="Search countries">
+                        </label>
+                        <label for="country-region-filter">Region
+                            <select id="country-region-filter">
+                                <option value="all">All regions</option>
+                                <option value="northAmerica">North America</option>
+                                <option value="southAmerica">South America</option>
+                                <option value="europe">Europe</option>
+                                <option value="africa">Africa</option>
+                                <option value="asia">Asia</option>
+                                <option value="oceania">Oceania</option>
+                            </select>
+                        </label>
+                        <label for="country-source-filter">Value source
+                            <select id="country-source-filter">
+                                <option value="all">All values</option>
+                                <option value="pew">Pew article figure</option>
+                                <option value="mock">Illustrative mock</option>
+                                <option value="none">No national rate</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p id="country-result-count" class="filter-result" role="status" aria-live="polite"></p>
                     <div id="country-data-table" class="data-table-wrap">
                         <p class="map-status" role="status">Loading country data…</p>
                     </div>

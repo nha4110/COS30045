@@ -25,6 +25,7 @@
     const mapWidth = 960;
     const mapHeight = 450;
     let mapSvg;
+    let mapAnimationFrame = null;
     let countryRows = [];
 
     function svgElement(tag, attributes, text) {
@@ -296,6 +297,36 @@
         container.hidden = false;
     }
 
+    function renderCountryTable() {
+        const query = document.getElementById("country-search").value.trim().toLocaleLowerCase();
+        const region = document.getElementById("country-region-filter").value;
+        const source = document.getElementById("country-source-filter").value;
+        const rows = countryRows
+            .filter(item => item.name.toLocaleLowerCase().includes(query))
+            .filter(item => region === "all" || item.region === region)
+            .filter(item => {
+                if (source === "pew") return item.isPew;
+                if (source === "mock") return !item.isPew && item.value !== null;
+                if (source === "none") return item.value === null;
+                return true;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(item => ({
+                ...item,
+                source: item.isPew ? "Pew article figure" : item.value === null ? "No national rate" : "Illustrative mock · not official"
+            }));
+        createCountryTable(document.getElementById("country-data-table"), rows);
+        const noun = rows.length === 1 ? "country" : "countries";
+        document.getElementById("country-result-count").textContent = `Showing ${rows.length} ${noun}.`;
+    }
+
+    function initializeCountryFilters() {
+        ["country-search", "country-region-filter", "country-source-filter"].forEach(id => {
+            const control = document.getElementById(id);
+            control.addEventListener(id === "country-search" ? "input" : "change", renderCountryTable);
+        });
+    }
+
     function projectPoint([longitude, latitude]) {
         const radians = Math.PI / 180;
         const lambda = longitude * radians;
@@ -319,8 +350,9 @@
 
     function setMapRegion(region) {
         if (!regions[region] || !mapSvg) return;
+        let targetViewBox;
         if (region === "world") {
-            mapSvg.setAttribute("viewBox", `0 0 ${mapWidth} ${mapHeight}`);
+            targetViewBox = [0, 0, mapWidth, mapHeight];
         } else {
             const [minLongitude, minLatitude, maxLongitude, maxLatitude] = regions[region].bounds;
             const corners = [
@@ -336,8 +368,9 @@
             const top = Math.min(...ys) - padding;
             const width = Math.max(...xs) - Math.min(...xs) + padding * 2;
             const height = Math.max(...ys) - Math.min(...ys) + padding * 2;
-            mapSvg.setAttribute("viewBox", `${left} ${top} ${width} ${height}`);
+            targetViewBox = [left, top, width, height];
         }
+        animateMapView(targetViewBox);
         mapSvg.classList.toggle("regional-zoom", region !== "world");
         document.querySelectorAll(".region-button").forEach(button => {
             const active = button.dataset.region === region;
@@ -345,6 +378,33 @@
             button.setAttribute("aria-pressed", String(active));
         });
         renderRegionRates(region);
+    }
+
+    function animateMapView(targetViewBox) {
+        if (mapAnimationFrame !== null) cancelAnimationFrame(mapAnimationFrame);
+        const current = mapSvg.viewBox.baseVal;
+        const startViewBox = [current.x, current.y, current.width, current.height];
+        const duration = 550;
+        const startedAt = performance.now();
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            mapSvg.setAttribute("viewBox", targetViewBox.join(" "));
+            mapAnimationFrame = null;
+            return;
+        }
+        const step = now => {
+            const progress = Math.min((now - startedAt) / duration, 1);
+            const eased = progress < 0.5
+                ? 4 * progress * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+            const viewBox = startViewBox.map((value, index) => value + (targetViewBox[index] - value) * eased);
+            mapSvg.setAttribute("viewBox", viewBox.join(" "));
+            if (progress < 1) {
+                mapAnimationFrame = requestAnimationFrame(step);
+            } else {
+                mapAnimationFrame = null;
+            }
+        };
+        mapAnimationFrame = requestAnimationFrame(step);
     }
 
     async function drawWorldMap() {
@@ -424,14 +484,8 @@
             { name: "Turkmenistan", value: 552, point: [59, 39], dx: 34, dy: -15 },
             { name: "Rwanda", value: 545, point: [30, -2], dx: 32, dy: 20 }
         ].forEach(item => addMapLabel(svg, project, item));
-        document.getElementById("country-data-table").replaceChildren();
-        createCountryTable(
-            document.getElementById("country-data-table"),
-            [...countryRows].sort((a, b) => a.name.localeCompare(b.name)).map(item => ({
-                ...item,
-                source: item.isPew ? "Pew article figure" : item.value === null ? "No national rate" : "Illustrative mock · not official"
-            }))
-        );
+        initializeCountryFilters();
+        renderCountryTable();
         setMapRegion("world");
     }
 
