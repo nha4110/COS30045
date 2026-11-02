@@ -243,7 +243,12 @@ button, input, select, textarea { font: inherit; }
 .map-label { fill: var(--map-label); font-size: 13px; font-weight: 700; paint-order: stroke; stroke: var(--panel); stroke-linejoin: round; stroke-width: 3px; }
 .map-label-value { font-size: 12px; font-weight: 600; }
 .map-label-line, .map-label-dot, .map-label { pointer-events: none; }
-.world-map svg.regional-zoom .map-top-label { display: none; }
+.world-map svg.regional-zoom .world-top-label { display: none; }
+.region-label-line { stroke: var(--teal); stroke-width: 1.25px; vector-effect: non-scaling-stroke; }
+.region-label-dot { fill: var(--accent); stroke: var(--panel); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.region-label-background { fill: var(--panel); fill-opacity: .97; stroke: var(--teal); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.region-label-text { fill: var(--ink); font-family: Arial, Helvetica, sans-serif; font-weight: 700; pointer-events: none; text-anchor: middle; }
+.region-top-label { pointer-events: none; }
 .map-legend { align-items: center; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: .5rem .85rem; padding: .8rem .1rem .25rem; }
 .map-legend > span:not(.legend-note) { align-items: center; color: var(--ink); display: inline-flex; font-size: .82rem; gap: .35rem; }
 .legend-note { color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .06em; margin-right: .3rem; }

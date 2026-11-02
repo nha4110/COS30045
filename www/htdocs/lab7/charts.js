@@ -27,6 +27,7 @@
     let mapSvg;
     let mapAnimationFrame = null;
     let countryRows = [];
+    let activeRegionLabels = [];
 
     function svgElement(tag, attributes, text) {
         const element = document.createElementNS(namespace, tag);
@@ -186,7 +187,7 @@
         const [x, y] = project(item.point);
         const labelX = x + item.dx;
         const labelY = y + item.dy;
-        const group = svgElement("g", { "aria-hidden": "true", class: "map-top-label" });
+        const group = svgElement("g", { "aria-hidden": "true", class: `map-top-label ${item.labelClass || ""}`.trim() });
         group.appendChild(svgElement("circle", { cx: x, cy: y, r: 3.3, class: "map-label-dot" }));
         group.appendChild(svgElement("line", { x1: x, y1: y, x2: labelX, y2: labelY - 5, class: "map-label-line" }));
         const anchor = item.dx < 0 ? "end" : "start";
@@ -394,7 +395,121 @@
             button.classList.toggle("active", active);
             button.setAttribute("aria-pressed", String(active));
         });
+        renderRegionalTopLabels(region);
         renderRegionRates(region);
+    }
+
+    function renderRegionalTopLabels(region) {
+        mapSvg.querySelectorAll(".region-top-label").forEach(label => label.remove());
+        activeRegionLabels = [];
+        if (region === "world") return;
+
+        const topCountries = countryRows
+            .filter(item => item.region === region && item.value !== null)
+            .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+            .slice(0, 5);
+        const measureContext = document.createElement("canvas").getContext("2d");
+        if (!measureContext) throw new Error("Could not measure regional map labels.");
+        measureContext.font = "700 12px Arial, Helvetica, sans-serif";
+
+        topCountries.forEach(item => {
+            const group = svgElement("g", { "aria-hidden": "true", class: "region-top-label" });
+            const connector = svgElement("line", { class: "region-label-line" });
+            const marker = svgElement("circle", { class: "region-label-dot" });
+            const background = svgElement("rect", { class: "region-label-background" });
+            const text = svgElement("text", { class: "region-label-text", "dominant-baseline": "middle" }, `${item.name} · ${item.value}`);
+            group.append(connector, marker, background, text);
+            mapSvg.appendChild(group);
+            activeRegionLabels.push({
+                group,
+                connector,
+                marker,
+                background,
+                text,
+                point: projectPoint(item.center),
+                width: measureContext.measureText(`${item.name} · ${item.value}`).width + 16,
+                height: 26
+            });
+        });
+        updateRegionalTopLabelPositions();
+    }
+
+    function updateRegionalTopLabelPositions() {
+        if (!mapSvg || !activeRegionLabels.length) return;
+        const transform = mapSvg.getScreenCTM();
+        if (!transform) return;
+        const inverse = transform.inverse();
+        const screenPoint = mapSvg.createSVGPoint();
+        const scale = Math.hypot(transform.a, transform.b);
+        const bounds = mapSvg.getBoundingClientRect();
+        const placed = [];
+        const directions = [
+            [1, 0], [-1, 0], [0, -1], [0, 1],
+            [1, -1], [-1, -1], [1, 1], [-1, 1]
+        ];
+        const gaps = [9, 20, 32, 48, 70];
+
+        const toMapPoint = (x, y) => {
+            screenPoint.x = x;
+            screenPoint.y = y;
+            return screenPoint.matrixTransform(inverse);
+        };
+        const overlaps = (a, b) =>
+            a.left < b.right + 4 && a.right + 4 > b.left &&
+            a.top < b.bottom + 4 && a.bottom + 4 > b.top;
+
+        activeRegionLabels.forEach(label => {
+            screenPoint.x = label.point[0];
+            screenPoint.y = label.point[1];
+            const anchor = screenPoint.matrixTransform(transform);
+            const options = gaps.flatMap(gap => directions.map(([dx, dy]) => {
+                const x = anchor.x + dx * (label.width / 2 + gap);
+                const y = anchor.y + dy * (label.height / 2 + gap);
+                const box = {
+                    left: x - label.width / 2,
+                    right: x + label.width / 2,
+                    top: y - label.height / 2,
+                    bottom: y + label.height / 2
+                };
+                const outside = Math.max(0, bounds.left + 4 - box.left) +
+                    Math.max(0, box.right - bounds.right + 4) +
+                    Math.max(0, bounds.top + 4 - box.top) +
+                    Math.max(0, box.bottom - bounds.bottom + 4);
+                const collisions = placed.reduce((count, other) => count + Number(overlaps(box, other)), 0);
+                return { x, y, box, score: outside * 10 + collisions * 10000 + gap * 2 + Math.abs(dx) + Math.abs(dy) };
+            })).sort((a, b) => a.score - b.score);
+            const placement = options[0];
+            placed.push(placement.box);
+
+            const point = toMapPoint(anchor.x, anchor.y);
+            const topLeft = toMapPoint(placement.box.left, placement.box.top);
+            const bottomRight = toMapPoint(placement.box.right, placement.box.bottom);
+            const labelX = (topLeft.x + bottomRight.x) / 2;
+            const labelY = (topLeft.y + bottomRight.y) / 2;
+            const scaleSafe = Math.max(scale, .01);
+            const left = topLeft.x;
+            const right = bottomRight.x;
+            const top = topLeft.y;
+            const bottom = bottomRight.y;
+            const nearestX = Math.max(left, Math.min(point.x, right));
+            const nearestY = Math.max(top, Math.min(point.y, bottom));
+
+            label.connector.setAttribute("x1", point.x);
+            label.connector.setAttribute("y1", point.y);
+            label.connector.setAttribute("x2", nearestX);
+            label.connector.setAttribute("y2", nearestY);
+            label.marker.setAttribute("cx", point.x);
+            label.marker.setAttribute("cy", point.y);
+            label.marker.setAttribute("r", 3 / scaleSafe);
+            label.background.setAttribute("x", left);
+            label.background.setAttribute("y", top);
+            label.background.setAttribute("width", right - left);
+            label.background.setAttribute("height", bottom - top);
+            label.background.setAttribute("rx", 5 / scaleSafe);
+            label.text.setAttribute("x", labelX);
+            label.text.setAttribute("y", labelY);
+            label.text.setAttribute("font-size", 12 / scaleSafe);
+        });
     }
 
     function animateMapView(targetViewBox) {
@@ -406,6 +521,7 @@
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
             mapSvg.setAttribute("viewBox", targetViewBox.join(" "));
             mapAnimationFrame = null;
+            updateRegionalTopLabelPositions();
             return;
         }
         const step = now => {
@@ -415,6 +531,7 @@
                 : 1 - Math.pow(-2 * progress + 2, 3) / 2;
             const viewBox = startViewBox.map((value, index) => value + (targetViewBox[index] - value) * eased);
             mapSvg.setAttribute("viewBox", viewBox.join(" "));
+            updateRegionalTopLabelPositions();
             if (progress < 1) {
                 mapAnimationFrame = requestAnimationFrame(step);
             } else {
@@ -490,6 +607,7 @@
             }
             countryLayer.appendChild(path);
         });
+        window.addEventListener("resize", updateRegionalTopLabelPositions);
         svg.addEventListener("click", event => {
             if (event.target === svg || event.target === countryLayer) setMapRegion("world");
         });
@@ -500,7 +618,7 @@
             { name: "El Salvador", value: 564, point: [-89, 13], dx: -36, dy: 35 },
             { name: "Turkmenistan", value: 552, point: [59, 39], dx: 34, dy: -15 },
             { name: "Rwanda", value: 545, point: [30, -2], dx: 32, dy: 20 }
-        ].forEach(item => addMapLabel(svg, project, item));
+        ].forEach(item => addMapLabel(svg, project, { ...item, labelClass: "world-top-label" }));
         initializeCountryFilters();
         renderCountryTable();
         setMapRegion("world");
