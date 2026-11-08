@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore Australian hospitalised road-crash injuries from 2011 to 2021.">
+    <meta name="theme-color" content="#102a43">
+    <title>Road Injury Explorer | Australia 2011–2021</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to dashboard</a>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="#" aria-label="Road Injury Explorer home">
+                <span class="brand-mark" aria-hidden="true">RI</span>
+                <span>Road Injury Explorer</span>
+            </a>
+            <nav class="header-nav" aria-label="Dashboard navigation">
+                <a href="#filters">Filters</a>
+                <a href="#visualisations">Visualisations</a>
+                <a href="#data-notes">Data notes</a>
+                <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+                    <span class="theme-icon" aria-hidden="true">◐</span>
+                    <span id="theme-toggle-label">Dark mode</span>
+                </button>
+            </nav>
+            <span class="header-period">AUSTRALIA <span aria-hidden="true">/</span> 2011–2021</span>
+        </div>
+    </header>
+
+    <main id="main" class="page-shell">
+        <section class="intro" aria-labelledby="page-title">
+            <p class="eyebrow">TRANSPORT SAFETY · HOSPITALISED INJURIES</p>
+            <h1 id="page-title" tabindex="0">Road crashes, viewed through the data.</h1>
+            <p class="intro-copy">Explore hospitalised injury trends by road user and jurisdiction. Counts describe recorded admissions, not crash risk or population-adjusted rates.</p>
+        </section>
+
+        <section id="filters" class="filter-panel" aria-label="Dashboard filters">
+            <div class="filter-heading">
+                <div>
+                    <p class="eyebrow">EXPLORE THE DATA</p>
+                    <h2>Choose a view</h2>
+                </div>
+                <button id="reset-filters" class="text-button" type="button">Reset filters</button>
+            </div>
+            <div class="filter-controls">
+                <label class="filter-control" for="year-filter">
+                    <span>Comparison year</span>
+                    <select id="year-filter"><option value="">Latest available year</option></select>
+                </label>
+                <label class="filter-control" for="state-filter">
+                    <span>Jurisdiction</span>
+                    <select id="state-filter"><option value="">All jurisdictions</option></select>
+                </label>
+                <label class="filter-control" for="user-filter">
+                    <span>Road user</span>
+                    <select id="user-filter"><option value="">All road users</option></select>
+                </label>
+            </div>
+            <p class="filter-note">The comparison year applies to the road-user and jurisdiction charts. Trend lines show the full available time series.</p>
+        </section>
+
+        <div id="data-status" class="status-banner" role="status" aria-live="polite" hidden></div>
+
+        <section class="summary-grid" aria-label="Summary statistics" aria-live="polite" aria-atomic="true">
+            <article class="summary-card">
+                <p id="kpi-total-label" class="summary-label">NATIONAL INJURIES · SELECTED YEAR</p>
+                <p id="kpi-national" class="summary-value">—</p>
+                <p id="kpi-national-note" class="summary-note">Loading national data</p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">COMPARISON YEAR</p>
+                <p id="kpi-latest-year" class="summary-value">—</p>
+                <p class="summary-note">Used for road-user and jurisdiction charts</p>
+            </article>
+            <article class="summary-card summary-card-accent">
+                <p class="summary-label">CURRENT VIEW</p>
+                <p id="kpi-current-view" class="summary-value summary-value-text">All road users</p>
+                <p id="kpi-current-note" class="summary-note">All jurisdictions</p>
+            </article>
+        </section>
+
+        <section id="visualisations" class="chart-grid" aria-label="Road injury visualisations">
+            <article class="chart-card chart-card-wide" tabindex="0">
+                <div class="chart-heading">
+                    <div>
+                        <p class="eyebrow">NATIONAL · 2011–2021</p>
+                        <h2 id="national-chart-title" tabindex="0">Total hospitalised road injuries</h2>
+                    </div>
+                    <p class="chart-unit">Recorded hospitalisations</p>
+                </div>
+                <p id="national-chart-description" class="chart-description">The line shows annual national totals, or the selected road-user group. Consistent styling is used throughout. Dashed markers identify reporting-criteria changes, not necessarily changes in injury risk. Use Tab to focus data points and arrow keys to move between them.</p>
+                <div id="national-chart" class="chart-wrap" role="group" aria-labelledby="national-chart-title" aria-describedby="national-chart-description"></div>
+                <p id="national-empty" class="empty-state" hidden>No national trend data matches these filters.</p>
+            </article>
+
+            <article class="chart-card" tabindex="0">
+                <div class="chart-heading">
+                    <div>
+                        <p class="eyebrow">ROAD USER · SELECTED YEAR</p>
+                        <h2 id="road-user-chart-title" tabindex="0">Injuries by road-user group</h2>
+                    </div>
+                    <p id="road-user-chart-unit" class="chart-unit">Raw counts</p>
+                </div>
+                <p id="road-user-chart-description" class="chart-description">Sorted descending for accurate comparison. Select a jurisdiction to use its reported road-user groups; otherwise the national dataset is shown. Use Tab to focus bars and arrow keys to move between them.</p>
+                <div id="road-user-chart" class="chart-wrap" role="group" aria-labelledby="road-user-chart-title" aria-describedby="road-user-chart-description"></div>
+                <p id="road-user-data-note" class="chart-data-note"></p>
+                <p id="road-user-empty" class="empty-state" hidden>No road-user records match these filters.</p>
+            </article>
+
+            <article class="chart-card" tabindex="0">
+                <div class="chart-heading">
+                    <div>
+                        <p class="eyebrow">ROAD USER · 2011–2021</p>
+                        <h2 id="road-user-trend-title" tabindex="0">Leading groups over time</h2>
+                    </div>
+                    <p id="road-user-trend-unit" class="chart-unit">Top groups in selected year</p>
+                </div>
+                <p id="road-user-trend-description" class="chart-description">Trends for the five leading groups in the comparison year. Line styles and point shapes distinguish groups; gaps indicate suppressed or missing records. Use Tab and arrow keys to explore the points.</p>
+                <div id="road-user-trend-chart" class="chart-wrap" role="group" aria-labelledby="road-user-trend-title" aria-describedby="road-user-trend-description"></div>
+                <div id="road-user-trend-legend" class="trend-legend" aria-label="Road-user trend series"></div>
+                <p id="road-user-trend-empty" class="empty-state" hidden>No road-user trend data matches these filters.</p>
+            </article>
+
+            <article class="chart-card chart-card-wide" tabindex="0">
+                <div class="chart-heading">
+                    <div>
+                        <p class="eyebrow">JURISDICTION & FIRST NATIONS</p>
+                        <h2 id="comparative-chart-title" tabindex="0">Comparative views</h2>
+                    </div>
+                    <p id="comparison-year-label" class="chart-unit"></p>
+                </div>
+                <p id="comparative-chart-description" class="chart-description">The heatmap compares injury counts by jurisdiction and road-user group for the selected year. First Nations trend points show known subtotals where categories are suppressed; hover or focus a point to see what was omitted. Use Tab to focus marks and arrow keys to move within a chart.</p>
+                <div class="comparison-grid">
+                    <section class="comparison-item" aria-labelledby="state-chart-title" tabindex="0">
+                        <h3 id="state-chart-title" tabindex="0">Jurisdiction × road user</h3>
+                        <p class="comparison-note">Injuries by reporting jurisdiction and road-user group. Counts are not population-adjusted.</p>
+                        <div id="state-chart" class="chart-wrap heatmap-wrap" role="group" aria-labelledby="state-chart-title" aria-describedby="comparative-chart-description"></div>
+                        <p id="state-data-note" class="chart-data-note"></p>
+                        <p id="state-empty" class="empty-state" hidden>No jurisdiction records match these filters.</p>
+                        <div class="heatmap-legend" aria-label="Heatmap legend">
+                            <span class="heatmap-gradient" aria-hidden="true"></span>
+                            <span>Fewer injuries</span>
+                            <span>More injuries</span>
+                            <span class="heatmap-missing-key" aria-hidden="true"></span>
+                            <span>Suppressed or missing</span>
+                        </div>
+                    </section>
+                    <section class="comparison-item" aria-labelledby="first-nations-title" tabindex="0">
+                        <h3 id="first-nations-title" tabindex="0">First Nations trend</h3>
+                        <p class="comparison-note">Interpret in accordance with Indigenous data governance.</p>
+                        <div id="first-nations-chart" class="chart-wrap" role="group" aria-labelledby="first-nations-title" aria-describedby="comparative-chart-description"></div>
+                        <p id="first-nations-empty" class="empty-state" hidden>No First Nations records match these filters.</p>
+                        <div class="chart-key" aria-label="First Nations point completeness key">
+                            <span><i class="key-swatch key-complete"></i>All categories reported</span>
+                            <span><i class="key-swatch key-partial"></i>Patterned subtotal; suppressed categories excluded</span>
+                        </div>
+                    </section>
+                </div>
+            </article>
+        </section>
+
+        <details id="data-notes" class="notes-panel">
+            <summary>About the data, suppression and interpretation</summary>
+            <div class="notes-content">
+                <p><strong>Data governance:</strong> First Nations data should be interpreted in line with Indigenous data sovereignty and the context in which the source data was collected. This dashboard does not infer identity or fill gaps.</p>
+                <p><strong>Suppressed and missing values:</strong> Blank, non-numeric and explicit suppression values (such as <code>NaN</code> or “suppressed”) are excluded from calculations, not treated as zero. A missing value is not evidence of no injuries.</p>
+                <p><strong>Counts and population:</strong> Charts show raw hospitalisation counts. Jurisdictions have different population sizes and exposure; these visualisations are not per-capita comparisons and do not establish causation.</p>
+                <p><strong>Reporting criteria:</strong> The 2012 Victoria Emergency Department reporting-criteria change and 2017 NSW reporting-criteria change are marked on the national trend. These administrative breaks may affect comparability.</p>
+                <p><strong>Suppression:</strong> Source rows flagged as suppressed are never converted to zero. State bars and First Nations points identify known subtotals when some categories are suppressed; their tooltips report the excluded category count.</p>
+                <p class="source-note">Source: team-prepared BITRE data files. See the project README for expected filenames, supported column names and limitations.</p>
+            </div>
+        </details>
+
+        <footer class="page-footer">
+            <span>ROAD INJURY EXPLORER</span>
+            <span>Data coverage: 2011–2021 · Always consult source metadata before drawing conclusions.</span>
+        </footer>
+    </main>
+
+    <div id="chart-tooltip" class="tooltip" role="tooltip" hidden></div>
+</body>
+</html>
