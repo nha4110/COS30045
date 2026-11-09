@@ -990,3 +990,18 @@ h2:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+.endpoint-key {
+    width: 18px;
+    height: 10px;
+    border: none;
+    border-radius: 2px;
+    background: var(--chart-primary);
+}
+
+.baseline-key {
+    opacity: 0.3;
+}
+
+.current-key {
+    opacity: 1;
+}

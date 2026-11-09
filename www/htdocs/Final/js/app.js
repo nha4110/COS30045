@@ -595,54 +595,163 @@
     }
 
     function renderAgeComparison(rows, year) {
-        const container = document.getElementById("age-chart"); container.replaceChildren();
-        document.getElementById("age-year-key").textContent = year;
-        const endpoints = rows.filter((row) => row.year === 2011 || row.year === year);
-        const ageOrder = ["0-7", "8-16", "17-25", "26-39", "40-64", "65-74", "75+", "Missing"];
-        const ages = [...new Set(endpoints.map((row) => row.age))].sort((a, b) => {
-            const ai = ageOrder.indexOf(a), bi = ageOrder.indexOf(b);
-            return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
+    const container = document.getElementById("age-chart");
+    container.replaceChildren();
+    document.getElementById("age-year-key").textContent = year;
+
+    const endpoints = rows.filter(
+        d => d.year === 2011 || d.year === year
+    );
+
+    const ageOrder = [
+        "0-7", "8-16", "17-25", "26-39",
+        "40-64", "65-74", "75+", "Missing"
+    ];
+
+    const ages = [...new Set(endpoints.map(d => d.age))]
+        .sort((a, b) => {
+            const rank = age =>
+                ageOrder.includes(age) ? ageOrder.indexOf(age) : 99;
+
+            return rank(a) - rank(b) || a.localeCompare(b);
         });
-        const summaries = summarizeRows(endpoints, (row) => `${row.year}|${row.age}`);
-        const lookup = new Map(summaries.map((row) => [row.key, row.value]));
-        const values = ages.map((age) => ({ age, before: lookup.get(`2011|${age}`) ?? null, after: lookup.get(`${year}|${age}`) ?? null }));
-        setEmptyState(document.getElementById("age-empty"), "No age records match this selection.", !values.length);
-        document.getElementById("age-data-note").textContent = values.some((row) => row.before === null || row.after === null)
-            ? "An absent endpoint has no mark; it is not a reported zero. Missing is retained as a source age label."
-            : `${filters.sex || "All recorded sex categories"} · ${filters.user}. Hover or focus an endpoint for its exact count.`;
-        if (!values.length) return;
-        const width = chartWidth(container), height = Math.max(270, ages.length * 35 + 50);
-        const margin = { top: 14, right: 22, bottom: 44, left: 57 };
-        const maximum = d3.max(values, (row) => Math.max(row.before ?? 0, row.after ?? 0)) || 1;
-        const x = d3.scaleLinear().domain([0, maximum * 1.08]).nice().range([margin.left, width - margin.right]);
-        const y = d3.scaleBand().domain(ages).range([margin.top, height - margin.bottom]).padding(0.4);
-        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img").attr("aria-label", `Age comparison for ${filters.user}, ${filters.sex || "all sex categories"}, 2011 and ${year}`);
-        svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x).ticks(width < 400 ? 3 : 4).tickFormat(d3.format("~s")));
-        svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).tickSize(0)).call((axis) => axis.select(".domain").remove());
-        svg.selectAll(".age-connector").data(values.filter((row) => row.before !== null && row.after !== null)).join("line")
-            .attr("class", "age-connector").attr("x1", (row) => x(row.before)).attr("x2", (row) => x(row.after))
-            .attr("y1", (row) => y(row.age) + y.bandwidth() / 2).attr("y2", (row) => y(row.age) + y.bandwidth() / 2);
-        const points = values.flatMap((row) => [
-            { age: row.age, year: 2011, value: row.before, baseline: true },
-            { age: row.age, year, value: row.after, baseline: false }
-        ]).filter((row) => row.value !== null);
-        const label = (row) => `${filters.user}, age ${row.age}, ${filters.sex || "all sex categories"}: ${numberFormat.format(row.value)} cases in ${row.year}`;
-        const marks = svg.selectAll(".age-point").data(points).join("path")
-            .attr("class", "series-point focusable-mark age-point").attr("tabindex", 0).attr("role", "img")
-            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
-            .attr("transform", (row) => `translate(${x(row.value)},${y(row.age) + y.bandwidth() / 2})`)
-            .attr("d", (row) => d3.symbol().type(row.baseline ? d3.symbolCircle : d3.symbolSquare).size(62)())
-            .attr("fill", (row) => row.baseline ? "var(--surface)" : "var(--chart-primary)")
-            .style("stroke", "var(--chart-primary)").style("stroke-width", 2);
-        attachTooltip(marks, label);
-        svg.append("text").attr("x", (margin.left + width - margin.right) / 2).attr("y", height - 7)
-            .attr("text-anchor", "middle").text("Recorded hospitalisations");
-        revealChart(svg);
+
+    const totals = new Map(
+        summarizeRows(endpoints, d => `${d.year}|${d.age}`)
+            .map(d => [d.key, d.value])
+    );
+
+    const periods = year === 2011 ? [2011] : [2011, year];
+
+    const values = ages.flatMap(age =>
+        periods.map(period => ({
+            age,
+            year: period,
+            value: totals.get(`${period}|${age}`) ?? null
+        }))
+    );
+
+    const currentKey = document.querySelector(
+        "#age-chart + .chart-key .current-key"
+    );
+
+    if (currentKey) {
+        currentKey.parentElement.hidden = year === 2011;
     }
 
+    setEmptyState(
+        document.getElementById("age-empty"),
+        "No age records match this selection.",
+        !values.length
+    );
+
+    document.getElementById("age-data-note").textContent =
+        `${filters.sex || "All recorded sex categories"} · ${filters.user}. ` +
+        "Labels show exact counts; n/a means unavailable in this table, not zero.";
+
+    if (!values.length) return;
+
+    const width = chartWidth(container);
+    const height = Math.max(300, ages.length * 58 + 60);
+    const margin = {
+        top: 14,
+        right: 64,
+        bottom: 44,
+        left: 58
+    };
+
+    const maximum = d3.max(values, d => d.value) || 1;
+
+    const x = d3.scaleLinear()
+        .domain([0, maximum * 1.05])
+        .nice()
+        .range([margin.left, width - margin.right]);
+
+    const y = d3.scaleBand()
+        .domain(ages)
+        .range([margin.top, height - margin.bottom])
+        .paddingInner(0.25);
+
+    const subY = d3.scaleBand()
+        .domain(periods)
+        .range([0, y.bandwidth()])
+        .padding(0.15);
+
+    const svg = d3.select(container)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img")
+        .attr(
+            "aria-label",
+            `Hospitalisations by age for ${filters.user}, ` +
+            `${filters.sex || "all sex categories"}, ${periods.join(" and ")}`
+        );
+
+    svg.append("g")
+        .attr("class", "axis")
+        .attr(
+            "transform",
+            `translate(0,${height - margin.bottom})`
+        )
+        .call(
+            d3.axisBottom(x)
+                .ticks(width < 400 ? 3 : 4)
+                .tickFormat(d3.format("~s"))
+        );
+
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).tickSize(0))
+        .call(axis => axis.select(".domain").remove());
+
+    const label = d =>
+        `${d.age}, ${d.year}: ${numberFormat.format(d.value)} cases; ` +
+        `${filters.sex || "all sex categories"}; ${filters.user}`;
+
+    const bars = svg.selectAll(".age-bar")
+        .data(values.filter(d => d.value !== null))
+        .join("rect")
+        .attr("class", "bar age-bar focusable-mark")
+        .attr("tabindex", 0)
+        .attr("role", "img")
+        .attr(
+            "aria-keyshortcuts",
+            "ArrowUp ArrowDown ArrowLeft ArrowRight"
+        )
+        .attr("aria-label", label)
+        .attr("x", x(0))
+        .attr("y", d => y(d.age) + subY(d.year))
+        .attr("width", d => x(d.value) - x(0))
+        .attr("height", subY.bandwidth())
+        .attr("fill", "var(--chart-primary)")
+        .attr("fill-opacity", d => d.year === 2011 ? 0.3 : 1)
+        .attr("rx", 2);
+
+    attachTooltip(bars, label);
+
+    svg.selectAll(".age-value")
+        .data(values)
+        .join("text")
+        .attr("class", "bar-value age-value")
+        .attr("x", d => x(d.value ?? 0) + 6)
+        .attr(
+            "y",
+            d => y(d.age) + subY(d.year) + subY.bandwidth() / 2
+        )
+        .attr("dominant-baseline", "middle")
+        .text(d =>
+            d.value === null ? "n/a" : numberFormat.format(d.value)
+        );
+
+    svg.append("text")
+        .attr("x", (margin.left + width - margin.right) / 2)
+        .attr("y", height - 7)
+        .attr("text-anchor", "middle")
+        .text("Recorded hospitalisations");
+
+    revealChart(svg);
+}
     function renderSexBars(rows, year) {
         const container = document.getElementById("sex-chart"); container.replaceChildren();
         const grouped = summarizeRows(rows.filter((row) => row.year === year), (row) => row.sex)
