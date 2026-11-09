@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive visual story exploring Australian road trauma, demographic vulnerability and reporting context.">
+  <title>Road trauma, made visible | Australia</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to visual story</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Road trauma, made visible — home">
+      <span class="brand-mark" aria-hidden="true">RT</span>
+      <span>Road trauma <span class="brand-light">/ made visible</span></span>
+    </a>
+    <nav class="top-nav" aria-label="Main navigation">
+      <a href="#overview">Overview</a>
+      <a href="#demographics">People</a>
+      <a href="#geography">Place</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode">
+        <span aria-hidden="true">◐</span> <span class="theme-label">Dark mode</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Australian road trauma · 2011—2021</p>
+        <h1 id="hero-title">A crash is a moment.<br><em>The impact lasts.</em></h1>
+        <p class="hero-story">Every year across Australia, tens of thousands of lives are disrupted in a fraction of a second. Behind every data point lies a person—a driver in traffic, a cyclist at an intersection, a regional worker on a remote highway. This web application transforms complex national health records into a clear, interactive visual story. Stop scrolling and start seeing who is at risk, where crashes happen, and why safety interventions matter.</p>
+        <a class="hero-link" href="#overview">Explore the data <span aria-hidden="true">↓</span></a>
+      </div>
+      <aside class="hero-note" aria-label="About this story">
+        <span class="note-index">01 / CONTEXT</span>
+        <p>These are hospitalisation records, not a count of every crash. Each record represents a person whose road injury required hospital care.</p>
+        <span class="note-rule" aria-hidden="true"></span>
+        <p class="note-small">Read trends alongside the reporting notes. Changes in administrative criteria can affect recorded counts.</p>
+      </aside>
+    </section>
+
+    <section class="story-intro" id="overview" aria-labelledby="overview-title">
+      <div>
+        <p class="eyebrow">One dataset. Many human stories.</p>
+        <h2 id="overview-title">Look closer than the headline.</h2>
+      </div>
+      <p>Explore how road trauma varies by age, sex, road-user type and jurisdiction. Use the year control to focus the demographic and place-based views; longitudinal charts retain the full 2011–2021 record.</p>
+    </section>
+
+    <div class="control-bar" aria-label="Dashboard controls">
+      <label for="year-select">Focus year
+        <select id="year-select" aria-label="Select year for demographic and geographic charts"></select>
+      </label>
+      <p id="data-status" class="data-status" role="status" aria-live="polite">Loading Australian road trauma records…</p>
+    </div>
+
+    <section class="chart-section" id="demographics" aria-labelledby="people-title">
+      <div class="section-heading">
+        <span class="section-number">01</span>
+        <div><p class="eyebrow">Humanising the data</p><h2 id="people-title">Who is most affected?</h2></div>
+        <p class="section-aside">Age and sex can reveal different patterns of exposure and vulnerability—patterns averages can hide.</p>
+      </div>
+      <div class="chart-grid">
+        <article class="chart-card chart-card-wide">
+          <div class="chart-heading"><div><p class="chart-kicker">AGE × SEX</p><h3>Injuries across a lifetime</h3></div><span class="chart-unit">Hospitalisations</span></div>
+          <p class="chart-description">Population pyramid by age group. Compare male and female recorded injury counts in the selected year.</p>
+          <div id="pyramid-chart" class="chart" role="region" aria-label="Population pyramid comparing injury counts by age group and sex"></div>
+          <p class="chart-footnote">Bars show recorded counts; they are not adjusted for population size or travel exposure.</p>
+        </article>
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">AGE × ROAD USER</p><h3>Where vulnerabilities intersect</h3></div><span class="chart-unit">Selected year</span></div>
+          <p class="chart-description">A demographic matrix of recorded injuries by age and road-user type.</p>
+          <div id="heatmap-chart" class="chart" role="region" aria-label="Heat map of injuries by age group and road-user type"></div>
+          <p class="chart-footnote">Darker cells indicate more recorded injuries. Select or focus a cell for exact values.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="chart-section" aria-labelledby="trends-title">
+      <div class="section-heading">
+        <span class="section-number">02</span>
+        <div><p class="eyebrow">The longer view</p><h2 id="trends-title">Numbers need context.</h2></div>
+        <p class="section-aside">Administrative changes can create breaks in a series. A recorded increase is not automatically a change in real-world risk.</p>
+      </div>
+      <div class="chart-grid">
+        <article class="chart-card chart-card-wide">
+          <div class="chart-heading"><div><p class="chart-kicker">NATIONAL TREND · 2011–2021</p><h3>Hospitalisations over time</h3></div><span class="chart-unit">Recorded injuries / year</span></div>
+          <p class="chart-description">National total with governance annotations at reporting changes in Victoria and New South Wales.</p>
+          <div id="trend-chart" class="chart" role="region" aria-label="Line chart of national hospitalisations with reporting change annotations"></div>
+          <p class="governance-note"><strong>Governance note:</strong> Victoria changed emergency-department criteria in 2012; NSW changed reporting criteria in 2017. These breaks may affect recorded counts and should not be read as safety effects alone.</p>
+        </article>
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">ROAD-USER MIX</p><h3>Compare the categories</h3></div><span class="chart-unit">Selected year</span></div>
+          <p class="chart-description">Sorted from highest to lowest, so close categories can be compared without a pie-chart angle.</p>
+          <div id="bar-chart" class="chart" role="region" aria-label="Sorted horizontal bar chart comparing road-user injury counts"></div>
+        </article>
+        <article class="chart-card chart-card-wide">
+          <div class="chart-heading"><div><p class="chart-kicker">CUMULATIVE VOLUME</p><h3>How the mix changes over time</h3></div><span class="chart-unit">Recorded injuries / year</span></div>
+          <p class="chart-description">Stacked annual counts split by road-user type. The total height represents the sum of the series.</p>
+          <div id="area-chart" class="chart" role="region" aria-label="Stacked area chart of national road-user injuries over time"></div>
+        </article>
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">BASELINE → 2021</p><h3>Ten-year shifts</h3></div><span class="chart-unit">2011 compared with 2021</span></div>
+          <p class="chart-description">Direct lines connect the first and last years for each road-user category.</p>
+          <div id="slope-chart" class="chart" role="region" aria-label="Slope chart comparing 2011 and 2021 counts by road-user type"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="chart-section" id="geography" aria-labelledby="place-title">
+      <div class="section-heading">
+        <span class="section-number">03</span>
+        <div><p class="eyebrow">Equity & geography</p><h2 id="place-title">Where does the burden fall?</h2></div>
+        <p class="section-aside">National totals can obscure jurisdictional differences and unequal impacts. Suppressed records remain unknown—not zero.</p>
+      </div>
+      <div class="chart-grid">
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">JURISDICTIONS</p><h3>State and territory comparison</h3></div><span class="chart-unit">Selected years</span></div>
+          <p class="chart-description">Grouped bars compare known counts. Suppressed categories are excluded from totals and identified in tooltips.</p>
+          <div id="grouped-chart" class="chart" role="region" aria-label="Grouped bar chart comparing state and territory injury counts"></div>
+        </article>
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">GEOGRAPHIC GRID</p><h3>Jurisdiction distribution</h3></div><span class="chart-unit">Selected year</span></div>
+          <p class="chart-description">A geographic grid of states and territories coloured by the known recorded volume.</p>
+          <div id="map-chart" class="chart" role="region" aria-label="Geographic grid map of Australian state and territory injury counts"></div>
+          <p class="chart-footnote">Grid tiles represent jurisdictions, not geographic area. Totals may omit suppressed records.</p>
+        </article>
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">HIERARCHICAL VIEW</p><h3>Road users within jurisdictions</h3></div><span class="chart-unit">Selected year</span></div>
+          <p class="chart-description">Rectangle area is proportional to known counts; each jurisdiction contains its road-user categories.</p>
+          <div id="treemap-chart" class="chart" role="region" aria-label="Treemap showing road-user injuries within state and territory totals"></div>
+        </article>
+        <article class="chart-card">
+          <div class="chart-heading"><div><p class="chart-kicker">FIRST NATIONS PEOPLE</p><h3>Unequal impacts, visible</h3></div><span class="chart-unit">Known counts only</span></div>
+          <p class="chart-description">The First Nations series includes suppressed values. This trend sums published values only and is therefore a minimum, not a complete total.</p>
+          <div id="first-nations-chart" class="chart" role="region" aria-label="Sparkline cards summarising national and First Nations road-user injury trends"></div>
+          <p class="chart-footnote">Do not interpret the known-count line as a complete estimate of First Nations road trauma.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="closing-note" aria-labelledby="reading-title">
+      <p class="eyebrow">Read with care</p>
+      <h2 id="reading-title">Behind every point is a person.</h2>
+      <p>These hospitalisation data help make patterns visible, but they do not capture every crash, every injury, or the circumstances behind each record. Interpret comparisons with population, exposure, reporting practices and community context in mind.</p>
+    </section>
+  </main>
+  <footer class="site-footer"><span>Road trauma / made visible</span><span>Australian hospitalisation records · 2011–2021</span><a href="#top">Back to top ↑</a></footer>
+</body>
+</html>
