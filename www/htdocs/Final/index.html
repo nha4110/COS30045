@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Explore Australian hospitalised road-crash injuries from 2011 to 2021.">
+    <meta name="description" content="Cyclist hospitalisations rose faster than the Australian total. Explore recorded counts by road user, age and sex, 2011–2021.">
     <meta name="theme-color" content="#102a43">
-    <title>Road Injury Explorer | Australia 2011–2021</title>
+    <title>Road Injury Explorer | The rise in cyclist hospitalisations</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="js/app.js" defer></script>
@@ -34,15 +34,15 @@
     <main id="main" class="page-shell">
         <section class="intro" aria-labelledby="page-title">
             <p class="eyebrow">TRANSPORT SAFETY · HOSPITALISED INJURIES</p>
-            <h1 id="page-title" tabindex="0">Road crashes, viewed through the data.</h1>
-            <p class="intro-copy">Explore hospitalised injury trends by road user and jurisdiction. Counts describe recorded admissions, not crash risk or population-adjusted rates.</p>
+            <h1 id="page-title" tabindex="0">Cyclist hospitalisations rose faster than the national total.</h1>
+            <p class="intro-copy">Between 2011 and 2021, recorded cyclist hospitalisations rose 51.4%, compared with 16.1% across all road users. Follow the change, then explore who contributed to it. These are counts, not measures of crash risk.</p>
         </section>
 
         <section id="filters" class="filter-panel" aria-label="Dashboard filters">
             <div class="filter-heading">
                 <div>
-                    <p class="eyebrow">EXPLORE THE DATA</p>
-                    <h2>Choose a view</h2>
+                    <p class="eyebrow">FOLLOW THE STORY</p>
+                    <h2>Explore the change</h2>
                 </div>
                 <button id="reset-filters" class="text-button" type="button">Reset filters</button>
             </div>
@@ -51,16 +51,16 @@
                     <span>Comparison year</span>
                     <select id="year-filter"><option value="">Latest available year</option></select>
                 </label>
-                <label class="filter-control" for="state-filter">
-                    <span>Jurisdiction</span>
-                    <select id="state-filter"><option value="">All jurisdictions</option></select>
-                </label>
                 <label class="filter-control" for="user-filter">
-                    <span>Road user</span>
-                    <select id="user-filter"><option value="">All road users</option></select>
+                    <span>Road user in focus</span>
+                    <select id="user-filter"><option value="Pedal cyclist">Pedal cyclist</option></select>
+                </label>
+                <label class="filter-control" for="sex-filter">
+                    <span>Sex · demographic charts only</span>
+                    <select id="sex-filter"><option value="">All recorded sex categories</option></select>
                 </label>
             </div>
-            <p class="filter-note">The comparison year applies to the road-user and jurisdiction charts. Trend lines show the full available time series.</p>
+            <p class="filter-note">Compare 2011 with your chosen year. The national overview and road-user comparisons include all sex categories; the sex filter applies only to the age and sex charts. Trend lines retain the full 2011–2021 series. Jurisdiction controls are in the supplementary section below.</p>
         </section>
 
         <div id="data-status" class="status-banner" role="status" aria-live="polite" hidden></div>
@@ -72,13 +72,13 @@
                 <p id="kpi-national-note" class="summary-note">Loading national data</p>
             </article>
             <article class="summary-card">
-                <p class="summary-label">COMPARISON YEAR</p>
+                <p id="kpi-change-label" class="summary-label">CYCLIST CHANGE · SINCE 2011</p>
                 <p id="kpi-latest-year" class="summary-value">—</p>
-                <p class="summary-note">Used for road-user and jurisdiction charts</p>
+                <p id="kpi-change-note" class="summary-note">Change in recorded counts</p>
             </article>
             <article class="summary-card summary-card-accent">
-                <p class="summary-label">CURRENT VIEW</p>
-                <p id="kpi-current-view" class="summary-value summary-value-text">All road users</p>
+                <p class="summary-label">SHARE OF NATIONAL NET CHANGE</p>
+                <p id="kpi-current-view" class="summary-value">—</p>
                 <p id="kpi-current-note" class="summary-note">All jurisdictions</p>
             </article>
         </section>
@@ -92,7 +92,7 @@
                     </div>
                     <p class="chart-unit">Recorded hospitalisations</p>
                 </div>
-                <p id="national-chart-description" class="chart-description">The line shows annual national totals, or the selected road-user group. Consistent styling is used throughout. Dashed markers identify reporting-criteria changes, not necessarily changes in injury risk. Use Tab to focus data points and arrow keys to move between them.</p>
+                <p id="national-chart-description" class="chart-description">Recorded national hospitalisations rose from 34,033 in 2011 to 39,505 in 2021: an increase of 5,472 (16.1%). The markers refer to breaks in the Victoria and NSW source series, not nationwide events. Hover or focus a point for its count; arrow keys move between marks.</p>
                 <div id="national-chart" class="chart-wrap" role="group" aria-labelledby="national-chart-title" aria-describedby="national-chart-description"></div>
                 <p id="national-empty" class="empty-state" hidden>No national trend data matches these filters.</p>
             </article>
@@ -100,12 +100,12 @@
             <article class="chart-card" tabindex="0">
                 <div class="chart-heading">
                     <div>
-                        <p class="eyebrow">ROAD USER · SELECTED YEAR</p>
-                        <h2 id="road-user-chart-title" tabindex="0">Injuries by road-user group</h2>
+                        <p class="eyebrow">STEP 2 · CHANGE FROM 2011</p>
+                        <h2 id="road-user-chart-title" tabindex="0">Which groups contributed to the change?</h2>
                     </div>
                     <p id="road-user-chart-unit" class="chart-unit">Raw counts</p>
                 </div>
-                <p id="road-user-chart-description" class="chart-description">Sorted descending for accurate comparison. Select a jurisdiction to use its reported road-user groups; otherwise the national dataset is shown. Use Tab to focus bars and arrow keys to move between them.</p>
+                <p id="road-user-chart-description" class="chart-description">Compare the change in recorded counts, rather than the size of each group in one year. Cyclists added 2,772 cases between 2011 and 2021, equivalent to 50.7% of the national net increase. This is not their share of all injuries. Hover or focus a bar for both endpoint counts.</p>
                 <div id="road-user-chart" class="chart-wrap" role="group" aria-labelledby="road-user-chart-title" aria-describedby="road-user-chart-description"></div>
                 <p id="road-user-data-note" class="chart-data-note"></p>
                 <p id="road-user-empty" class="empty-state" hidden>No road-user records match these filters.</p>
@@ -114,12 +114,12 @@
             <article class="chart-card" tabindex="0">
                 <div class="chart-heading">
                     <div>
-                        <p class="eyebrow">ROAD USER · 2011–2021</p>
-                        <h2 id="road-user-trend-title" tabindex="0">Leading groups over time</h2>
+                        <p class="eyebrow">STEP 3 · RELATIVE CHANGE</p>
+                        <h2 id="road-user-trend-title" tabindex="0">Did the focused group rise faster?</h2>
                     </div>
-                    <p id="road-user-trend-unit" class="chart-unit">Top groups in selected year</p>
+                    <p id="road-user-trend-unit" class="chart-unit">National · 2011 = 100</p>
                 </div>
-                <p id="road-user-trend-description" class="chart-description">Trends for the five leading groups in the comparison year. Line styles and point shapes distinguish groups; gaps indicate suppressed or missing records. Use Tab and arrow keys to explore the points.</p>
+                <p id="road-user-trend-description" class="chart-description">Both lines start at 100 in 2011. Compare the focused road-user group with the national total; these indices describe changes in counts, not population-adjusted rates. A larger index does not mean more cases in absolute terms.</p>
                 <div id="road-user-trend-chart" class="chart-wrap" role="group" aria-labelledby="road-user-trend-title" aria-describedby="road-user-trend-description"></div>
                 <div id="road-user-trend-legend" class="trend-legend" aria-label="Road-user trend series"></div>
                 <p id="road-user-trend-empty" class="empty-state" hidden>No road-user trend data matches these filters.</p>
@@ -127,17 +127,49 @@
 
             <article class="chart-card chart-card-wide" tabindex="0">
                 <div class="chart-heading">
+                    <div><p class="eyebrow">STEP 4 · AGE &amp; SEX</p><h2 id="demographic-title" tabindex="0">Who contributed within the cyclist group?</h2></div>
+                    <p id="demographic-unit" class="chart-unit">National · 2011 versus 2021</p>
+                </div>
+                <p id="demographic-description" class="chart-description">Among cyclists, ages 40–64 added 1,376 cases between 2011 and 2021, nearly half of the cyclist increase. Select a road-user group and sex category to examine its recorded counts. Differences between groups are not differences in risk.</p>
+                <div class="comparison-grid">
+                    <section class="comparison-item" aria-labelledby="age-chart-title" tabindex="0">
+                        <h3 id="age-chart-title">How did the age profile change?</h3>
+                        <p class="comparison-note">2011 and the comparison year, using the selected sex category. Age groups remain in age order.</p>
+                        <div id="age-chart" class="chart-wrap" role="group" aria-labelledby="age-chart-title" aria-describedby="demographic-description"></div>
+                        <div class="chart-key"><span><i class="endpoint-key baseline-key"></i>2011</span><span><i class="endpoint-key current-key"></i><span id="age-year-key">2021</span></span></div>
+                        <p id="age-data-note" class="chart-data-note"></p>
+                        <p id="age-empty" class="empty-state" hidden>No demographic records match this selection.</p>
+                    </section>
+                    <section class="comparison-item" aria-labelledby="sex-chart-title" tabindex="0">
+                        <h3 id="sex-chart-title">How are recorded cases distributed by sex?</h3>
+                        <p class="comparison-note">Counts for the comparison year, across all recorded ages. All source sex categories are retained when present.</p>
+                        <div id="sex-chart" class="chart-wrap" role="group" aria-labelledby="sex-chart-title" aria-describedby="demographic-description"></div>
+                        <p id="sex-data-note" class="chart-data-note"></p>
+                        <p id="sex-empty" class="empty-state" hidden>No sex records match this selection.</p>
+                    </section>
+                </div>
+            </article>
+        </section>
+
+        <details id="supplementary" class="notes-panel supplementary-panel">
+            <summary>Explore supplementary jurisdiction and First Nations data</summary>
+            <p id="supplementary-data-status" class="chart-data-note"></p>
+            <article class="chart-card chart-card-wide" tabindex="0">
+                <div class="chart-heading">
                     <div>
-                        <p class="eyebrow">JURISDICTION & FIRST NATIONS</p>
-                        <h2 id="comparative-chart-title" tabindex="0">Comparative views</h2>
+                        <p class="eyebrow">SUPPLEMENTARY · JURISDICTION & FIRST NATIONS</p>
+                        <h2 id="comparative-chart-title" tabindex="0">Explore the wider context</h2>
                     </div>
                     <p id="comparison-year-label" class="chart-unit"></p>
                 </div>
-                <p id="comparative-chart-description" class="chart-description">The heatmap compares injury counts by jurisdiction and road-user group for the selected year. First Nations trend points show known subtotals where categories are suppressed; hover or focus a point to see what was omitted. Use Tab to focus marks and arrow keys to move within a chart.</p>
+                <p id="comparative-chart-description" class="chart-description">These panels use separate source files. The comparison year applies to the heatmap; the focused road-user group applies to the First Nations trend. The sex filter does not apply here. State selection affects only the heatmap.</p>
+                <div class="supplementary-controls">
+                    <label class="filter-control" for="state-filter"><span>Jurisdiction · heatmap only</span><select id="state-filter"><option value="">All jurisdictions</option></select></label>
+                </div>
                 <div class="comparison-grid">
                     <section class="comparison-item" aria-labelledby="state-chart-title" tabindex="0">
                         <h3 id="state-chart-title" tabindex="0">Jurisdiction × road user</h3>
-                        <p class="comparison-note">Injuries by reporting jurisdiction and road-user group. Counts are not population-adjusted.</p>
+                        <p class="comparison-note">Jurisdiction of usual residence, not crash location. Counts are not population-adjusted. NSW has a series break from June 2017; Victoria from 2012.</p>
                         <div id="state-chart" class="chart-wrap heatmap-wrap" role="group" aria-labelledby="state-chart-title" aria-describedby="comparative-chart-description"></div>
                         <p id="state-data-note" class="chart-data-note"></p>
                         <p id="state-empty" class="empty-state" hidden>No jurisdiction records match these filters.</p>
@@ -151,27 +183,27 @@
                     </section>
                     <section class="comparison-item" aria-labelledby="first-nations-title" tabindex="0">
                         <h3 id="first-nations-title" tabindex="0">First Nations trend</h3>
-                        <p class="comparison-note">Interpret in accordance with Indigenous data governance.</p>
+                        <p class="comparison-note">Recorded counts for the focused road-user group. Suppressed years are gaps, never connected as partial totals. Interpret with the source context and Indigenous data governance in mind.</p>
                         <div id="first-nations-chart" class="chart-wrap" role="group" aria-labelledby="first-nations-title" aria-describedby="comparative-chart-description"></div>
                         <p id="first-nations-empty" class="empty-state" hidden>No First Nations records match these filters.</p>
-                        <div class="chart-key" aria-label="First Nations point completeness key">
-                            <span><i class="key-swatch key-complete"></i>All categories reported</span>
-                            <span><i class="key-swatch key-partial"></i>Patterned subtotal; suppressed categories excluded</span>
-                        </div>
+<p id="first-nations-data-note" class="chart-data-note"></p>
                     </section>
                 </div>
             </article>
-        </section>
+        </details>
 
         <details id="data-notes" class="notes-panel">
             <summary>About the data, suppression and interpretation</summary>
             <div class="notes-content">
-                <p><strong>Data governance:</strong> First Nations data should be interpreted in line with Indigenous data sovereignty and the context in which the source data was collected. This dashboard does not infer identity or fill gaps.</p>
-                <p><strong>Suppressed and missing values:</strong> Blank, non-numeric and explicit suppression values (such as <code>NaN</code> or “suppressed”) are excluded from calculations, not treated as zero. A missing value is not evidence of no injuries.</p>
-                <p><strong>Counts and population:</strong> Charts show raw hospitalisation counts. Jurisdictions have different population sizes and exposure; these visualisations are not per-capita comparisons and do not establish causation.</p>
-                <p><strong>Reporting criteria:</strong> The 2012 Victoria Emergency Department reporting-criteria change and 2017 NSW reporting-criteria change are marked on the national trend. These administrative breaks may affect comparability.</p>
-                <p><strong>Suppression:</strong> Source rows flagged as suppressed are never converted to zero. State bars and First Nations points identify known subtotals when some categories are suppressed; their tooltips report the excluded category count.</p>
-                <p class="source-note">Source: team-prepared BITRE data files. See the project README for expected filenames, supported column names and limitations.</p>
+                <p><strong>Source and scope:</strong> BITRE Hospitalised Injury, September 2023, based on AIHW data, 2011–2021. The KNIME outputs retain road-traffic cases and use hospitalisation counts excluding deaths under the source definition. Records describe cases, not necessarily unique people.</p>
+                <p><strong>How the comparisons work:</strong> Changes compare 2011 with the selected year. Percentage change is (comparison − baseline) / baseline × 100. The contribution card divides the focused group's count change by the national net count change; it is not a share of all cases. The indexed chart divides each annual count by its own 2011 count × 100. No index or percentage is shown when its denominator is zero or unavailable.</p>
+                <p><strong>Counts and exposure:</strong> These are recorded counts, not rates per population, trip or kilometre. Changes may reflect population, travel exposure, reporting and other factors. They do not establish a change in crash risk or its cause.</p>
+                <p><strong>Reporting breaks:</strong> Victoria's series is not directly comparable with previous years from 2012; NSW's from June 2017. The national overview labels these jurisdiction-specific breaks. They must be considered when interpreting long-term changes.</p>
+                <p><strong>Suppressed and absent records:</strong> Suppressed annual totals are blank in the prepared CSVs if an input period was not published. They remain unknown, never zero. First Nations lines contain gaps at suppressed years; no changing mixture of published categories is plotted as a total. A combination absent from a CSV is not automatically assigned zero.</p>
+                <p><strong>Grouping and geography:</strong> Car driver, passenger and unknown-position records are combined as Car occupant; heavy-transport positions are combined similarly to align source categories. State data describe jurisdiction of usual residence. Australia totals also include residence unrecorded or migratory/offshore, so eight jurisdiction totals need not equal National.</p>
+                <p><strong>Age and sex:</strong> The source variable is sex. The labels Missing and intersex or indeterminate or missing are retained as supplied; the latter is not a separate estimate of intersex people. A third-category total may be too small to see as a bar, but remains keyboard-accessible and listed below the chart. The sex filter changes only the demographic panels.</p>
+                <p><strong>First Nations:</strong> The supplied CSV includes First Nations people only. It cannot support a First Nations versus Non-Indigenous rate comparison. Interpretation should respect Indigenous data governance and the limitations of source identification.</p>
+                <p class="source-note">Sources: <a href="https://www.bitre.gov.au/resource/road-safety/hospitalised-injury" target="_blank" rel="noopener noreferrer">BITRE hospitalised injury files and data dictionary</a>. Prepared data and KNIME processing are described in the accompanying README.</p>
             </div>
         </details>
 

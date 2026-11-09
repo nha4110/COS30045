@@ -5,7 +5,8 @@
     const FILES = {
         national: "data/national_road_user_by_year.csv",
         state: "data/state_road_user_by_year.csv",
-        firstNations: "data/first_nations_road_user_by_year.csv"
+        firstNations: "data/first_nations_road_user_by_year.csv",
+        demographic: "data/national_road_user_age_sex_by_year.csv"
     };
     const COLORS = {
         complete: "var(--chart-primary)",
@@ -13,18 +14,18 @@
     };
     const SUPPRESSED_VALUES = new Set([
         "", "na", "n/a", "nan", "null", "suppressed", "s", "np",
-        "not available", "-", "—", "–", "..", "..."
+        "n.p.", "not available", "-", "—", "–", "..", "..."
     ]);
-    const data = { national: [], state: [], firstNations: [] };
-    const filters = { year: "", state: "", user: "" };
+    const data = { national: [], state: [], firstNations: [], demographic: [] };
+    const filters = { year: "", state: "", user: "Pedal cyclist", sex: "" };
     const tooltip = document.getElementById("chart-tooltip");
     const themeToggle = document.getElementById("theme-toggle");
     const themeToggleLabel = document.getElementById("theme-toggle-label");
     const numberFormat = new Intl.NumberFormat("en-AU");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const annotationLabels = {
-        2012: "Victoria Emergency Department (ED) reporting-criteria change",
-        2017: "NSW reporting-criteria change"
+        2012: "Victoria: break in the source series from 2012",
+        2017: "NSW: break in the source series from June 2017"
     };
 
     function normalizeHeader(value) {
@@ -81,6 +82,11 @@
             "hospitalized_injuries", "hospitalisations_count", "count", "value", "total", "number"
         ]);
         const suppressedColumn = findColumn(columns, ["suppressed", "suppression_flag", "is_suppressed"]);
+        const ageColumn = findColumn(columns, ["age_group", "age"]);
+        const sexColumn = findColumn(columns, ["sex"]);
+        if (kind === "demographic" && (!ageColumn || !sexColumn || !userColumn || !valueColumn)) {
+            throw new Error("Demographic data require year, road_user, age_group, sex and injuries columns.");
+        }
 
         if (!yearColumn) {
             throw new Error("Missing a year column (for example: year or reporting_year).");
@@ -106,6 +112,8 @@
             const suppressed = flagged || (valueColumn && parsedValue === null);
             const common = {
                 year,
+                age: ageColumn ? String(row[ageColumn]).trim() : "",
+                sex: sexColumn ? String(row[sexColumn]).trim() : "",
                 state: stateColumn ? String(row[stateColumn]).trim() : "",
                 suppressed,
                 value: suppressed ? null : parsedValue
@@ -168,10 +176,16 @@
 
         updateSelect(document.getElementById("year-filter"), years, "Latest available year", filters.year);
         updateSelect(document.getElementById("state-filter"), states, "All jurisdictions", filters.state);
-        updateSelect(document.getElementById("user-filter"), users, "All road users", filters.user);
+        updateSelect(document.getElementById("user-filter"), users, "Choose a road-user group", filters.user);
+        const sexValues = [...new Set(data.demographic.map((row) => row.sex).filter(Boolean))].sort();
+        updateSelect(document.getElementById("sex-filter"), sexValues, "All recorded sex categories", filters.sex);
+        const userSelect = document.getElementById("user-filter");
+        userSelect.options[0].disabled = true;
+        if (!userSelect.value && users.length) userSelect.value = users.includes("Pedal cyclist") ? "Pedal cyclist" : users[0];
         filters.year = document.getElementById("year-filter").value;
         filters.state = document.getElementById("state-filter").value;
         filters.user = document.getElementById("user-filter").value;
+        filters.sex = document.getElementById("sex-filter").value;
     }
 
     function rowsForUser(rows) {
@@ -245,26 +259,6 @@
         if (isEmpty) element.textContent = message;
     }
 
-    function updateSummary() {
-        const year = selectedYear();
-        const source = filters.state ? data.state : data.national;
-        const currentRows = rowsForUser(source).filter((row) =>
-            row.year === year && (!filters.state || row.state === filters.state)
-        );
-        const total = summarizeRows(currentRows, () => "total")[0];
-        const label = filters.state ? filters.state : "National";
-        document.getElementById("kpi-national").textContent =
-            total && total.value !== null ? numberFormat.format(total.value) : "—";
-        document.getElementById("kpi-total-label").textContent =
-            `${label.toUpperCase()} INJURIES · SELECTED YEAR`;
-        document.getElementById("kpi-national-note").textContent = total && total.suppressedCount
-            ? `Known subtotal; ${total.suppressedCount} suppressed or missing value(s) excluded`
-            : `${label} records for ${year || "the selected year"}`;
-        document.getElementById("kpi-latest-year").textContent = year ? String(year) : "—";
-        document.getElementById("kpi-current-view").textContent = filters.user || "All road users";
-        document.getElementById("kpi-current-note").textContent = label;
-    }
-
     function showTooltip(event, text) {
         tooltip.textContent = text;
         tooltip.hidden = false;
@@ -307,6 +301,7 @@
         setTheme(preference, false);
         themeToggle.addEventListener("click", () => {
             setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
+            render();
         });
     }
 
@@ -367,7 +362,7 @@
         const container = document.getElementById("national-chart");
         const empty = document.getElementById("national-empty");
         container.replaceChildren();
-        const selectedRows = rowsForUser(data.national);
+        const selectedRows = data.national;
         const allYearly = summarizeRows(selectedRows, (row) => row.year)
             .map((row) => ({ year: row.key, ...row }))
             .sort((a, b) => a.year - b.year);
@@ -399,6 +394,7 @@
 
         Object.entries(annotationLabels).forEach(([yearText, label]) => {
             const year = Number(yearText);
+            const markerYear = year === 2017 ? 2017.5 : year;
             if (year < minYear || year > maxYear) return;
             const group = svg.append("g")
                 .attr("class", "focusable-mark")
@@ -407,15 +403,15 @@
                 .attr("aria-label", `${year}: ${label}`);
             group.append("line")
                 .attr("class", "annotation-line")
-                .attr("x1", x(year))
-                .attr("x2", x(year))
+                .attr("x1", x(markerYear))
+                .attr("x2", x(markerYear))
                 .attr("y1", margin.top)
                 .attr("y2", height - margin.bottom);
             group.append("text")
                 .attr("class", "annotation-label")
-                .attr("x", x(year) + 4)
+                .attr("x", x(markerYear) + 4)
                 .attr("y", margin.top + (year === 2012 ? 11 : 25))
-                .text(year);
+                .text(year === 2012 ? "Vic · 2012" : "NSW · Jun 2017");
             attachTooltip(group, () => `${year}: ${label}. Administrative reporting change; interpret comparisons across the marker with care.`);
         });
 
@@ -442,216 +438,250 @@
             .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
             .attr("aria-label", (row) => `${row.year}: ${numberFormat.format(row.value)} hospitalised injuries${row.suppressedCount ? `, ${row.suppressedCount} values suppressed` : ""}`);
         attachTooltip(points, (row) =>
-            `${row.year}: ${numberFormat.format(row.value)} ${filters.user || "hospitalised injuries"}` +
+            `${row.year}: ${numberFormat.format(row.value)} hospitalised injuries nationally` +
             (row.suppressedCount ? ` (known subtotal; ${row.suppressedCount} suppressed or missing value(s) excluded)` : "")
         );
         revealChart(svg);
     }
 
+    function signed(value) {
+        return `${value > 0 ? "+" : value < 0 ? "−" : ""}${numberFormat.format(Math.abs(value))}`;
+    }
+
+    function percent(value) {
+        return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)}%`;
+    }
+
+    function nationalCount(year, user) {
+        const rows = data.national.filter((row) => row.year === year && (!user || row.user === user));
+        return rows.length && rows.every((row) => row.value !== null)
+            ? d3.sum(rows, (row) => row.value) : null;
+    }
+
+    function shortUser(user) {
+        return user === "Pick-up truck or van occupant" ? "Pick-up / van occupant" : user;
+    }
+
+    function updateSummary() {
+        const year = selectedYear();
+        const national = nationalCount(year);
+        const baseline = nationalCount(2011);
+        const start = nationalCount(2011, filters.user);
+        const end = nationalCount(year, filters.user);
+        const change = start !== null && end !== null ? end - start : null;
+        const net = national !== null && baseline !== null ? national - baseline : null;
+        document.getElementById("kpi-national").textContent = national === null ? "—" : numberFormat.format(national);
+        document.getElementById("kpi-total-label").textContent = `NATIONAL INJURIES · ${year || "UNAVAILABLE"}`;
+        document.getElementById("kpi-national-note").textContent = "All road users · all recorded sex categories";
+        document.getElementById("kpi-change-label").textContent = `${filters.user.toUpperCase()} · CHANGE SINCE 2011`;
+        document.getElementById("kpi-latest-year").textContent = change === null || !start ? "—" : percent(change / start * 100);
+        document.getElementById("kpi-change-note").textContent = change === null ? "Endpoint data unavailable" : `${signed(change)} cases · 2011 to ${year}`;
+        document.getElementById("kpi-current-view").textContent = change === null || !net ? "—" : `${(change / net * 100).toFixed(1)}%`;
+        document.getElementById("kpi-current-note").textContent = !net
+            ? "No national net change to divide by"
+            : `${filters.user} change ÷ national net change; not a share of all cases`;
+    }
+
     function renderRoadUserBars() {
         const container = document.getElementById("road-user-chart");
-        const empty = document.getElementById("road-user-empty");
-        const dataNote = document.getElementById("road-user-data-note");
-        const unit = document.getElementById("road-user-chart-unit");
         container.replaceChildren();
         const year = selectedYear();
-        const source = filters.state ? data.state : data.national;
-        const rows = rowsForUser(source).filter((row) =>
-            row.year === year && (!filters.state || row.state === filters.state)
-        );
-        const summaries = summarizeRows(rows, (row) => row.user)
-            .map((row) => ({ user: row.key, ...row }));
-        const grouped = summaries.filter((row) => row.value !== null)
-            .sort((a, b) => d3.descending(a.value, b.value));
-        const omitted = summaries.filter((row) => row.value === null).length;
-        const partial = grouped.filter((row) => row.suppressedCount).length;
-        const noteParts = [];
-        if (omitted) noteParts.push(`${omitted} fully suppressed or missing group(s) omitted, not zero.`);
-        if (partial) noteParts.push(`${partial} patterned bar(s) show known subtotals with suppressed values excluded.`);
-        dataNote.hidden = !noteParts.length;
-        dataNote.textContent = noteParts.join(" ");
-
-        unit.textContent = `${filters.state || "National"} · ${year || "no year"} · raw counts`;
-        if (!grouped.length) {
-            setEmptyState(empty, rows.length
-                ? "All matching road-user values are suppressed or missing; no bar is shown."
-                : "No road-user records match this year and filter.", true);
-            return;
-        }
-        setEmptyState(empty, "", false);
-
-        const width = chartWidth(container);
-        const barHeight = 28;
-        const margin = { top: 8, right: 66, bottom: 28, left: Math.min(175, Math.max(102, width * 0.39)) };
-        const height = margin.top + margin.bottom + grouped.length * barHeight;
-        const svg = d3.select(container).append("svg")
-            .attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img")
-            .attr("aria-label", `Road-user injury counts for ${filters.state || "Australia"} in ${year}, sorted descending`);
-        const patterns = addChartPatterns(svg, "road-user");
-        const x = d3.scaleLinear()
-            .domain([0, d3.max(grouped, (row) => row.value) || 1])
-            .nice()
+        const users = [...new Set(data.national.map((row) => row.user))];
+        const groups = users.map((user) => {
+            const before = nationalCount(2011, user), after = nationalCount(year, user);
+            return { user, before, after, change: before !== null && after !== null ? after - before : null };
+        }).filter((row) => row.change !== null).sort((a, b) => b.change - a.change);
+        document.getElementById("road-user-chart-unit").textContent = `National · 2011 → ${year}`;
+        document.getElementById("road-user-data-note").textContent = "Car and heavy-transport positions are grouped consistently across files. Bar length shows an absolute change in cases, not percentage growth.";
+        setEmptyState(document.getElementById("road-user-empty"), "No complete endpoint records available.", !groups.length);
+        if (!groups.length) return;
+        const width = chartWidth(container), height = 340;
+        const margin = { top: 12, right: 62, bottom: 42, left: Math.min(160, width * 0.38) };
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img").attr("aria-label", `Change in hospitalisations from 2011 to ${year}, by road-user group`);
+        const low = Math.min(0, d3.min(groups, (row) => row.change));
+        const high = Math.max(0, d3.max(groups, (row) => row.change));
+        const x = d3.scaleLinear().domain(low === high ? [-1, 1] : [low * 1.1, high * 1.1]).nice()
             .range([margin.left, width - margin.right]);
-        const y = d3.scaleBand()
-            .domain(grouped.map((row) => row.user))
-            .range([margin.top, height - margin.bottom])
-            .padding(0.24);
-        svg.append("g")
-            .attr("class", "axis")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x).ticks(4).tickFormat(d3.format("~s")));
-        svg.append("g")
-            .attr("class", "axis")
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).tickSize(0))
-            .call((axis) => axis.select(".domain").remove());
-
-        const bars = svg.selectAll(".bar")
-            .data(grouped)
-            .join("rect")
-            .attr("class", "bar focusable-mark")
-            .attr("tabindex", 0)
-            .attr("role", "img")
-            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
-            .attr("fill", (row) => row.suppressedCount ? `url(#${patterns.partial})` : COLORS.complete)
-            .attr("x", margin.left)
-            .attr("y", (row) => y(row.user))
-            .attr("width", (row) => Math.max(0, x(row.value) - margin.left))
-            .attr("height", y.bandwidth())
-            .attr("rx", 2)
-            .attr("aria-label", (row) => `${row.user}: ${numberFormat.format(row.value)} injuries${row.suppressedCount ? `, ${row.suppressedCount} suppressed values excluded` : ""}`);
-        svg.selectAll(".bar-value")
-            .data(grouped)
-            .join("text")
-            .attr("class", "bar-value")
-            .attr("x", (row) => Math.min(x(row.value) + 6, width - 58))
-            .attr("y", (row) => y(row.user) + y.bandwidth() / 2 + 4)
-            .text((row) => numberFormat.format(row.value));
-        attachTooltip(bars, (row) =>
-            `${row.user}: ${numberFormat.format(row.value)} injuries` +
-            (row.suppressedCount ? ` (known subtotal; ${row.suppressedCount} suppressed or missing value(s) excluded)` : "")
-        );
+        const y = d3.scaleBand().domain(groups.map((row) => row.user)).range([margin.top, height - margin.bottom]).padding(0.3);
+        svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(width < 400 ? 3 : 4).tickFormat(d3.format("~s")));
+        svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left - 6},0)`)
+            .call(d3.axisLeft(y).tickSize(0).tickFormat(shortUser)).call((axis) => axis.select(".domain").remove());
+        svg.append("line").attr("class", "zero-line").attr("x1", x(0)).attr("x2", x(0))
+            .attr("y1", margin.top).attr("y2", height - margin.bottom);
+        const label = (row) => `${row.user}: ${numberFormat.format(row.before)} in 2011; ${numberFormat.format(row.after)} in ${year}; change ${signed(row.change)} cases`;
+        const bars = svg.selectAll(".change-bar").data(groups).join("rect")
+            .attr("class", "bar focusable-mark change-bar").attr("tabindex", 0).attr("role", "img")
+            .attr("aria-label", label).attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
+            .attr("x", (row) => x(Math.min(0, row.change))).attr("y", (row) => y(row.user))
+            .attr("width", (row) => Math.max(1, Math.abs(x(row.change) - x(0)))).attr("height", y.bandwidth())
+            .attr("fill", (row) => row.user === filters.user ? "var(--chart-primary)" : "var(--chart-secondary)")
+            .attr("opacity", (row) => row.user === filters.user ? 1 : 0.65).attr("rx", 2);
+        attachTooltip(bars, label);
+        svg.selectAll(".bar-value").data(groups).join("text").attr("class", "bar-value")
+            .attr("x", (row) => x(Math.max(0, row.change)) + 5)
+            .attr("text-anchor", "start")
+            .attr("y", (row) => y(row.user) + y.bandwidth() / 2 + 4).text((row) => signed(row.change));
+        svg.append("text").attr("x", (margin.left + width - margin.right) / 2).attr("y", height - 5)
+            .attr("text-anchor", "middle").text("Change in recorded hospitalisations");
         revealChart(svg);
     }
 
     function renderRoadUserTrends() {
         const container = document.getElementById("road-user-trend-chart");
         const legend = document.getElementById("road-user-trend-legend");
-        const empty = document.getElementById("road-user-trend-empty");
-        const unit = document.getElementById("road-user-trend-unit");
-        const description = document.getElementById("road-user-trend-description");
-        container.replaceChildren();
-        legend.replaceChildren();
-
-        const source = filters.state ? data.state : data.national;
-        const filteredRows = rowsForUser(source).filter((row) =>
-            !filters.state || row.state === filters.state
-        );
-        const year = selectedYear();
-        const yearRows = filteredRows.filter((row) => row.year === year);
-        const leaders = summarizeRows(yearRows, (row) => row.user)
-            .filter((row) => row.value !== null)
-            .sort((a, b) => d3.descending(a.value, b.value))
-            .slice(0, 5)
-            .map((row) => row.key);
-        const years = [...new Set(filteredRows.map((row) => row.year))].sort((a, b) => a - b);
-
-        unit.textContent = `${filters.state || "National"} · leading groups`;
-        description.textContent = `Trends for the five leading groups in ${year || "the selected year"}${filters.state ? ` in ${filters.state}` : " nationally"}. Line styles and point shapes distinguish groups; gaps indicate suppressed or missing records. Use Tab and arrow keys to explore the points.`;
-
-        if (!leaders.length || !years.length) {
-            setEmptyState(empty, yearRows.length
-                ? "All road-user values for the selected year are suppressed or missing."
-                : "No road-user trend data matches these filters.", true);
-            return;
-        }
-        setEmptyState(empty, "", false);
-
-        const series = leaders.map((name) => {
-            const rows = filteredRows.filter((row) => row.user === name);
-            const yearly = summarizeRows(rows, (row) => row.year);
-            const byYear = new Map(yearly.map((row) => [row.key, row]));
-            return {
-                name,
-                values: years.map((chartYear) => {
-                    const summary = byYear.get(chartYear);
-                    return summary
-                        ? { year: chartYear, value: summary.value, suppressedCount: summary.suppressedCount }
-                        : { year: chartYear, value: null, suppressedCount: 0 };
-                })
-            };
+        container.replaceChildren(); legend.replaceChildren();
+        const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
+        const series = [{ name: filters.user, user: filters.user, color: "var(--chart-primary)", dash: "" },
+            { name: "All road users", user: "", color: "var(--chart-secondary)", dash: "6 4" }].map((item) => {
+            const baseline = nationalCount(2011, item.user);
+            return { ...item, values: years.map((year) => {
+                const count = nationalCount(year, item.user);
+                return { year, count, value: baseline > 0 && count !== null ? count / baseline * 100 : null };
+            }) };
         });
-
-        const width = chartWidth(container);
-        const height = 300;
-        const margin = { top: 16, right: 14, bottom: 38, left: 62 };
-        const svg = d3.select(container).append("svg")
-            .attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img")
-            .attr("aria-label", `Annual injuries for the leading road-user groups in ${filters.state || "Australia"}`);
-        const xDomain = years.length === 1 ? [years[0] - 1, years[0] + 1] : d3.extent(years);
-        const x = d3.scaleLinear()
-            .domain(xDomain)
-            .range([margin.left, width - margin.right]);
-        const maxValue = d3.max(series, (item) => d3.max(item.values, (row) => row.value)) || 1;
-        const y = d3.scaleLinear()
-            .domain([0, maxValue * 1.08])
-            .nice()
-            .range([height - margin.bottom, margin.top]);
-        addAxes(svg, x, y, width, height, margin, "Hospitalised injuries");
-
-        const dashPatterns = ["", "7 3", "2 3", "9 3 2 3", "1 3"];
-        const symbols = [d3.symbolCircle, d3.symbolSquare, d3.symbolDiamond, d3.symbolTriangle, d3.symbolCross];
-        const line = d3.line()
-            .defined((row) => row.value !== null)
-            .x((row) => x(row.year))
-            .y((row) => y(row.value));
-        const seriesGroups = svg.selectAll(".trend-series")
-            .data(series)
-            .join("g")
-            .attr("class", "trend-series");
-
-        seriesGroups.append("path")
-            .attr("class", "series-line")
-            .attr("stroke", COLORS.complete)
-            .attr("stroke-dasharray", (values, index) => dashPatterns[index])
-            .attr("d", (item) => line(item.values));
-
-        const pointGenerator = (index) => d3.symbol().type(symbols[index]).size(48);
-        const points = seriesGroups.selectAll(".trend-point")
-            .data((item) => item.values
-                .filter((row) => row.value !== null)
-                .map((row) => ({ ...row, user: item.name })))
-            .join("path")
-            .attr("class", "series-point focusable-mark trend-point")
-            .attr("tabindex", 0)
-            .attr("role", "img")
-            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
-            .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
-            .attr("d", (row) => pointGenerator(leaders.indexOf(row.user))())
-            .attr("fill", COLORS.complete)
-            .attr("aria-label", (row) => `${row.year}, ${row.user}: ${numberFormat.format(row.value)} injuries${row.suppressedCount ? `, ${row.suppressedCount} suppressed or missing value(s) excluded` : ""}`);
-        attachTooltip(points, (row) =>
-            `${row.year} · ${row.user}: ${numberFormat.format(row.value)} injuries` +
-            (row.suppressedCount ? ` (known subtotal; ${row.suppressedCount} suppressed or missing value(s) excluded)` : "")
-        );
-
-        legend.replaceChildren(...series.map((item, index) => {
-            const entry = document.createElement("span");
-            entry.className = "trend-legend-item";
-            const swatch = document.createElement("span");
-            swatch.className = "trend-legend-line";
-            swatch.style.borderTopStyle = dashPatterns[index] ? "dashed" : "solid";
+        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs national · 2011 = 100`;
+        const values = series.flatMap((item) => item.values).filter((row) => row.value !== null);
+        setEmptyState(document.getElementById("road-user-trend-empty"), "A positive 2011 baseline is required to calculate the index.", !values.length);
+        if (!values.length) return;
+        const width = chartWidth(container), height = 340;
+        const margin = { top: 18, right: 16, bottom: 40, left: 62 };
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img").attr("aria-label", `${filters.user} and all road users, indexed counts, 2011 equals 100`);
+        const x = d3.scaleLinear().domain(d3.extent(years)).range([margin.left, width - margin.right]);
+        const y = d3.scaleLinear().domain([0, d3.max(values, (row) => row.value) * 1.12]).nice().range([height - margin.bottom, margin.top]);
+        addAxes(svg, x, y, width, height, margin, "Recorded count index · 2011 = 100");
+        svg.append("line").attr("class", "baseline-guide").attr("x1", margin.left).attr("x2", width - margin.right)
+            .attr("y1", y(100)).attr("y2", y(100));
+        const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
+        series.forEach((item, index) => {
+            svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", item.color)
+                .attr("stroke-dasharray", item.dash).attr("d", line);
+            const label = (row) => `${row.year} · ${item.name}: index ${row.value.toFixed(1)}; ${numberFormat.format(row.count)} cases`;
+            const marks = svg.append("g").selectAll("path").data(item.values.filter((row) => row.value !== null)).join("path")
+                .attr("class", "series-point focusable-mark").attr("tabindex", 0).attr("role", "img")
+                .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
+                .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
+                .attr("d", d3.symbol().type(index ? d3.symbolSquare : d3.symbolCircle).size(45)()).attr("fill", item.color);
+            attachTooltip(marks, label);
+            const entry = document.createElement("span"); entry.className = "trend-legend-item";
+            const swatch = document.createElement("span"); swatch.className = "trend-legend-line";
+            swatch.style.borderTopColor = item.color; swatch.style.borderTopStyle = index ? "dashed" : "solid";
             swatch.setAttribute("aria-hidden", "true");
-            const label = document.createElement("span");
-            label.className = "trend-legend-label";
-            label.textContent = item.name;
-            entry.append(swatch, label);
-            return entry;
-        }));
+            const text = document.createElement("span"); text.className = "trend-legend-label"; text.textContent = item.name;
+            entry.append(swatch, text); legend.append(entry);
+        });
         revealChart(svg);
     }
+
+    function demographicRows() {
+        return data.demographic.filter((row) => row.user === filters.user && (!filters.sex || row.sex === filters.sex));
+    }
+
+    function renderDemographics() {
+        const year = selectedYear();
+        document.getElementById("demographic-title").textContent = `Who contributed within the ${filters.user.toLowerCase()} group?`;
+        document.getElementById("demographic-unit").textContent = `National · 2011 versus ${year}`;
+        const ageRows = demographicRows();
+        const baseline40 = ageRows.filter((row) => row.year === 2011 && row.age === "40-64");
+        const current40 = ageRows.filter((row) => row.year === year && row.age === "40-64");
+        const scope = filters.sex || "all recorded sex categories";
+        document.getElementById("demographic-description").textContent = baseline40.length && current40.length
+            ? `For ${filters.user.toLowerCase()}, ages 40–64 changed from ${numberFormat.format(d3.sum(baseline40, (row) => row.value))} cases in 2011 to ${numberFormat.format(d3.sum(current40, (row) => row.value))} in ${year} (${scope}). Explore the other ages below. These counts do not measure differences in risk.`
+            : `Explore the age and sex profile for ${filters.user.toLowerCase()} (${scope}). Endpoint combinations without a record remain unavailable; they are not filled with zero.`;
+        renderAgeComparison(ageRows, year);
+        renderSexBars(ageRows, year);
+    }
+
+    function renderAgeComparison(rows, year) {
+        const container = document.getElementById("age-chart"); container.replaceChildren();
+        document.getElementById("age-year-key").textContent = year;
+        const endpoints = rows.filter((row) => row.year === 2011 || row.year === year);
+        const ageOrder = ["0-7", "8-16", "17-25", "26-39", "40-64", "65-74", "75+", "Missing"];
+        const ages = [...new Set(endpoints.map((row) => row.age))].sort((a, b) => {
+            const ai = ageOrder.indexOf(a), bi = ageOrder.indexOf(b);
+            return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
+        });
+        const summaries = summarizeRows(endpoints, (row) => `${row.year}|${row.age}`);
+        const lookup = new Map(summaries.map((row) => [row.key, row.value]));
+        const values = ages.map((age) => ({ age, before: lookup.get(`2011|${age}`) ?? null, after: lookup.get(`${year}|${age}`) ?? null }));
+        setEmptyState(document.getElementById("age-empty"), "No age records match this selection.", !values.length);
+        document.getElementById("age-data-note").textContent = values.some((row) => row.before === null || row.after === null)
+            ? "An absent endpoint has no mark; it is not a reported zero. Missing is retained as a source age label."
+            : `${filters.sex || "All recorded sex categories"} · ${filters.user}. Hover or focus an endpoint for its exact count.`;
+        if (!values.length) return;
+        const width = chartWidth(container), height = Math.max(270, ages.length * 35 + 50);
+        const margin = { top: 14, right: 22, bottom: 44, left: 57 };
+        const maximum = d3.max(values, (row) => Math.max(row.before ?? 0, row.after ?? 0)) || 1;
+        const x = d3.scaleLinear().domain([0, maximum * 1.08]).nice().range([margin.left, width - margin.right]);
+        const y = d3.scaleBand().domain(ages).range([margin.top, height - margin.bottom]).padding(0.4);
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img").attr("aria-label", `Age comparison for ${filters.user}, ${filters.sex || "all sex categories"}, 2011 and ${year}`);
+        svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(width < 400 ? 3 : 4).tickFormat(d3.format("~s")));
+        svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y).tickSize(0)).call((axis) => axis.select(".domain").remove());
+        svg.selectAll(".age-connector").data(values.filter((row) => row.before !== null && row.after !== null)).join("line")
+            .attr("class", "age-connector").attr("x1", (row) => x(row.before)).attr("x2", (row) => x(row.after))
+            .attr("y1", (row) => y(row.age) + y.bandwidth() / 2).attr("y2", (row) => y(row.age) + y.bandwidth() / 2);
+        const points = values.flatMap((row) => [
+            { age: row.age, year: 2011, value: row.before, baseline: true },
+            { age: row.age, year, value: row.after, baseline: false }
+        ]).filter((row) => row.value !== null);
+        const label = (row) => `${filters.user}, age ${row.age}, ${filters.sex || "all sex categories"}: ${numberFormat.format(row.value)} cases in ${row.year}`;
+        const marks = svg.selectAll(".age-point").data(points).join("path")
+            .attr("class", "series-point focusable-mark age-point").attr("tabindex", 0).attr("role", "img")
+            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
+            .attr("transform", (row) => `translate(${x(row.value)},${y(row.age) + y.bandwidth() / 2})`)
+            .attr("d", (row) => d3.symbol().type(row.baseline ? d3.symbolCircle : d3.symbolSquare).size(62)())
+            .attr("fill", (row) => row.baseline ? "var(--surface)" : "var(--chart-primary)")
+            .style("stroke", "var(--chart-primary)").style("stroke-width", 2);
+        attachTooltip(marks, label);
+        svg.append("text").attr("x", (margin.left + width - margin.right) / 2).attr("y", height - 7)
+            .attr("text-anchor", "middle").text("Recorded hospitalisations");
+        revealChart(svg);
+    }
+
+    function renderSexBars(rows, year) {
+        const container = document.getElementById("sex-chart"); container.replaceChildren();
+        const grouped = summarizeRows(rows.filter((row) => row.year === year), (row) => row.sex)
+            .filter((row) => row.value !== null).sort((a, b) => d3.descending(a.value, b.value));
+        setEmptyState(document.getElementById("sex-empty"), "No sex records match this selection.", !grouped.length);
+        document.getElementById("sex-data-note").textContent = grouped.length
+            ? `${year} · ${grouped.map((row) => `${row.key}: ${numberFormat.format(row.value)}`).join("; ")}.` : "";
+        if (!grouped.length) return;
+        const width = chartWidth(container), height = 270;
+        const margin = { top: 14, right: 53, bottom: 44, left: Math.min(138, width * 0.38) };
+        const x = d3.scaleLinear().domain([0, (d3.max(grouped, (row) => row.value) || 1) * 1.05]).nice().range([margin.left, width - margin.right]);
+        const y = d3.scaleBand().domain(grouped.map((row) => row.key)).range([margin.top, height - margin.bottom]).padding(0.55);
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img").attr("aria-label", `Recorded hospitalisations by sex for ${filters.user}, ${year}`);
+        svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(width < 400 ? 3 : 4).tickFormat(d3.format("~s")));
+        const axis = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left - 5},0)`)
+            .call(d3.axisLeft(y).tickSize(0)).call((group) => group.select(".domain").remove());
+        axis.selectAll(".tick text").each(function (name) {
+            if (name !== "intersex or indeterminate or missing") return;
+            const text = d3.select(this).text("");
+            ["intersex or", "indeterminate", "or missing"].forEach((part, i) => text.append("tspan").attr("x", -9).attr("dy", i ? "1.1em" : "-0.9em").text(part));
+        });
+        const total = d3.sum(grouped, (row) => row.value);
+        const label = (row) => `${row.key}: ${numberFormat.format(row.value)} ${filters.user.toLowerCase()} cases in ${year}; ${total ? (row.value / total * 100).toFixed(1) + "% of displayed counts" : "share unavailable because the displayed total is zero"}`;
+        const bars = svg.selectAll(".sex-bar").data(grouped).join("rect").attr("class", "bar focusable-mark sex-bar")
+            .attr("tabindex", 0).attr("role", "img").attr("aria-label", label)
+            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
+            .attr("x", x(0)).attr("y", (row) => y(row.key)).attr("width", (row) => Math.max(1, x(row.value) - x(0)))
+            .attr("height", y.bandwidth()).attr("fill", "var(--chart-primary)").attr("rx", 2);
+        attachTooltip(bars, label);
+        svg.selectAll(".bar-value").data(grouped).join("text").attr("class", "bar-value")
+            .attr("x", (row) => x(row.value) + 5).attr("y", (row) => y(row.key) + y.bandwidth() / 2 + 4)
+            .text((row) => numberFormat.format(row.value));
+        svg.append("text").attr("x", (margin.left + width - margin.right) / 2).attr("y", height - 7)
+            .attr("text-anchor", "middle").text("Recorded hospitalisations");
+        revealChart(svg);
+    }
+
 
     function renderStateHeatmap() {
         const container = document.getElementById("state-chart");
@@ -659,7 +689,7 @@
         const dataNote = document.getElementById("state-data-note");
         container.replaceChildren();
         const year = selectedYear();
-        const rows = rowsForUser(data.state).filter((row) =>
+        const rows = data.state.filter((row) =>
             row.year === year && (!filters.state || row.state === filters.state)
         );
         document.getElementById("comparison-year-label").textContent = `Selected year: ${year || "unavailable"}`;
@@ -667,7 +697,6 @@
             .filter((state) => !filters.state || state === filters.state)
             .sort((a, b) => a.localeCompare(b));
         const users = [...new Set(data.state.map((row) => row.user).filter(Boolean))]
-            .filter((user) => !filters.user || user === filters.user)
             .sort((a, b) => a.localeCompare(b));
 
         if (!rows.length || !states.length || !users.length) {
@@ -794,8 +823,11 @@
         const empty = document.getElementById("first-nations-empty");
         container.replaceChildren();
         const rows = rowsForUser(data.firstNations);
+        document.getElementById("first-nations-title").textContent = `First Nations · ${filters.user}`;
+        const missingCount = rows.filter((row) => row.suppressed || row.value === null).length;
+        document.getElementById("first-nations-data-note").textContent = `${filters.user}: ${missingCount} suppressed or unavailable year(s). No partial totals are connected. The jurisdiction and sex filters do not apply to this panel.`;
         const allYearly = summarizeRows(rows, (row) => row.year)
-            .map((row) => ({ year: row.key, ...row }))
+            .map((row) => ({ year: row.key, ...row, value: row.suppressedCount ? null : row.value }))
             .sort((a, b) => a.year - b.year);
         const yearly = allYearly.filter((row) => row.value !== null);
 
@@ -821,7 +853,7 @@
             .domain([0, (d3.max(yearly, (row) => row.value) || 1) * 1.08])
             .nice()
             .range([height - margin.bottom, margin.top]);
-        addAxes(svg, x, y, width, height, margin, "Known injuries");
+        addAxes(svg, x, y, width, height, margin, "Recorded hospitalisations");
         const line = d3.line()
             .defined((row) => row.value !== null)
             .x((row) => x(row.year))
@@ -852,12 +884,16 @@
     }
 
     function render() {
+        hideTooltip();
         updateSummary();
         renderNationalTrend();
         renderRoadUserBars();
         renderRoadUserTrends();
-        renderStateHeatmap();
-        renderFirstNationsTrend();
+        renderDemographics();
+        if (document.getElementById("supplementary").open) {
+            renderStateHeatmap();
+            renderFirstNationsTrend();
+        }
     }
 
     function bindControls() {
@@ -873,10 +909,18 @@
             filters.user = event.target.value;
             render();
         });
+        document.getElementById("sex-filter").addEventListener("change", (event) => {
+            filters.sex = event.target.value;
+            render();
+        });
+        document.getElementById("supplementary").addEventListener("toggle", () => {
+            if (document.getElementById("supplementary").open) render();
+        });
         document.getElementById("reset-filters").addEventListener("click", () => {
             filters.year = "";
             filters.state = "";
-            filters.user = "";
+            filters.user = "Pedal cyclist";
+            filters.sex = "";
             updateFilters();
             render();
         });
@@ -905,12 +949,8 @@
         });
         const suppressedStateRows = data.state.filter((row) => row.suppressed).length;
         const suppressedFirstNationsRows = data.firstNations.filter((row) => row.suppressed).length;
-        if (suppressedStateRows) {
-            messages.push(`${suppressedStateRows} state record(s) are flagged suppressed; they are excluded from known subtotals.`);
-        }
-        if (suppressedFirstNationsRows) {
-            messages.push(`${suppressedFirstNationsRows} First Nations record(s) are flagged suppressed; trend points identify known subtotals.`);
-        }
+        document.getElementById("supplementary-data-status").textContent =
+            `Across the complete CSVs, ${suppressedStateRows} state records and ${suppressedFirstNationsRows} First Nations records are suppressed. They remain unknown, not zero. The visible selection may contain fewer suppressed records.`;
 
         setStatus(messages);
         updateFilters();

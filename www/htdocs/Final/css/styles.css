@@ -23,6 +23,7 @@
     --chart-axis: #cbd6de;
     --chart-grid: #e7edf1;
     --chart-primary: #087f8c;
+    --chart-secondary: #6b7f91;
     --heat-low: #dff3f2;
     --heat-high: #075b67;
     --chart-pattern-background: #dff3f2;
@@ -121,6 +122,7 @@
     --chart-axis: #587184;
     --chart-grid: #334e62;
     --chart-primary: #65c6ca;
+    --chart-secondary: #c5b6df;
     --heat-low: #264b53;
     --heat-high: #c5f3ed;
     --chart-pattern-background: #264b53;
@@ -857,6 +859,23 @@ h2:focus-visible {
     transition: color var(--transition-theme), background-color var(--transition-theme), border-color var(--transition-theme);
 }
 
+.chart-unit { max-width: 48%; text-align: right; }
+.chart-heading > div { min-width: 0; }
+.zero-line { stroke: var(--chart-axis); stroke-width: 1.2; }
+.baseline-guide { stroke: var(--chart-axis); stroke-dasharray: 3 4; }
+.age-connector { stroke: var(--chart-secondary); stroke-width: 3; }
+.endpoint-key { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--chart-primary); }
+.baseline-key { border-radius: 50%; background: var(--surface); }
+.current-key { background: var(--chart-primary); }
+.supplementary-panel { padding-bottom: 16px; }
+.supplementary-panel > .chart-card { box-shadow: none; border: 0; padding: 12px 0 0; }
+.supplementary-panel > .chart-data-note { margin: 0 0 12px; }
+.supplementary-controls { max-width: 280px; margin-top: 14px; }
+.heatmap-wrap { overflow-x: auto; }
+.heatmap-wrap svg { min-width: 460px; }
+.notes-content a { color: var(--teal); }
+.summary-label { overflow-wrap: anywhere; }
+
 [hidden] {
     display: none !important;
 }
@@ -951,6 +970,8 @@ h2:focus-visible {
 
     .chart-unit {
         margin-top: 5px;
+        max-width: none;
+        text-align: left;
     }
 
     .page-footer {
