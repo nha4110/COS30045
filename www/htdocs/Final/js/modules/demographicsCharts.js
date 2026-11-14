@@ -20,14 +20,14 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
         return index < 0 ? order.length : index;
     }
     export function demographicLabelYear() {
-        return filters.demographicYear || "All Years Total (2011\u20132021)";
+        return filters.demographicYear || "All years combined (2011\u20132021)";
     }
     export function renderDemographics() {
         const yearLabel = demographicLabelYear();
         document.getElementById("demographic-title").textContent = `Age and sex patterns: ${filters.user.toLowerCase()}`;
         const rows = demographicRows();
         document.getElementById("demographic-description").textContent =
-            `${filters.user}: Male and Female counts by age, sex distribution, and age trajectory for ${yearLabel.toLowerCase()}. All-years totals sum published 2011-2021 counts. These are counts, not population-adjusted rates.`;
+            `${filters.user} · ${yearLabel}. Compare recorded cases by age and sex. This period selector is independent of the comparison year. Counts do not measure differences in risk.`;
         renderPopulationPyramid(rows, yearLabel);
         renderSexIllustration(rows, yearLabel);
         renderAgeSexTrajectory(rows, yearLabel);
@@ -40,17 +40,17 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
         const ages = [...new Set(values.map((row) => row.age))].sort((a, b) => demographicAgeOrder(a) - demographicAgeOrder(b) || a.localeCompare(b));
         const drawable = values.filter((row) => ["male", "female"].includes(row.sex.toLowerCase()) && row.value !== null);
         setEmptyState(empty, "No Male/Female age records match this road-user and year selection.", !drawable.length);
-        document.getElementById("age-data-note").textContent = `${yearLabel} | ${filters.user}. Male/Female bars use complete published groups; unavailable or suppressed combinations remain unplotted.`;
+        document.getElementById("age-data-note").textContent = `${yearLabel} · ${filters.user}. Male/Female bars use complete published groups; unavailable or suppressed combinations remain unplotted.`;
         if (!drawable.length) return;
-        const width = chartWidth(container), height = Math.max(310, ages.length * 36 + 90);
-        const margin = { top: 28, right: 26, bottom: 48, left: 60 };
+        const width = chartWidth(container), height = Math.max(320, ages.length * 40 + 90);
+        const margin = { top: 34, right: 44, bottom: 52, left: 64 };
         const maximum = d3.max(drawable, (row) => row.value) || 1;
-        const x = d3.scaleLinear().domain([-maximum * 1.08, maximum * 1.08]).range([margin.left, width - margin.right]);
+        const x = d3.scaleLinear().domain([-maximum * 1.24, maximum * 1.24]).range([margin.left, width - margin.right]);
         const y = d3.scaleBand().domain(ages).range([margin.top, height - margin.bottom]).padding(0.08);
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-            .attr("aria-label", `Population pyramid for ${filters.user}, ${yearLabel}: Male left, Female right`);
-        const maleFill = addColorPattern(svg, "pyramid-male-pattern", "var(--series-blue)", false);
-        const femaleFill = addColorPattern(svg, "pyramid-female-pattern", "var(--series-orange)", true);
+            .attr("aria-label", `Recorded hospitalisations by age and sex for ${filters.user}, ${yearLabel}: Male left, Female right`);
+        const maleFill = "var(--series-blue)";
+        const femaleFill = "var(--series-orange)";
         svg.append("g").attr("class", "grid").attr("transform", `translate(0,${height - margin.bottom})`)
             .call(d3.axisBottom(x).ticks(5).tickFormat((value) => numberFormat.format(Math.abs(value))).tickSize(-(height - margin.top - margin.bottom)));
         svg.selectAll(".grid line").filter((value) => value === 0).attr("stroke", "var(--chart-axis)").attr("stroke-width", 2.5);
@@ -70,12 +70,20 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
             .attr("stroke", (row) => row.sex.toLowerCase() === "male" ? "var(--series-blue)" : "var(--series-orange)").attr("stroke-width", 1.5);
         centerAxis.raise();
         attachTooltip(bars, label);
-        bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 750)
+        bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 300)
             .attr("x", (row) => row.sex.toLowerCase() === "male" ? x(-row.value) : x(0))
             .attr("width", (row) => Math.abs(x(row.value) - x(0)));
         animateMarks(bars);
+        svg.selectAll(".pyramid-value").data(drawable).join("text")
+            .attr("class", "bar-value pyramid-value")
+            .attr("x", row => row.sex.toLowerCase() === "male" ? x(-row.value) - 7 : x(row.value) + 7)
+            .attr("text-anchor", row => row.sex.toLowerCase() === "male" ? "end" : "start")
+            .attr("y", row => y(row.age) + y.bandwidth() / 2)
+            .attr("dominant-baseline", "middle")
+            .text(row => numberFormat.format(row.value));
+
         const legend = svg.append("g").attr("class", "pyramid-legend").attr("transform", `translate(${margin.left},6)`);
-        [["Male (diagonal)", "var(--series-blue)"], ["Female (crosshatch)", "var(--series-orange)"]].forEach((entry, index) => {
+        [["Male · left", "var(--series-blue)"], ["Female · right", "var(--series-orange)"]].forEach((entry, index) => {
             const group = legend.append("g").attr("transform", `translate(${index * 110},0)`);
             group.append("rect").attr("width", 12).attr("height", 12).attr("rx", 2).attr("fill", entry[1]);
             group.append("text").attr("x", 17).attr("y", 10).text(entry[0]);
@@ -83,75 +91,63 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
         revealChart(svg);
     }
     export function renderSexIllustration(rows, yearLabel) {
-        const container = document.getElementById("sex-chart"), empty = document.getElementById("sex-empty");
+        const container = document.getElementById("sex-chart");
+        const empty = document.getElementById("sex-empty");
         clearChart(container);
-        document.getElementById("sex-data-note").textContent = "";
-        const groups = aggregateDemographic(rows, (row) => row.sex);
-        const bySex = new Map(groups.map((row) => [row.key.toLowerCase(), row]));
-        const female = bySex.get("female"), male = bySex.get("male");
-        const knownTotal = d3.sum(groups.filter((row) => row.value !== null), (row) => row.value);
-        if (!groups.length) {
-            setEmptyState(empty, "No sex records match this road-user and year selection.", true);
-            return;
-        }
-        setEmptyState(empty, "", false);
-        const width = chartWidth(container), height = 520;
-        const spokenValue = (row) => row?.value === null || row?.value === undefined
-            ? "unknown" : `${numberFormat.format(row.value)} cases, ${knownTotal ? (row.value / knownTotal * 100).toFixed(1) : "share unavailable"}% of known counts`;
-        const otherValues = groups.filter((row) => !["male", "female"].includes(row.key.toLowerCase()))
-            .map((row) => `${row.key}: ${row.value === null ? "unknown" : numberFormat.format(row.value)}`).join("; ");
-        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-            .attr("aria-label", `${filters.user}, ${yearLabel}. Female: ${spokenValue(female)}. Male: ${spokenValue(male)}. ${otherValues ? `Other recorded categories: ${otherValues}.` : ""}`);
-        const femaleFill = addColorPattern(svg, "sex-female-pattern", "var(--series-orange)", true);
-        const maleFill = addColorPattern(svg, "sex-male-pattern", "var(--series-blue)", false);
-        const positions = [{ sex: "Female", row: female, x: width * 0.28, color: "var(--series-orange)", fill: femaleFill }, { sex: "Male", row: male, x: width * 0.72, color: "var(--series-blue)", fill: maleFill }];
-        positions.forEach((item) => {
-            const value = item.row?.value ?? null, pct = value === null || !knownTotal ? null : value / knownTotal * 100;
-            const group = svg.append("g").attr("transform", `translate(${item.x},125)`);
-            svg.append("text").attr("class", "sex-count").attr("x", item.x).attr("y", 24).attr("text-anchor", "middle").text(value === null ? "Unknown" : numberFormat.format(value));
-            svg.append("text").attr("class", "sex-percent").attr("x", item.x).attr("y", 46).attr("text-anchor", "middle").text(pct === null ? "share unavailable" : `${pct.toFixed(1)}% of known counts`);
-            group.append("circle").attr("cy", 8).attr("r", 10).attr("fill", item.color);
-            if (item.sex === "Female") group.append("path").attr("d", "M-8,21 Q0,16 8,21 L12,43 L19,69 L10,71 L5,52 L5,91 L-5,91 L-5,52 L-10,71 L-19,69 L-12,43 Z").attr("fill", item.fill);
-            else {
-                group.append("path").attr("d", "M-10,20 Q0,15 10,20 L14,49 L8,51 L8,91 L-8,91 L-8,51 L-14,49 Z").attr("fill", item.fill);
-                group.append("path").attr("d", "M-10,24 L-19,49 L-13,52 L-4,34 M10,24 L19,49 L13,52 L4,34").attr("fill", "none").attr("stroke", item.color).attr("stroke-width", 7).attr("stroke-linecap", "round");
-            }
-            svg.append("text").attr("class", "sex-name").attr("x", item.x).attr("y", 226).attr("text-anchor", "middle").text(item.sex);
+        const groups = aggregateDemographic(rows, row => row.sex).sort((a, b) => {
+            const order = name => name.toLowerCase() === "male" ? 0 : name.toLowerCase() === "female" ? 1 : 2;
+            return order(a.key) - order(b.key) || a.key.localeCompare(b.key);
         });
-        const femaleValue = female?.value ?? null, maleValue = male?.value ?? null;
-        let ratio = "Male/Female ratio unavailable";
-        if (femaleValue > 0 && maleValue !== null) ratio = `For every 1 Female, ${(maleValue / femaleValue).toFixed(2)} Males recorded`;
-        svg.append("text").attr("class", "ratio-label").attr("x", width / 2).attr("y", 250).attr("text-anchor", "middle").text(ratio);
-        svg.append("text").attr("class", "pictogram-caption").attr("x", width / 2).attr("y", 273).attr("text-anchor", "middle").text("100-unit Male/Female split (known counts)");
-        const pairComplete = femaleValue !== null && maleValue !== null;
-        const pairTotal = pairComplete ? femaleValue + maleValue : 0;
-        const pairReady = pairComplete && pairTotal > 0;
-        const femaleUnits = pairReady ? Math.round(femaleValue / pairTotal * 100) : 0;
-        const unknownFill = addColorPattern(svg, "sex-ratio-unknown-pattern", "var(--chart-pattern-background)", true);
-        const gridStepX = 25, gridStepY = 18, unitRadius = 7.5;
-        const gridX = (width - 10 * gridStepX) / 2;
-        const ratioUnits = svg.selectAll(".ratio-unit").data(d3.range(100).map((index) => ({ index, female: index < femaleUnits }))).join("circle")
-            .attr("class", "ratio-unit").attr("cx", (unit) => gridX + unit.index % 10 * gridStepX + gridStepX / 2)
-            .attr("cy", (unit) => 295 + Math.floor(unit.index / 10) * gridStepY).attr("r", unitRadius)
-            .attr("fill", (unit) => !pairReady ? unknownFill : unit.female ? femaleFill : maleFill).attr("stroke", "var(--surface)").attr("stroke-width", 1.2);
-        animateMarks(ratioUnits);
-        if (!pairReady) svg.append("text").attr("class", "sex-other-badge").attr("x", width / 2).attr("y", 480)
-            .attr("text-anchor", "middle").text("Pictogram unavailable: no complete positive Male/Female total");
-        const others = groups.filter((row) => !["male", "female"].includes(row.key.toLowerCase()));
-        const badge = others.map((row) => `${row.key}: ${row.value === null ? "unknown" : numberFormat.format(row.value)}`).join("; ");
-        if (badge) svg.append("text").attr("class", "sex-other-badge").attr("x", width / 2).attr("y", 502).attr("text-anchor", "middle").text(badge);
-        document.getElementById("sex-data-note").textContent = `${yearLabel} | ${filters.user}. Percentages and pictogram compare known Male/Female counts; all other source categories are shown separately.`;
+        setEmptyState(empty, "No recorded sex categories match this selection.", !groups.length);
+        document.getElementById("sex-data-note").textContent = "";
+        if (!groups.length) return;
+
+        const known = groups.filter(row => row.value !== null);
+        const total = d3.sum(known, row => row.value);
+        const width = chartWidth(container);
+        const height = Math.max(220, groups.length * 78 + 48);
+        const margin = { top: 20, right: 78, bottom: 32, left: 20 };
+        const x = d3.scaleLinear().domain([0, d3.max(known, row => row.value) || 1])
+            .range([margin.left, width - margin.right]);
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img").attr("aria-label", `Recorded hospitalisations by sex, ${filters.user}, ${yearLabel}`);
+        const label = row => `${row.key}: ${row.value === null ? "unavailable for the complete selected period" : numberFormat.format(row.value) + " cases"}; ${yearLabel}; ${filters.user}`;
+        const categories = svg.selectAll(".sex-category").data(groups).join("g")
+            .attr("class", "focusable-mark sex-category").attr("tabindex", 0).attr("role", "img")
+            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
+            .attr("transform", (row, index) => `translate(0,${margin.top + index * 78})`);
+        categories.append("text").attr("x", margin.left).attr("y", 0)
+            .attr("class", "sex-category-name").text(row => row.key);
+        categories.filter(row => row.value !== null).append("rect")
+            .attr("class", "bar sex-distribution-bar")
+            .attr("x", x(0)).attr("y", 12).attr("height", 16)
+            .attr("width", row => x(row.value) - x(0)).attr("rx", 2)
+            .attr("fill", row => row.key.toLowerCase() === "male" ? "var(--series-blue)" : row.key.toLowerCase() === "female" ? "var(--series-orange)" : "var(--series-grey)");
+        categories.append("text").attr("class", "bar-value")
+            .attr("x", row => row.value === null ? margin.left : x(row.value) + 7)
+            .attr("y", 25).text(row => row.value === null ? "Unavailable" : numberFormat.format(row.value));
+        categories.append("text").attr("class", "sex-distribution-share")
+            .attr("x", margin.left).attr("y", 47)
+            .text(row => row.value !== null && total > 0 ? `${(row.value / total * 100).toFixed(1)}% of known recorded counts` : "No share calculated");
+        attachTooltip(categories, label);
+        svg.append("g").attr("class", "axis")
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(width < 400 ? 3 : 4).tickFormat(d3.format("~s")));
+        const unavailable = groups.filter(row => row.value === null);
+        document.getElementById("sex-data-note").textContent = `${yearLabel} · ${filters.user}. ` +
+            (unavailable.length ? `${unavailable.length} category has incomplete or unavailable coverage; percentages use known categories only.` : "All displayed category totals are available.");
         revealChart(svg);
     }
+
     export function renderAgeSexTrajectory(rows, yearLabel) {
         const container = document.getElementById("age-sex-line-chart"), empty = document.getElementById("age-sex-line-empty");
         clearChart(container);
         const grouped = aggregateDemographic(rows, (row) => `${row.age}\u0000${row.sex}`)
             .map((item) => { const [age, sex] = item.key.split("\u0000"); return { age, sex, ...item }; });
-        const ages = [...new Set(grouped.map((row) => row.age))].sort((a, b) => demographicAgeOrder(a) - demographicAgeOrder(b) || a.localeCompare(b));
+        const ages = [...new Set(grouped.filter(row => row.age !== "Missing").map((row) => row.age))].sort((a, b) => demographicAgeOrder(a) - demographicAgeOrder(b) || a.localeCompare(b));
         const series = ["Male", "Female"].map((sex) => ({ sex, values: ages.map((age) => grouped.find((row) => row.age === age && row.sex.toLowerCase() === sex.toLowerCase()) || { age, sex, value: null }) }));
         const available = series.some((item) => item.values.some((row) => row.value !== null));
-        setEmptyState(empty, "No Male/Female age trajectory records match this selection.", !available);
+        setEmptyState(empty, "No Male/Female age profile records match this selection.", !available);
         if (!available) return;
         const width = chartWidth(container), height = 350;
         const margin = { top: 45, right: 20, bottom: 80, left: 64 };
@@ -171,7 +167,7 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
             const trajectory = svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", colors[item.sex])
                 .attr("stroke-dasharray", item.sex === "Female" ? "7 4" : "")
                 .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.age)).y(() => y(0)));
-            trajectory.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
+            trajectory.transition("series-enter").duration(reducedMotion.matches ? 0 : 300).attr("d", line);
             const marks = svg.append("g").selectAll(`.age-sex-${item.sex}`).data(item.values.filter((row) => row.value !== null)).join("path")
                 .attr("class", `series-point focusable-mark age-sex-${item.sex}`).attr("tabindex", 0).attr("role", "img")
                 .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")

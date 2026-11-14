@@ -41,16 +41,16 @@ import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annot
 
         Object.entries(annotationLabels).forEach(([yearText, note], index) => {
             const year = Number(yearText), row = yearly.find((item) => item.year === year);
-            if (!row || !x(year)) return;
+            if (!row || x(year) === undefined) return;
             const center = x(year) + x.bandwidth() / 2;
             const group = svg.append("g").attr("class", "focusable-mark annotation-group").attr("tabindex", 0)
                 .attr("role", "img").attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
                 .attr("aria-label", `${year}: ${note}`);
             group.append("line").attr("class", "annotation-line").attr("x1", center).attr("x2", center)
-                .attr("y1", margin.top + 23).attr("y2", height - margin.bottom);
+                .attr("y1", margin.top - 12).attr("y2", height - margin.bottom);
             group.append("text").attr("class", "annotation-label").attr("x", center)
-                .attr("y", margin.top + (index ? 16 : 6)).attr("text-anchor", "middle")
-                .text(index ? "NEW SOUTH WALES: JUN 2017" : "VICTORIA: 2012");
+                .attr("y", index ? 32 : 17).attr("text-anchor", "middle")
+                .text(year === 2017 ? "NSW · Jun 2017" : "VIC · 2012");
             attachTooltip(group, () => `${year}: ${note}. Interpret the series break with care.`);
         });
         const label = (row) => `${row.year}: ${numberFormat.format(row.value)} hospitalised injuries nationally` +
@@ -64,8 +64,15 @@ import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annot
             .attr("fill", (row) => topYears.has(row.year) ? "url(#national-top-five-pattern)" : "var(--chart-primary)")
             .attr("stroke", (row) => topYears.has(row.year) ? "var(--series-orange)" : "var(--surface)").attr("stroke-width", 1.5);
         attachTooltip(bars, label);
-        bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 750)
+        bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 300)
             .attr("y", (row) => y(row.value)).attr("height", (row) => y(0) - y(row.value));
         animateMarks(bars);
+        svg.selectAll(".national-value").data(yearly).join("text")
+            .attr("class", "bar-value national-value")
+            .attr("text-anchor", "middle")
+            .attr("x", row => x(row.year) + x.bandwidth() / 2)
+            .attr("y", row => y(row.value) - 8)
+            .text(row => numberFormat.format(row.value));
+        svg.selectAll(".annotation-group").raise();
         revealChart(svg);
     }

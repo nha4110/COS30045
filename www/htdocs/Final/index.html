@@ -19,9 +19,10 @@
                 <span>Road trauma <span class="brand-light">/ made visible</span></span>
             </a>
             <nav class="header-nav" aria-label="Dashboard navigation">
-                <a href="#filters">Filters</a>
-                <a href="#visualisations">Visualisations</a>
-                <a href="#supplementary">Place &amp; First Nations</a>
+                <a href="#visualisations">Overview</a>
+                <a href="#demographics">Age &amp; sex</a>
+                <a href="#changes">Comparisons</a>
+                <a href="#supplementary">Context</a>
                 <a href="#data-notes">Data notes</a>
                 <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
                     <span class="theme-icon" aria-hidden="true">◐</span>
@@ -35,74 +36,117 @@
     <main id="main" class="page-shell">
         <section class="intro" aria-labelledby="page-title">
             <p class="eyebrow">TRANSPORT SAFETY · HOSPITALISED INJURIES</p>
-            <h1 id="page-title" tabindex="0">A national picture of road trauma, and the people behind the counts.</h1>
-            <p class="intro-copy">Start with the national trend, then explore how recorded injuries differ by age, sex and road-user group. Compare ten-year changes before examining jurisdiction and First Nations records. These are hospitalisation counts, not measures of crash risk.</p>
+            <h1 id="page-title" tabindex="0">Road injuries in Australia.<br><span class="hero-subtitle">The patterns behind the counts.</span></h1>
+            <p class="intro-copy">Explore recorded hospitalisations from 2011 to 2021, from the national picture to differences by road user, age and sex. Use the comparisons to follow the change, then examine jurisdiction and First Nations records.</p>
+            <p class="intro-caveat"><span class="caveat-dot" aria-hidden="true"></span>Recorded cases, not population-adjusted rates or individual crash risk.</p>
         </section>
 
+        <section id="filters" class="filter-panel" aria-label="Dashboard filters">
+            <div class="filter-heading">
+                <div>
+                    <p class="eyebrow">YOUR VIEW</p>
+                    <h2>Set the comparison</h2>
+                </div>
+                <button id="reset-filters" class="text-button" type="button">Reset filters</button>
+            </div>
+            <div class="filter-controls">
+                <label class="filter-control" for="year-filter">
+                    <span>Comparison year</span>
+                    <select id="year-filter" aria-describedby="filter-scope-note"><option value="">Latest available year</option></select>
+                </label>
+                <label class="filter-control" for="user-filter">
+                    <span>Road user in focus</span>
+                    <select id="user-filter" aria-describedby="filter-scope-note"><option value="Pedal cyclist">Pedal cyclist</option></select>
+                </label>
+            </div>
+            <p id="filter-scope-note" class="filter-note">The comparison year updates the change chart, summary cards and jurisdiction heatmap. Road user sets the focused group. Age &amp; sex has a separate period selector; trend charts retain the full time series.</p>
+        </section>
 
+        <div id="data-status" class="status-banner" role="status" aria-live="polite" hidden></div>
 
+        <section class="summary-grid" aria-label="Summary statistics" aria-live="polite" aria-atomic="true">
+            <article class="summary-card">
+                <p id="kpi-total-label" class="summary-label">NATIONAL INJURIES · SELECTED YEAR</p>
+                <p id="kpi-national" class="summary-value">&hellip;</p>
+                <p id="kpi-national-note" class="summary-note">Loading national data</p>
+            </article>
+            <article class="summary-card">
+                <p id="kpi-change-label" class="summary-label">CYCLIST CHANGE · SINCE 2011</p>
+                <p id="kpi-latest-year" class="summary-value">&hellip;</p>
+                <p id="kpi-change-note" class="summary-note">Change in recorded counts</p>
+            </article>
+            <article class="summary-card summary-card-accent">
+                <p class="summary-label">SHARE OF NATIONAL NET CHANGE</p>
+                <p id="kpi-current-view" class="summary-value">&hellip;</p>
+                <p id="kpi-current-note" class="summary-note">Focused group contribution</p>
+            </article>
+        </section>
 
+        <div class="display-tools" aria-label="Chart display options">
+            <p id="view-context" class="view-context" aria-live="polite">Loading the selected view</p>
+            <label class="label-toggle" for="point-label-toggle"><input id="point-label-toggle" type="checkbox"><span>Show point labels</span></label>
+        </div>
 
-
+        <p class="responsive-chart-note">Swipe wide charts sideways to see every label.</p>
 
         <section id="visualisations" class="chart-grid" aria-label="Road injury visualisations">
             <article class="chart-card chart-card-wide" tabindex="0">
                 <div class="chart-heading">
                     <div>
-                        <p class="eyebrow">NATIONAL · 2011–2021</p>
-                        <h2 id="national-chart-title" tabindex="0">National overview: hospitalised road injuries</h2>
+                        <p class="eyebrow">01 · NATIONAL OVERVIEW</p>
+                        <h2 id="national-chart-title" tabindex="0">The national picture</h2>
                     </div>
                     <p class="chart-unit">Recorded hospitalisations</p>
                 </div>
-                <p id="national-chart-description" class="chart-description">Annual national hospitalisation totals, with the five highest years highlighted in a patterned accent. Dashed markers show reporting breaks in Victoria (2012) and New South Wales (June 2017), not nationwide events. Focus a bar and use arrow keys to explore values.</p>
+                <p id="national-chart-description" class="chart-description">Annual recorded counts. Patterned bars mark the five highest years. Dashed markers identify source-series breaks in Victoria (2012) and NSW (June 2017).</p>
                 <div id="national-chart" class="chart-wrap" role="group" aria-labelledby="national-chart-title" aria-describedby="national-chart-description"></div>
                 <div class="national-key"><span class="national-key-swatch" aria-hidden="true"></span><span>Five highest annual totals</span></div>
                 <p id="national-empty" class="empty-state" hidden>No national trend data matches these filters.</p>
             </article>
 
-            <article class="chart-card chart-card-wide" tabindex="0">
+            <article id="demographics" class="chart-card chart-card-wide" tabindex="0">
                 <div class="chart-heading">
-                    <div><p class="eyebrow">STEP 2 &middot; AGE &amp; SEX</p><h2 id="demographic-title" tabindex="0">How do age and sex shape the picture?</h2></div>
-                    <label class="filter-control demographic-year-control"><span>Step 2 year</span><select id="demographic-year-filter"><option value="">All Years Total (2011&#8211;2021)</option></select></label>
+                    <div><p class="eyebrow">02 &middot; AGE &amp; SEX</p><h2 id="demographic-title" tabindex="0">How do age and sex shape the picture?</h2></div>
+                    <label class="filter-control demographic-year-control" for="demographic-year-filter"><span>Demographic period</span><select id="demographic-year-filter"><option value="">All years combined (2011&#8211;2021)</option></select></label>
                 </div>
-                <p id="demographic-description" class="chart-description">Compare recorded Male and Female counts across age groups, see the overall sex distribution, and follow each age trajectory. Select a road user above and choose a year here; all-years mode sums 2011&#8211;2021 records.</p>
+                <p id="demographic-description" class="chart-description">Compare age profiles and recorded sex distributions for the focused road user. This period selector is independent of the comparison year above. All-years mode sums records across 2011–2021.</p>
                 <div class="demographic-stack">
                     <section class="comparison-item demographic-panel" aria-labelledby="age-chart-title" tabindex="0">
-                        <h3 id="age-chart-title">Population pyramid by age</h3>
-                        <p class="comparison-note">Male counts extend left; Female counts extend right. Hatching distinguishes each series.</p>
+                        <h3 id="age-chart-title">Hospitalisations by age and sex</h3>
+                        <p class="comparison-note">Male counts extend left; Female counts extend right. Both sides use the same scale. Exact counts appear at the bar ends.</p>
                         <div id="age-chart" class="chart-wrap" role="group" aria-labelledby="age-chart-title" aria-describedby="demographic-description"></div>
                         <p id="age-data-note" class="chart-data-note"></p>
                         <p id="age-empty" class="empty-state" hidden>No demographic records match this selection.</p>
                     </section>
                     <hr class="demographic-divider" aria-hidden="true">
                     <section class="comparison-item demographic-panel" aria-labelledby="sex-chart-title" tabindex="0">
-                        <h3 id="sex-chart-title">Recorded sex ratio</h3>
-                        <p class="comparison-note">Exact counts and shares above; the 100-unit pictogram below shows the Male/Female split.</p>
+                        <h3 id="sex-chart-title">Recorded sex distribution</h3>
+                        <p class="comparison-note">Bar lengths show counts. Shares use the sum of known recorded categories; unavailable groups remain labelled rather than becoming zero.</p>
                         <div id="sex-chart" class="chart-wrap" role="group" aria-labelledby="sex-chart-title" aria-describedby="demographic-description"></div>
                         <p id="sex-data-note" class="chart-data-note"></p>
                         <p id="sex-empty" class="empty-state" hidden>No sex records match this selection.</p>
                     </section>
                     <hr class="demographic-divider" aria-hidden="true">
                     <section class="comparison-item demographic-panel" aria-labelledby="age-sex-line-title" tabindex="0">
-                        <h3 id="age-sex-line-title">Age-group trajectory</h3>
-                        <p class="comparison-note">Male and Female counts by age group, with exact values at each point.</p>
+                        <h3 id="age-sex-line-title">Comparing the age profiles</h3>
+                        <p class="comparison-note">Lines connect age categories, not years. Hover or focus a point for its count; use Show point labels to display all values.</p>
                         <div id="age-sex-line-chart" class="chart-wrap" role="group" aria-labelledby="age-sex-line-title" aria-describedby="demographic-description"></div>
                         <p id="age-sex-line-empty" class="empty-state" hidden>No age trajectory records match this selection.</p>
                     </section>
                 </div>
             </article>
-            <article class="chart-card chart-card-wide change-sequence-card">
-                <div class="change-sequence-heading"><p class="eyebrow">EXPLORE THE CHANGE</p><h2>From contribution to relative change</h2></div>
+            <article id="changes" class="chart-card chart-card-wide change-sequence-card">
+                <div class="change-sequence-heading"><p class="eyebrow">EXPLORE THE CHANGE</p><h2>Two ways to read the change</h2></div>
                 <div class="change-sequence-grid">
                     <section class="comparison-item change-panel" tabindex="0">
 <div class="chart-heading">
                     <div>
-                        <p class="eyebrow">STEP 3 &middot; CHANGE FROM 2011</p>
+                        <p class="eyebrow">03 &middot; ABSOLUTE CHANGE</p>
                         <h2 id="road-user-chart-title" tabindex="0">Which groups contributed to the change?</h2>
                     </div>
                     <p id="road-user-chart-unit" class="chart-unit">Raw counts</p>
                 </div>
-                <p id="road-user-chart-description" class="chart-description">Compare the change in recorded counts, rather than the size of each group in one year. Cyclists added 2,772 cases between 2011 and 2021, equivalent to 50.7% of the national net increase. This is not their share of all injuries. Hover or focus a bar for both endpoint counts.</p>
+                <p id="road-user-chart-description" class="chart-description">Count in the selected comparison year minus count in 2011. Positive bars show increases; negative bars show decreases. Hover or focus a bar to compare both endpoints.</p>
                 <div id="road-user-chart" class="chart-wrap" role="group" aria-labelledby="road-user-chart-title" aria-describedby="road-user-chart-description"></div>
                 <p id="road-user-data-note" class="chart-data-note"></p>
                 <p id="road-user-empty" class="empty-state" hidden>No road-user records match these filters.</p>
@@ -110,12 +154,12 @@
                     <section class="comparison-item change-panel" tabindex="0">
 <div class="chart-heading">
                     <div>
-                        <p class="eyebrow">STEP 4 &middot; RELATIVE CHANGE</p>
+                        <p class="eyebrow">04 &middot; RELATIVE CHANGE</p>
                         <h2 id="road-user-trend-title" tabindex="0">Did the focused group rise faster?</h2>
                     </div>
                     <p id="road-user-trend-unit" class="chart-unit">National · 2011 = 100</p>
                 </div>
-                <p id="road-user-trend-description" class="chart-description">Both lines start at 100 in 2011. Compare the focused road-user group with the national total; these indices describe changes in counts, not population-adjusted rates. A larger index does not mean more cases in absolute terms.</p>
+                <p id="road-user-trend-description" class="chart-description">Each series starts at 100 in 2011. Compare proportional growth in recorded counts; a higher index does not mean a larger absolute number of cases.</p>
                 <div id="road-user-trend-chart" class="chart-wrap" role="group" aria-labelledby="road-user-trend-title" aria-describedby="road-user-trend-description"></div>
                 <div id="road-user-trend-legend" class="trend-legend" role="group" aria-label="Road-user trend series"></div>
                 <p id="road-user-trend-empty" class="empty-state" hidden>No road-user trend data matches these filters.</p>
@@ -125,49 +169,9 @@
 
         </section>
 
-
-
-        <div id="data-status" class="status-banner" role="status" aria-live="polite" hidden></div>
         <section id="supplementary" class="notes-panel supplementary-panel" aria-labelledby="supplementary-title">
-            <div class="supplementary-heading"><p class="eyebrow">PLACE &amp; COMMUNITY</p><h2 id="supplementary-title">Where the burden falls, and what the records can tell us</h2></div>
-        <section id="filters" class="filter-panel" aria-label="Dashboard filters">
-            <div class="filter-heading">
-                <div>
-                    <p class="eyebrow">FOLLOW THE STORY</p>
-                    <h2>Explore the change</h2>
-                </div>
-                <button id="reset-filters" class="text-button" type="button">Reset filters</button>
-            </div>
-            <div class="filter-controls">
-                <label class="filter-control">
-                    <span>Comparison year</span>
-                    <select id="year-filter"><option value="">Latest available year</option></select>
-                </label>
-                <label class="filter-control">
-                    <span>Road user in focus</span>
-                    <select id="user-filter"><option value="Pedal cyclist">Pedal cyclist</option></select>
-                </label>
-            </div>
-            <p class="filter-note">Compare 2011 with your chosen year. The national overview and road-user comparisons include all sex categories; Step 2 has its own independent year filter. Trend lines retain the full 2011–2021 series. Jurisdiction controls are in the supplementary section below.</p>
-        </section>
+            <div class="supplementary-heading"><p class="eyebrow">05 · PLACE &amp; COMMUNITY</p><h2 id="supplementary-title">Jurisdictions and First Nations records</h2></div>
 
-        <section class="summary-grid" aria-label="Summary statistics" aria-live="polite" aria-atomic="true">
-            <article class="summary-card">
-                <p id="kpi-total-label" class="summary-label">NATIONAL INJURIES · SELECTED YEAR</p>
-                <p id="kpi-national" class="summary-value">—</p>
-                <p id="kpi-national-note" class="summary-note">Loading national data</p>
-            </article>
-            <article class="summary-card">
-                <p id="kpi-change-label" class="summary-label">CYCLIST CHANGE · SINCE 2011</p>
-                <p id="kpi-latest-year" class="summary-value">—</p>
-                <p id="kpi-change-note" class="summary-note">Change in recorded counts</p>
-            </article>
-            <article class="summary-card summary-card-accent">
-                <p class="summary-label">SHARE OF NATIONAL NET CHANGE</p>
-                <p id="kpi-current-view" class="summary-value">—</p>
-                <p id="kpi-current-note" class="summary-note">All jurisdictions</p>
-            </article>
-        </section>
             <p id="supplementary-data-status" class="chart-data-note"></p>
             <article class="chart-card chart-card-wide" tabindex="0">
                 <div class="chart-heading">
@@ -177,9 +181,9 @@
                     </div>
                     <p id="comparison-year-label" class="chart-unit"></p>
                 </div>
-                <p id="comparative-chart-description" class="chart-description">These panels use separate source files. The top year filter updates selected-year comparisons; the focused road-user group updates road-user and state trends. The Step 2 year control is independent. The state filter updates both jurisdiction views.</p>
+                <p id="comparative-chart-description" class="chart-description">The heatmap uses the comparison year above. The focused road user applies to First Nations and jurisdiction trends. Jurisdiction selection affects the two state views; demographic-period selection does not apply here.</p>
                 <div class="supplementary-controls">
-                    <label class="filter-control"><span>Jurisdiction · state charts</span><select id="state-filter"><option value="">All jurisdictions</option></select></label>
+                    <label class="filter-control" for="state-filter"><span>Jurisdiction · state charts</span><select id="state-filter"><option value="">All jurisdictions</option></select></label>
                 </div>
                 <div class="comparison-grid supplementary-chart-stack">
                     <section class="comparison-item" aria-labelledby="state-chart-title" tabindex="0">
@@ -204,6 +208,7 @@
                         <p id="first-nations-data-note" class="chart-data-note"></p>
                     </section>
                 </div>
+                <details class="additional-trends"><summary>More time-series comparisons<span>Road users and jurisdictions</span></summary>
                 <div class="comparison-grid supplementary-chart-stack supplementary-extra-grid">
                     <section class="comparison-item" aria-labelledby="road-user-series-title">
                         <h3 id="road-user-series-title">How each road-user series changed</h3>
@@ -219,6 +224,7 @@
                     </section>
 
                 </div>
+                </details>
             </article>
         </section>
 
@@ -231,7 +237,7 @@
                 <p><strong>Reporting breaks:</strong> Victoria's series is not directly comparable with previous years from 2012; New South Wales' from June 2017. The national overview labels these jurisdiction-specific breaks. They must be considered when interpreting long-term changes.</p>
                 <p><strong>Suppressed and absent records:</strong> Suppressed annual totals are blank in the prepared CSVs if an input period was not published. They remain unknown, never zero. First Nations lines contain gaps at suppressed years; no changing mixture of published categories is plotted as a total. A combination absent from a CSV is not automatically assigned zero.</p>
                 <p><strong>Grouping and geography:</strong> Car driver, passenger and unknown-position records are combined as Car occupant; heavy-transport positions are combined similarly to align source categories. State data describe jurisdiction of usual residence. Australia totals also include residence unrecorded or migratory/offshore, so eight jurisdiction totals need not equal National.</p>
-                <p><strong>Age and sex:</strong> The source variable is sex. The labels Missing and intersex or indeterminate or missing are retained as supplied; the latter is not a separate estimate of intersex people. A third-category total is retained in the Step 2 sex-ratio badge when present. Step 2 compares all recorded sex categories; labels are retained as supplied.</p>
+                <p><strong>Age and sex:</strong> The source variable is sex. The labels Missing and intersex or indeterminate or missing are retained as supplied; the latter is not a separate estimate of intersex people. All source sex categories remain visible in the distribution chart or its data note. The demographic section compares all recorded sex categories; labels are retained as supplied.</p>
                 <p><strong>First Nations:</strong> The supplied CSV includes First Nations people only. It cannot support a First Nations versus Non-Indigenous rate comparison. Interpretation should respect Indigenous data governance and the limitations of source identification.</p>
                 <p class="source-note">Sources: <a href="https://www.bitre.gov.au/resource/road-safety/hospitalised-injury" target="_blank" rel="noopener noreferrer">BITRE hospitalised injury files and data dictionary</a>. Prepared data and KNIME processing are described in the accompanying README.</p>
             </div>

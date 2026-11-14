@@ -51,8 +51,8 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
             ? `${noteParts.join(" ")} Patterned cells are unknown, not zero.`
             : "";
 
-        const width = Math.max(460, chartWidth(container));
-        const margin = { top: 8, right: 12, bottom: 126, left: 66 };
+        const width = chartWidth(container);
+        const margin = { top: 8, right: 18, bottom: 80, left: 68 };
         const cellHeight = 30;
         const height = margin.top + margin.bottom + states.length * cellHeight;
         const svg = d3.select(container).append("svg")
@@ -79,19 +79,30 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
         svg.append("g")
             .attr("class", "axis")
             .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).tickSize(0).tickFormat(fullStateName))
+            .call(d3.axisLeft(y).tickSize(0))
             .call((axis) => axis.select(".domain").remove());
-        svg.append("g")
-            .attr("class", "heatmap-column-labels")
-            .selectAll("text")
-            .data(users)
-            .join("text")
-            .attr("x", (user) => x(user) + x.bandwidth() / 2)
-            .attr("y", height - margin.bottom + 5)
-            .attr("class", "heatmap-column-label")
-            .attr("text-anchor", "end")
-            .attr("transform", (user) => `rotate(-55,${x(user) + x.bandwidth() / 2},${height - margin.bottom + 5})`)
-            .text((user) => user);
+        const columnLabels = {
+            "Bus occupant": ["Bus", "occupant"],
+            "Car occupant": ["Car", "occupant"],
+            "Heavy transport occupant": ["Heavy", "transport"],
+            "Motorcyclist": ["Motorcyclist"],
+            "Other or unknown": ["Other /", "unknown"],
+            "Pedal cyclist": ["Pedal", "cyclist"],
+            "Pedestrian": ["Pedestrian"],
+            "Pick-up truck or van occupant": ["Pick-up /", "van occupant"]
+        };
+        svg.append("g").attr("class", "heatmap-column-labels")
+            .selectAll("text").data(users).join("text")
+            .attr("class", "heatmap-column-label").attr("text-anchor", "middle")
+            .attr("x", user => x(user) + x.bandwidth() / 2)
+            .attr("y", height - margin.bottom + 20)
+            .each(function (user) {
+                const text = d3.select(this);
+                (columnLabels[user] || [user]).forEach((part, index) => {
+                    text.append("tspan").attr("x", x(user) + x.bandwidth() / 2)
+                        .attr("dy", index ? "1.2em" : 0).text(part);
+                });
+            });
 
         const cellsGroup = svg.append("g").attr("class", "heatmap-cells");
         const rects = cellsGroup.selectAll(".heatmap-cell")
@@ -127,9 +138,9 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
             .attr("pointer-events", "none");
 
         attachTooltip(rects, (cell) => {
-            if (!cell.hasRecord) return `${fullStateName(cell.state)}  |  ${cell.user}: no record for ${year}`;
-            if (cell.value === null) return `${fullStateName(cell.state)}  |  ${cell.user}: suppressed for ${year}; value unknown, not zero`;
-            return `${fullStateName(cell.state)}  |  ${cell.user}: ${numberFormat.format(cell.value)} injuries in ${year}` +
+            if (!cell.hasRecord) return `${fullStateName(cell.state)}  ·  ${cell.user}: no record for ${year}`;
+            if (cell.value === null) return `${fullStateName(cell.state)}  ·  ${cell.user}: suppressed for ${year}; value unknown, not zero`;
+            return `${fullStateName(cell.state)}  ·  ${cell.user}: ${numberFormat.format(cell.value)} injuries in ${year}` +
                 (cell.suppressedCount ? ` (known subtotal; ${cell.suppressedCount} suppressed value(s) excluded)` : "");
         });
         animateMarks(rects);
@@ -143,7 +154,10 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
         const users = [...new Set(data.national.map((row) => row.user))].sort((a, b) => a.localeCompare(b));
         const series = users.map((user) => {
             const rows = data.national.filter((row) => row.user === user);
-            const byYear = new Map(rows.map((row) => [row.year, row]));
+            const byYear = new Map(summarizeRows(rows, row => row.year).map(row => [row.key, {
+                value: row.suppressedCount ? null : row.value,
+                suppressed: row.suppressedCount > 0
+            }]));
             return { user, values: years.map((year) => ({ year, ...(byYear.get(year) || { value: null, suppressed: false }) })) };
         }).filter((item) => item.values.some((row) => row.value !== null));
         setEmptyState(empty, "No complete road-user series are available.", !series.length);
@@ -157,13 +171,13 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
             .attr("aria-label", `Annual national hospitalisations by road-user group, ${minYear} to ${maxYear}`);
         addAxes(svg, x, y, width, height, margin, "Hospitalisations");
         const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
-        const legend = document.createElement("div"); legend.className = "series-legend"; legend.setAttribute("aria-label", "Road-user series key");
+        const legend = document.createElement("div"); legend.className = "series-legend"; legend.setAttribute("role", "group"); legend.setAttribute("aria-label", "Road-user series key");
         series.forEach((item, index) => {
             const color = SERIES_COLORS[index % SERIES_COLORS.length], dash = SERIES_DASHES[index % SERIES_DASHES.length];
             const seriesPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", color).attr("stroke-dasharray", dash)
                 .attr("aria-label", `${item.user} annual national counts`)
                 .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
+            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 300).attr("d", line);
             attachSeriesHover(seriesPath);
             const marks = svg.append("g").selectAll(".series-mark").data(item.values.filter((row) => row.value !== null)).join("path")
                 .attr("class", "series-point focusable-mark series-mark").attr("tabindex", 0).attr("role", "img")
@@ -172,7 +186,7 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
                 .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
                 .attr("d", d3.symbol().type(SERIES_SYMBOLS[index % SERIES_SYMBOLS.length]).size(44)())
                 .attr("fill", color).attr("stroke", "var(--surface)");
-            attachTooltip(marks, (row) => `${row.year}  |  ${item.user}: ${numberFormat.format(row.value)} recorded hospitalisations`);
+            attachTooltip(marks, (row) => `${row.year}  ·  ${item.user}: ${numberFormat.format(row.value)} recorded hospitalisations`);
             animateMarks(marks);
             const key = document.createElement("span"); key.className = "series-legend-item";
             const swatch = document.createElement("span"); swatch.className = "series-legend-line"; swatch.style.borderTopColor = color;
@@ -189,6 +203,7 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
         const years = [...new Set(data.state.map((row) => row.year))].sort((a, b) => a - b);
         const states = [...new Set(data.state.map((row) => row.state).filter(Boolean))]
             .filter((state) => !filters.state || state === filters.state).sort((a, b) => a.localeCompare(b));
+        const stateOrder = [...new Set(data.state.map(row => row.state).filter(Boolean))].sort((a, b) => a.localeCompare(b));
         const series = states.map((state) => {
             const rows = data.state.filter((row) => row.state === state && row.user === filters.user);
             const yearly = d3.rollups(rows, (group) => {
@@ -209,21 +224,37 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
         addAxes(svg, x, y, width, height, margin, "Hospitalisations");
         const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
         series.forEach((item, index) => {
-            const color = SERIES_COLORS[index % SERIES_COLORS.length], dash = SERIES_DASHES[index % SERIES_DASHES.length];
+            const colorIndex = stateOrder.indexOf(item.state);
+            const color = SERIES_COLORS[colorIndex % SERIES_COLORS.length], dash = SERIES_DASHES[colorIndex % SERIES_DASHES.length];
             const seriesPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", color).attr("stroke-dasharray", dash)
                 .attr("aria-label", `${fullStateName(item.state)} jurisdiction trend`)
                 .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
+            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 300).attr("d", line);
             attachSeriesHover(seriesPath);
             const marks = svg.append("g").selectAll(".state-trend-mark").data(item.values.filter((row) => row.value !== null)).join("path")
                 .attr("class", "series-point focusable-mark state-trend-mark").attr("tabindex", 0).attr("role", "img")
                 .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
                 .attr("aria-label", (row) => `${row.year}, ${fullStateName(item.state)}, ${filters.user}: ${numberFormat.format(row.value)} injuries`)
                 .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
-                .attr("d", d3.symbol().type(SERIES_SYMBOLS[index % SERIES_SYMBOLS.length]).size(40)()).attr("fill", color);
-            attachTooltip(marks, (row) => `${row.year}  |  ${fullStateName(item.state)}  |  ${filters.user}: ${numberFormat.format(row.value)} injuries`);
+                .attr("d", d3.symbol().type(SERIES_SYMBOLS[colorIndex % SERIES_SYMBOLS.length]).size(40)()).attr("fill", color);
+            attachTooltip(marks, (row) => `${row.year}  ·  ${fullStateName(item.state)}  ·  ${filters.user}: ${numberFormat.format(row.value)} injuries`);
             animateMarks(marks);
         });
+        const legend = document.createElement("div");
+        legend.className = "series-legend";
+        legend.setAttribute("role", "group");
+        legend.setAttribute("aria-label", "Jurisdiction series key");
+        series.forEach(item => {
+            const index = stateOrder.indexOf(item.state);
+            const key = document.createElement("span"); key.className = "series-legend-item";
+            const swatch = document.createElement("span"); swatch.className = "series-legend-line";
+            swatch.style.borderTopColor = SERIES_COLORS[index % SERIES_COLORS.length];
+            swatch.style.borderTopStyle = SERIES_DASHES[index % SERIES_DASHES.length] ? "dashed" : "solid";
+            swatch.setAttribute("aria-hidden", "true");
+            const label = document.createElement("span"); label.textContent = `${item.state} · ${fullStateName(item.state)}`;
+            key.append(swatch, label); legend.append(key);
+        });
+        container.append(legend);
         revealChart(svg);
     }
     export function renderFirstNationsTrend() {
@@ -231,9 +262,9 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
         const empty = document.getElementById("first-nations-empty");
         clearChart(container);
         const rows = rowsForUser(data.firstNations);
-        document.getElementById("first-nations-title").textContent = `First Nations  |  ${filters.user}`;
+        document.getElementById("first-nations-title").textContent = `First Nations  ·  ${filters.user}`;
         const missingCount = rows.filter((row) => row.suppressed || row.value === null).length;
-        document.getElementById("first-nations-data-note").textContent = `${filters.user}: ${missingCount} suppressed or unavailable year(s). No partial totals are connected. The jurisdiction and Step 2 year filters do not apply to this panel.`;
+        document.getElementById("first-nations-data-note").textContent = `${filters.user}: ${missingCount} suppressed or unavailable year(s). No partial totals are connected. The jurisdiction and demographic-period filters do not apply to this panel.`;
         const allYearly = summarizeRows(rows, (row) => row.year)
             .map((row) => ({ year: row.key, ...row, value: row.suppressedCount ? null : row.value }))
             .sort((a, b) => a.year - b.year);
@@ -272,7 +303,7 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
             .attr("stroke", COLORS.firstNations)
             .attr("stroke-dasharray", "6 3")
             .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-        nationsLine.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
+        nationsLine.transition("series-enter").duration(reducedMotion.matches ? 0 : 300).attr("d", line);
         const points = svg.selectAll(".first-nations-point")
             .data(yearly)
             .join("circle")

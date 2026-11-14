@@ -171,7 +171,7 @@ export const annotationLabels = {
         updateSelect(document.getElementById("state-filter"), states, "All jurisdictions", filters.state, fullStateName);
         updateSelect(document.getElementById("user-filter"), users, "Choose a road-user group", filters.user);
         const demographicYears = [...new Set(data.demographic.map((row) => row.year))].sort((a, b) => a - b).map(String);
-        updateSelect(document.getElementById("demographic-year-filter"), demographicYears, "All Years Total (2011\u20132021)", filters.demographicYear);
+        updateSelect(document.getElementById("demographic-year-filter"), demographicYears, "All years combined (2011\u20132021)", filters.demographicYear);
         const userSelect = document.getElementById("user-filter");
         userSelect.options[0].disabled = true;
         if (!userSelect.value && users.length) userSelect.value = users.includes("Pedal cyclist") ? "Pedal cyclist" : users[0];
@@ -240,7 +240,7 @@ export const annotationLabels = {
     export function revealChart(svg) {
         svg.style("opacity", 0)
             .transition("chart-reveal")
-            .duration(reducedMotion.matches ? 0 : 750)
+            .duration(reducedMotion.matches ? 0 : 300)
             .style("opacity", 1);
     }
     export function setEmptyState(element, message, isEmpty) {
@@ -315,7 +315,16 @@ export const annotationLabels = {
             .on("blur", hideTooltip);
     }
     export function chartWidth(element) {
-        return Math.max(280, element.clientWidth);
+        const minimums = {
+            "national-chart": 600, "age-chart": 640, "sex-chart": 320,
+            "age-sex-line-chart": 500, "road-user-chart": 520,
+            "road-user-trend-chart": 500, "state-chart": 720,
+            "first-nations-chart": 540, "road-user-series-chart": 600,
+            "state-trend-chart": 600
+        };
+        const minimum = minimums[element.id] || 280;
+        element.style.setProperty("--chart-min-width", `${minimum}px`);
+        return Math.max(minimum, element.clientWidth);
     }
     export function addAxes(svg, x, y, width, height, margin, yLabel) {
         svg.append("g")
@@ -350,13 +359,11 @@ export const annotationLabels = {
         return `url(#${id})`;
     }
     export function clearChart(container) {
-        [...container.children].forEach((node) => {
-            node.classList.add("chart-exit"); node.style.position = "absolute"; node.style.inset = "0"; node.style.pointerEvents = "none";
-            d3.select(node).interrupt().transition("chart-exit").duration(reducedMotion.matches ? 0 : 180).style("opacity", 0).remove();
-        });
+        d3.select(container).selectAll("*").interrupt();
+        container.replaceChildren();
     }
     export function animateMarks(selection, targetOpacity = 1) {
-        selection.attr("opacity", 0).transition("mark-enter").duration(reducedMotion.matches ? 0 : 750).attr("opacity", targetOpacity);
+        selection.attr("opacity", 0).transition("mark-enter").duration(reducedMotion.matches ? 0 : 300).attr("opacity", targetOpacity);
     }
     export function attachSeriesHover(selection) {
         const emphasize = function () {
