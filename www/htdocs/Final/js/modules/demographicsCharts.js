@@ -1,4 +1,4 @@
-import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachTooltip, revealChart, clearChart, reducedMotion, animateMarks, addColorPattern } from "./state.js";
+import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachTooltip, revealChart, clearChart, reducedMotion, animateMarks, addColorPattern, attachSeriesHover, attachBarValueHover } from "./state.js";
 
     export function demographicRows() {
         return data.demographic.filter((row) => row.user === filters.user &&
@@ -45,7 +45,14 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
         const width = chartWidth(container), height = Math.max(310, ages.length * 36 + 90);
         const margin = { top: 28, right: 26, bottom: 48, left: 60 };
         const maximum = d3.max(drawable, (row) => row.value) || 1;
-        const x = d3.scaleLinear().domain([-maximum * 1.08, maximum * 1.08]).range([margin.left, width - margin.right]);
+        const selectedYearMaximum = filters.demographicYear
+            ? d3.max(aggregateDemographic(
+                data.demographic.filter((row) => row.user === filters.user),
+                (row) => `${row.year}\u0000${row.age}\u0000${row.sex}`
+            ), (row) => row.value) || maximum
+            : maximum;
+        const scaleMaximum = Math.max(maximum, selectedYearMaximum, 1);
+        const x = d3.scaleLinear().domain([-scaleMaximum * 1.8, scaleMaximum * 1.8]).range([margin.left, width - margin.right]);
         const y = d3.scaleBand().domain(ages).range([margin.top, height - margin.bottom]).padding(0.08);
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
             .attr("aria-label", `Population pyramid for ${filters.user}, ${yearLabel}: Male left, Female right`);
@@ -61,19 +68,24 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
         svg.append("text").attr("x", margin.left + (x(0) - margin.left) / 2).attr("y", height - 10).attr("text-anchor", "middle").text("Male cases (left)");
         svg.append("text").attr("x", x(0) + (width - margin.right - x(0)) / 2).attr("y", height - 10).attr("text-anchor", "middle").text("Female cases (right)");
         const label = (row) => `${row.age}, ${row.sex}: ${numberFormat.format(row.value)} recorded hospitalisations, ${yearLabel}, ${filters.user}`;
+        const markKey = (row) => `${row.age}:${row.sex.toLowerCase()}`;
         const bars = svg.selectAll(".pyramid-bar").data(drawable).join("rect").attr("class", "bar focusable-mark pyramid-bar")
+            .attr("data-mark", markKey)
             .attr("tabindex", 0).attr("role", "img").attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
-            .attr("x", x(0))
+            .attr("x", (row) => row.sex.toLowerCase() === "male" ? x(-row.value) : x(0))
             .attr("y", (row) => y(row.age))
-            .attr("width", 0).attr("height", y.bandwidth())
+            .attr("width", (row) => Math.abs(x(row.value) - x(0))).attr("height", y.bandwidth())
             .attr("fill", (row) => row.sex.toLowerCase() === "male" ? maleFill : femaleFill)
             .attr("stroke", (row) => row.sex.toLowerCase() === "male" ? "var(--series-blue)" : "var(--series-orange)").attr("stroke-width", 1.5);
         centerAxis.raise();
-        attachTooltip(bars, label);
-        bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 750)
-            .attr("x", (row) => row.sex.toLowerCase() === "male" ? x(-row.value) : x(0))
-            .attr("width", (row) => Math.abs(x(row.value) - x(0)));
+        attachTooltip(bars, label); attachBarValueHover(bars);
         animateMarks(bars);
+        svg.selectAll(".bar-value").data(drawable, markKey).join("text")
+            .attr("class", "bar-value").attr("data-mark", markKey)
+            .attr("x", (row) => row.sex.toLowerCase() === "male" ? x(-row.value) - 5 : x(row.value) + 5)
+            .attr("y", (row) => y(row.age) + y.bandwidth() / 2 + 4)
+            .attr("text-anchor", (row) => row.sex.toLowerCase() === "male" ? "end" : "start")
+            .text((row) => numberFormat.format(row.value));
         const legend = svg.append("g").attr("class", "pyramid-legend").attr("transform", `translate(${margin.left},6)`);
         [["Male (diagonal)", "var(--series-blue)"], ["Female (crosshatch)", "var(--series-orange)"]].forEach((entry, index) => {
             const group = legend.append("g").attr("transform", `translate(${index * 110},0)`);
@@ -168,12 +180,13 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
         const colors = { Male: "var(--series-blue)", Female: "var(--series-orange)" };
         const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.age)).y((row) => y(row.value));
         series.forEach((item) => {
-            const trajectory = svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", colors[item.sex])
+            const trajectory = svg.append("path").datum(item.values).attr("class", "series-line").attr("data-series", item.sex).attr("stroke", colors[item.sex])
                 .attr("stroke-dasharray", item.sex === "Female" ? "7 4" : "")
                 .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.age)).y(() => y(0)));
+            attachSeriesHover(trajectory);
             trajectory.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
             const marks = svg.append("g").selectAll(`.age-sex-${item.sex}`).data(item.values.filter((row) => row.value !== null)).join("path")
-                .attr("class", `series-point focusable-mark age-sex-${item.sex}`).attr("tabindex", 0).attr("role", "img")
+                .attr("class", `series-point focusable-mark age-sex-${item.sex}`).attr("data-series", item.sex).attr("tabindex", 0).attr("role", "img")
                 .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
                 .attr("aria-label", (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} recorded hospitalisations`)
                 .attr("transform", (row) => `translate(${x(row.age)},${y(row.value)})`)
@@ -192,8 +205,8 @@ import { d3, data, filters, numberFormat, setEmptyState, chartWidth, attachToolt
                 trajectoryLabels.push({ row, x: x(age), y: y(row.value) + offset - (index % 2 ? 10 : 0) });
             });
         });
-        const labels = svg.selectAll(".trajectory-label").data(trajectoryLabels).join("text")
-            .attr("class", "trajectory-label").attr("x", (item) => item.x).attr("y", (item) => item.y)
+            const labels = svg.selectAll(".trajectory-label").data(trajectoryLabels).join("text")
+            .attr("class", "trajectory-label").attr("data-series", (item) => item.row.sex).attr("x", (item) => item.x).attr("y", (item) => item.y)
             .attr("text-anchor", "middle").text((item) => numberFormat.format(item.row.value));
         const occupied = [];
         labels.each(function () {

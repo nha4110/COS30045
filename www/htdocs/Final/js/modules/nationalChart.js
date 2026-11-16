@@ -1,4 +1,4 @@
-import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annotationLabels, attachTooltip, revealChart, clearChart, reducedMotion, animateMarks } from "./state.js";
+import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annotationLabels, attachTooltip, revealChart, clearChart, reducedMotion, animateMarks, attachBarValueHover } from "./state.js";
 
     export function renderNationalTrend() {
         const container = document.getElementById("national-chart");
@@ -14,8 +14,8 @@ import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annot
         }
         setEmptyState(empty, "", false);
 
-        const width = chartWidth(container), height = 330;
-        const margin = { top: 58, right: 20, bottom: 44, left: 72 };
+        const width = chartWidth(container), height = 350;
+        const margin = { top: 88, right: 20, bottom: 44, left: 72 };
         const minYear = d3.min(allYearly, (row) => row.year), maxYear = d3.max(allYearly, (row) => row.year);
         const rankedYears = yearly.filter((row) => !row.suppressedCount);
         const topYears = new Set([...rankedYears].sort((a, b) => b.value - a.value).slice(0, 5).map((row) => row.year));
@@ -47,9 +47,9 @@ import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annot
                 .attr("role", "img").attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
                 .attr("aria-label", `${year}: ${note}`);
             group.append("line").attr("class", "annotation-line").attr("x1", center).attr("x2", center)
-                .attr("y1", margin.top + 23).attr("y2", height - margin.bottom);
+                .attr("y1", margin.top).attr("y2", height - margin.bottom);
             group.append("text").attr("class", "annotation-label").attr("x", center)
-                .attr("y", margin.top + (index ? 16 : 6)).attr("text-anchor", "middle")
+                .attr("y", index ? 44 : 24).attr("text-anchor", "middle")
                 .text(index ? "NEW SOUTH WALES: JUN 2017" : "VICTORIA: 2012");
             attachTooltip(group, () => `${year}: ${note}. Interpret the series break with care.`);
         });
@@ -58,14 +58,18 @@ import { d3, data, summarizeRows, setEmptyState, chartWidth, numberFormat, annot
             (row.suppressedCount ? `; known subtotal, ${row.suppressedCount} suppressed or missing values excluded` : "");
         const bars = svg.selectAll(".national-bar").data(yearly).join("rect")
             .attr("class", "bar focusable-mark national-bar").attr("tabindex", 0).attr("role", "img")
+            .attr("data-mark", (row) => row.year)
             .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
             .attr("x", (row) => x(row.year)).attr("y", y(0))
             .attr("width", x.bandwidth()).attr("height", 0).attr("rx", 3)
             .attr("fill", (row) => topYears.has(row.year) ? "url(#national-top-five-pattern)" : "var(--chart-primary)")
             .attr("stroke", (row) => topYears.has(row.year) ? "var(--series-orange)" : "var(--surface)").attr("stroke-width", 1.5);
-        attachTooltip(bars, label);
+        attachTooltip(bars, label); attachBarValueHover(bars);
         bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 750)
             .attr("y", (row) => y(row.value)).attr("height", (row) => y(0) - y(row.value));
         animateMarks(bars);
+        svg.selectAll(".bar-value").data(yearly).join("text").attr("class", "bar-value").attr("data-mark", (row) => row.year)
+            .attr("x", (row) => x(row.year) + x.bandwidth() / 2).attr("y", (row) => y(row.value) - 5)
+            .attr("text-anchor", "middle").text((row) => numberFormat.format(row.value));
         revealChart(svg);
     }

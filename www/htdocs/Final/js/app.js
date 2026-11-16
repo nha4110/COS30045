@@ -2,15 +2,15 @@ import { FILES, data, loadDataset, setStatus, updateFilters, initializeTheme, bi
 import { renderNationalTrend } from "./modules/nationalChart.js";
 import { renderDemographics } from "./modules/demographicsCharts.js";
 import { updateSummary, renderRoadUserBars, renderRoadUserTrends } from "./modules/roadUserCharts.js";
-import { renderStateHeatmap, renderRoadUserSeries, renderStateTrend, renderFirstNationsTrend } from "./modules/supplementaryCharts.js";
+import { renderRoadUserSeries, renderStateTrend, renderFirstNationsTrend } from "./modules/supplementaryCharts.js";
 
 function renderAll() {
     hideTooltip(); updateSummary(); renderNationalTrend(); renderDemographics(); renderRoadUserBars(); renderRoadUserTrends();
-    renderStateHeatmap(); renderFirstNationsTrend(); renderRoadUserSeries(); renderStateTrend();
+    renderFirstNationsTrend(); renderRoadUserSeries(); renderStateTrend();
 }
-function renderComparisonYear() { hideTooltip(); updateSummary(); renderRoadUserBars(); renderStateHeatmap(); }
+function renderComparisonYear() { hideTooltip(); updateSummary(); renderRoadUserBars(); }
 function renderRoadUser() { hideTooltip(); updateSummary(); renderDemographics(); renderRoadUserBars(); renderRoadUserTrends(); renderFirstNationsTrend(); renderStateTrend(); }
-function renderJurisdiction() { hideTooltip(); renderStateHeatmap(); renderStateTrend(); }
+function renderJurisdiction() { hideTooltip(); renderStateTrend(); }
 function renderDemographicYear() { hideTooltip(); renderDemographics(); }
 
 async function start() {

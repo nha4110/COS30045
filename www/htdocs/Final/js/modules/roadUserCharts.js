@@ -1,4 +1,4 @@
-import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWidth, addAxes, attachTooltip, revealChart, clearChart, addColorPattern, SERIES_COLORS, numberFormat, reducedMotion, animateMarks } from "./state.js";
+import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWidth, addAxes, attachTooltip, revealChart, clearChart, addColorPattern, SERIES_COLORS, numberFormat, reducedMotion, animateMarks, attachSeriesHover, attachBarValueHover } from "./state.js";
 
     export function signed(value) {
         return `${value > 0 ? "+" : value < 0 ? "-" : ""}${numberFormat.format(Math.abs(value))}`;
@@ -70,18 +70,19 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         const label = (row) => `${row.user}: ${numberFormat.format(row.before)} in 2011; ${numberFormat.format(row.after)} in ${year}; change ${signed(row.change)} cases`;
         const bars = svg.selectAll(".change-bar").data(groups).join("rect")
             .attr("class", "bar focusable-mark change-bar").attr("tabindex", 0).attr("role", "img")
+            .attr("data-mark", (row) => row.user)
             .attr("aria-label", label).attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
             .attr("x", x(0)).attr("y", (row) => y(row.user))
             .attr("width", 0).attr("height", y.bandwidth())
             .attr("fill", (row) => changePatterns[users.indexOf(row.user) % changePatterns.length])
             .attr("stroke", "var(--surface)").attr("stroke-width", 1)
             .attr("opacity", (row) => row.user === filters.user ? 1 : 0.82).attr("rx", 2);
-        attachTooltip(bars, label);
+        attachTooltip(bars, label); attachBarValueHover(bars);
         bars.transition("bar-enter").duration(reducedMotion.matches ? 0 : 750)
             .attr("x", (row) => x(Math.min(0, row.change)))
             .attr("width", (row) => Math.max(1, Math.abs(x(row.change) - x(0))));
         animateMarks(bars);
-        svg.selectAll(".bar-value").data(groups).join("text").attr("class", "bar-value")
+        svg.selectAll(".bar-value").data(groups).join("text").attr("class", "bar-value").attr("data-mark", (row) => row.user)
             .attr("x", (row) => x(Math.max(0, row.change)) + 5)
             .attr("text-anchor", "start")
             .attr("y", (row) => y(row.user) + y.bandwidth() / 2 + 4).text((row) => signed(row.change));
@@ -117,18 +118,22 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
             .attr("y1", y(100)).attr("y2", y(100));
         const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
         series.forEach((item, index) => {
-            const trendPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", item.color)
+            const trendPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("data-series", item.name).attr("stroke", item.color)
                 .attr("stroke-dasharray", item.dash)
                 .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
+            attachSeriesHover(trendPath);
             trendPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
             const label = (row) => `${row.year}  |  ${item.name}: index ${row.value.toFixed(1)}; ${numberFormat.format(row.count)} cases`;
             const marks = svg.append("g").selectAll("path").data(item.values.filter((row) => row.value !== null)).join("path")
-                .attr("class", "series-point focusable-mark").attr("tabindex", 0).attr("role", "img")
+                .attr("class", "series-point focusable-mark").attr("data-series", item.name).attr("tabindex", 0).attr("role", "img")
                 .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight").attr("aria-label", label)
                 .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
                 .attr("d", d3.symbol().type(index ? d3.symbolSquare : d3.symbolCircle).size(45)()).attr("fill", item.color);
             attachTooltip(marks, label);
             animateMarks(marks);
+            svg.append("g").attr("class", "point-values").selectAll("text").data(item.values.filter((row) => row.value !== null)).join("text")
+                .attr("class", "point-value").attr("data-series", item.name).attr("x", (row) => x(row.year)).attr("y", (row) => y(row.value) - (index ? 9 : 4))
+                .attr("text-anchor", "middle").text((row) => row.value.toFixed(0));
             const entry = document.createElement("span"); entry.className = "trend-legend-item";
             const swatch = document.createElement("span"); swatch.className = "trend-legend-line";
             swatch.style.borderTopColor = item.color; swatch.style.borderTopStyle = index ? "dashed" : "solid";

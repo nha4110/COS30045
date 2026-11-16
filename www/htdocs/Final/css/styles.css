@@ -672,6 +672,16 @@ h2:focus-visible {
     font-size: var(--font-size-svg-small);
     font-weight: 700;
 }
+.chart-wrap .point-value {
+    fill: var(--chart-label);
+    font-size: 8px;
+    font-weight: 700;
+    paint-order: stroke;
+    stroke: var(--card-nested-background);
+    stroke-width: 2.5px;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
 
 .chart-wrap .focusable-mark {
     cursor: help;
@@ -686,23 +696,6 @@ h2:focus-visible {
 
 .chart-wrap .focusable-mark:not(.bar):hover {
     filter: drop-shadow(0 0 2px var(--chart-primary));
-}
-
-.chart-wrap .heatmap-cell {
-    stroke: var(--surface);
-    stroke-width: 1.5px;
-    cursor: help;
-}
-
-.chart-wrap .heatmap-cell:focus-visible {
-    outline: none;
-    stroke: var(--focus-ring);
-    stroke-width: 3px;
-}
-
-.chart-wrap .heatmap-column-label {
-    fill: var(--chart-text);
-    font-size: var(--font-size-svg-small);
 }
 
 .demographic-year-control { min-width: 220px; }
@@ -725,36 +718,6 @@ h2:focus-visible {
 .trajectory-legend text { fill: var(--chart-text); font-size: var(--font-size-svg-small); }
 .national-key { display: inline-flex; align-items: center; gap: 7px; margin: 4px 0 0 54px; color: var(--navy-soft); font-size: var(--font-size-tiny); }
 .national-key-swatch { width: 18px; height: 12px; border: 1px solid var(--series-orange); background: repeating-linear-gradient(135deg, var(--series-orange) 0 4px, var(--pattern-contrast) 4px 5px); }
-
-.heatmap-legend {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    margin-top: var(--space-3);
-    color: var(--muted);
-    font-size: var(--font-size-tiny);
-}
-
-.heatmap-gradient {
-    width: 88px;
-    height: 11px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    background: linear-gradient(90deg, var(--heat-low), var(--heat-high));
-}
-
-.heatmap-missing-key {
-    width: 14px;
-    height: 14px;
-    border: 1px solid var(--chart-pattern-mark);
-    border-radius: 2px;
-    background: repeating-linear-gradient(
-        135deg,
-        var(--chart-pattern-background) 0 3px,
-        var(--chart-pattern-mark) 3px 4px
-    );
-}
 
 .chart-wrap svg .series-line,
 .chart-wrap svg .series-point,
@@ -944,8 +907,6 @@ h2:focus-visible {
 .supplementary-panel > .chart-card { box-shadow: none; border: 0; padding: 12px 0 0; }
 .supplementary-panel > .chart-data-note { margin: 0 0 12px; }
 .supplementary-controls { max-width: 280px; margin-top: 14px; }
-.heatmap-wrap { overflow-x: auto; }
-.heatmap-wrap svg { min-width: 460px; }
 .notes-content a { color: var(--teal); }
 .summary-label { overflow-wrap: anywhere; }
 

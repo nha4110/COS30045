@@ -361,15 +361,16 @@ export const annotationLabels = {
     export function attachSeriesHover(selection) {
         const emphasize = function () {
             const active = this;
-            d3.select(this.ownerSVGElement).selectAll(".series-line")
+            const series = active.getAttribute("data-series");
+            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-point, .point-value, .trajectory-label")
                 .interrupt("series-focus")
                 .transition("series-focus")
                 .duration(reducedMotion.matches ? 0 : 180)
-                .style("opacity", function () { return this === active ? 1 : 0.18; })
-                .style("pointer-events", function () { return this === active ? "stroke" : "none"; });
+                .style("opacity", function () { return this.getAttribute("data-series") === series ? 1 : 0; })
+                .style("pointer-events", function () { return this.classList.contains("series-line") && this.getAttribute("data-series") === series ? "stroke" : "none"; });
         };
         const restore = function () {
-            d3.select(this.ownerSVGElement).selectAll(".series-line")
+            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-point, .point-value, .trajectory-label")
                 .interrupt("series-focus")
                 .transition("series-focus")
                 .duration(reducedMotion.matches ? 0 : 220)
@@ -377,6 +378,25 @@ export const annotationLabels = {
                 .style("pointer-events", null);
         };
         selection.attr("tabindex", 0).attr("role", "img").on("pointerenter focus", emphasize).on("pointerleave blur", restore);
+        return selection;
+    }
+    export function attachBarValueHover(selection) {
+        const dimOtherValues = function () {
+            const active = this.getAttribute("data-mark");
+            d3.select(this.ownerSVGElement).selectAll(".bar-value")
+                .interrupt("bar-value-focus")
+                .transition("bar-value-focus")
+                .duration(reducedMotion.matches ? 0 : 120)
+                .style("opacity", function () { return this.getAttribute("data-mark") === active ? 1 : 0; });
+        };
+        const restoreValues = function () {
+            d3.select(this.ownerSVGElement).selectAll(".bar-value")
+                .interrupt("bar-value-focus")
+                .transition("bar-value-focus")
+                .duration(reducedMotion.matches ? 0 : 160)
+                .style("opacity", 1);
+        };
+        selection.on("pointerenter focus", dimOtherValues).on("pointerleave blur", restoreValues);
         return selection;
     }
     export function bindFilterListeners(handlers) {
