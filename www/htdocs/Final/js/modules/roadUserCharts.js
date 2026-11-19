@@ -11,45 +11,60 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         return rows.length && rows.every((row) => row.value !== null)
             ? d3.sum(rows, (row) => row.value) : null;
     }
+    export function nationalTotal(user = "") {
+        const rows = data.national.filter((row) => !user || row.user === user);
+        return rows.length && rows.every((row) => row.value !== null) ? d3.sum(rows, (row) => row.value) : null;
+    }
     export function shortUser(user) {
         return user === "Pick-up truck or van occupant" ? "Pick-up / van occupant" : user;
     }
     export function updateSummary() {
         const year = selectedYear();
-        const national = nationalCount(year);
+        const allYears = filters.year === "all";
+        const national = allYears ? nationalTotal() : nationalCount(year);
         const baseline = nationalCount(2011);
-        const start = nationalCount(2011, filters.user);
-        const end = nationalCount(year, filters.user);
-        const change = start !== null && end !== null ? end - start : null;
-        const net = national !== null && baseline !== null ? national - baseline : null;
+        const start = allYears ? null : nationalCount(2011, filters.user);
+        const end = allYears ? nationalTotal(filters.user) : nationalCount(year, filters.user);
+        const change = allYears ? end : start !== null && end !== null ? end - start : null;
+        const net = allYears ? nationalTotal() : national !== null && baseline !== null ? national - baseline : null;
         document.getElementById("kpi-national").textContent = national === null ? "-" : numberFormat.format(national);
-        document.getElementById("kpi-total-label").textContent = `NATIONAL INJURIES  |  ${year || "UNAVAILABLE"}`;
+        document.getElementById("kpi-total-label").textContent = `NATIONAL INJURIES | ${allYears ? "2011-2021 TOTAL" : year || "UNAVAILABLE"}`;
         document.getElementById("kpi-national-note").textContent = "All road users  |  all recorded sex categories";
-        document.getElementById("kpi-change-label").textContent = `${filters.user.toUpperCase()}  |  CHANGE SINCE 2011`;
-        document.getElementById("kpi-latest-year").textContent = change === null || !start ? "-" : percent(change / start * 100);
-        document.getElementById("kpi-change-note").textContent = change === null ? "Endpoint data unavailable" : `${signed(change)} cases  |  2011 to ${year}`;
+        document.getElementById("kpi-change-label").textContent = allYears
+            ? `${filters.user.toUpperCase()} TOTAL | 2011-2021`
+            : `${filters.user.toUpperCase()} | CHANGE SINCE 2011`;
+        document.getElementById("kpi-latest-year").textContent = allYears ? (change === null ? "-" : numberFormat.format(change)) : change === null || !start ? "-" : percent(change / start * 100);
+        document.getElementById("kpi-change-note").textContent = change === null ? "Data unavailable" : allYears ? `${filters.user} cases across 2011-2021` : `${signed(change)} cases | 2011 to ${year}`;
+        document.getElementById("kpi-share-label").textContent = allYears ? "SHARE OF NATIONAL TOTAL" : "SHARE OF NATIONAL NET CHANGE";
         document.getElementById("kpi-current-view").textContent = change === null || !net ? "-" : `${(change / net * 100).toFixed(1)}%`;
         document.getElementById("kpi-current-note").textContent = !net
-            ? "No national net change to divide by"
-            : `${filters.user} change divided by national net change; not a share of all cases`;
+            ? "No national total available for comparison"
+            : allYears
+                ? `${filters.user} total divided by the national total for 2011-2021`
+                : `${filters.user} change divided by national net change; not a share of all cases`;
     }
     export function renderRoadUserBars() {
         const container = document.getElementById("road-user-chart");
         clearChart(container);
         const year = selectedYear();
+        const allYears = filters.year === "all";
         const users = [...new Set(data.national.map((row) => row.user))];
         const groups = users.map((user) => {
-            const before = nationalCount(2011, user), after = nationalCount(year, user);
-            return { user, before, after, change: before !== null && after !== null ? after - before : null };
+            const before = nationalCount(2011, user), after = allYears ? nationalTotal(user) : nationalCount(year, user);
+            return { user, before, after, change: allYears ? after : before !== null && after !== null ? after - before : null };
         }).filter((row) => row.change !== null).sort((a, b) => b.change - a.change);
-        document.getElementById("road-user-chart-unit").textContent = `National  |  2011  to  ${year}`;
-        document.getElementById("road-user-data-note").textContent = "Car and heavy-transport positions are grouped consistently across files. Bar length shows an absolute change in cases, not percentage growth.";
+        document.getElementById("road-user-chart-unit").textContent = allYears ? "National | 2011-2021 total" : `National | 2011 to ${year}`;
+        document.getElementById("road-user-data-note").textContent = allYears
+            ? "Car and heavy-transport positions are grouped consistently. Bars show cumulative 2011-2021 hospitalisations."
+            : "Car and heavy-transport positions are grouped consistently across files. Bar length shows an absolute change in cases, not percentage growth.";
         setEmptyState(document.getElementById("road-user-empty"), "No complete endpoint records available.", !groups.length);
         if (!groups.length) return;
         const width = chartWidth(container), height = 340;
         const margin = { top: 12, right: 62, bottom: 42, left: Math.min(160, width * 0.38) };
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img").attr("aria-label", `Change in hospitalisations from 2011 to ${year}, by road-user group`);
+            .attr("role", "img").attr("aria-label", allYears
+                ? "Cumulative hospitalisations from 2011 to 2021 by road-user group"
+                : `Change in hospitalisations from 2011 to ${year}, by road-user group`);
         const changePatterns = users.map((user, index) => addColorPattern(
             svg,
             `change-bar-pattern-${index}`,
@@ -67,7 +82,9 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
             .call(d3.axisLeft(y).tickSize(0).tickFormat(shortUser)).call((axis) => axis.select(".domain").remove());
         svg.append("line").attr("class", "zero-line").attr("x1", x(0)).attr("x2", x(0))
             .attr("y1", margin.top).attr("y2", height - margin.bottom);
-        const label = (row) => `${row.user}: ${numberFormat.format(row.before)} in 2011; ${numberFormat.format(row.after)} in ${year}; change ${signed(row.change)} cases`;
+        const label = (row) => allYears
+            ? `${row.user}: ${numberFormat.format(row.change)} hospitalisations across 2011-2021`
+            : `${row.user}: ${numberFormat.format(row.before)} in 2011; ${numberFormat.format(row.after)} in ${year}; change ${signed(row.change)} cases`;
         const bars = svg.selectAll(".change-bar").data(groups).join("rect")
             .attr("class", "bar focusable-mark change-bar").attr("tabindex", 0).attr("role", "img")
             .attr("data-mark", (row) => row.user)
@@ -85,9 +102,10 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         svg.selectAll(".bar-value").data(groups).join("text").attr("class", "bar-value").attr("data-mark", (row) => row.user)
             .attr("x", (row) => x(Math.max(0, row.change)) + 5)
             .attr("text-anchor", "start")
-            .attr("y", (row) => y(row.user) + y.bandwidth() / 2 + 4).text((row) => signed(row.change));
+            .attr("y", (row) => y(row.user) + y.bandwidth() / 2 + 4)
+            .text((row) => allYears ? numberFormat.format(row.change) : signed(row.change));
         svg.append("text").attr("x", (margin.left + width - margin.right) / 2).attr("y", height - 5)
-            .attr("text-anchor", "middle").text("Change in recorded hospitalisations");
+            .attr("text-anchor", "middle").text(allYears ? "Hospitalisations, 2011-2021 total" : "Change in recorded hospitalisations");
         revealChart(svg);
     }
     export function renderRoadUserTrends() {
@@ -96,14 +114,14 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         clearChart(container); legend.replaceChildren();
         const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
         const series = [{ name: filters.user, user: filters.user, color: "var(--chart-primary)", dash: "" },
-            { name: "All road users", user: "", color: "var(--chart-secondary)", dash: "6 4" }].map((item) => {
+            { name: "National", user: "", color: "var(--chart-secondary)", dash: "6 4" }].map((item) => {
             const baseline = nationalCount(2011, item.user);
             return { ...item, values: years.map((year) => {
                 const count = nationalCount(year, item.user);
                 return { year, count, value: baseline > 0 && count !== null ? count / baseline * 100 : null };
             }) };
         });
-        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs national  |  2011 = 100`;
+        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs National | 2011 = 100`;
         const values = series.flatMap((item) => item.values).filter((row) => row.value !== null);
         setEmptyState(document.getElementById("road-user-trend-empty"), "A positive 2011 baseline is required to calculate the index.", !values.length);
         if (!values.length) return;
@@ -116,11 +134,11 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         addAxes(svg, x, y, width, height, margin, "Recorded count index  |  2011 = 100");
         svg.append("line").attr("class", "baseline-guide").attr("x1", margin.left).attr("x2", width - margin.right)
             .attr("y1", y(100)).attr("y2", y(100));
-        const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
+        const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value)).curve(d3.curveMonotoneX);
         series.forEach((item, index) => {
             const trendPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("data-series", item.name).attr("stroke", item.color)
                 .attr("stroke-dasharray", item.dash)
-                .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
+                .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)).curve(d3.curveMonotoneX));
             attachSeriesHover(trendPath);
             trendPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
             const label = (row) => `${row.year}  |  ${item.name}: index ${row.value.toFixed(1)}; ${numberFormat.format(row.count)} cases`;

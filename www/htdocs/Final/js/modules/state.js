@@ -17,7 +17,7 @@ export const SERIES_SYMBOLS = [d3.symbolCircle, d3.symbolSquare, d3.symbolDiamon
         d3.symbolCross, d3.symbolStar, d3.symbolWye, d3.symbolPlus];
 export const SUPPRESSED_VALUES = new Set([
         "", "na", "n/a", "nan", "null", "suppressed", "s", "np",
-        "n.p.", "not available", "-", "—", "–", "..", "..."
+        "n.p.", "not available", "-", "\u2014", "\u2013", "..", "..."
     ]);
 export const data = { national: [], state: [], firstNations: [], demographic: [] };
 export const filters = { year: "", state: "", user: "Pedal cyclist", demographicYear: "" };
@@ -140,7 +140,7 @@ export const annotationLabels = {
         return parseRows(await d3.csv(path), kind);
     }
     export function selectedYear() {
-        if (filters.year) return Number(filters.year);
+        if (filters.year && filters.year !== "all") return Number(filters.year);
         return data.national.reduce((latest, row) => Math.max(latest, row.year), 0);
     }
     export function setStatus(messages) {
@@ -167,7 +167,10 @@ export const annotationLabels = {
         const users = [...new Set([...data.national, ...data.state, ...data.firstNations].map((row) => row.user).filter(Boolean))]
             .sort((a, b) => a.localeCompare(b));
 
-        updateSelect(document.getElementById("year-filter"), years, "Latest available year", filters.year);
+        const yearSelect = document.getElementById("year-filter");
+        updateSelect(yearSelect, years, "Latest available year", filters.year === "all" ? "" : filters.year);
+        yearSelect.add(new Option("All Years Total (2011\u20132021)", "all"), 1);
+        if (filters.year === "all") yearSelect.value = "all";
         updateSelect(document.getElementById("state-filter"), states, "All jurisdictions", filters.state, fullStateName);
         updateSelect(document.getElementById("user-filter"), users, "Choose a road-user group", filters.user);
         const demographicYears = [...new Set(data.demographic.map((row) => row.year))].sort((a, b) => a - b).map(String);
@@ -315,7 +318,8 @@ export const annotationLabels = {
             .on("blur", hideTooltip);
     }
     export function chartWidth(element) {
-        return Math.max(280, element.clientWidth);
+        const measured = element.getBoundingClientRect().width || element.parentElement?.getBoundingClientRect().width || element.clientWidth;
+        return Math.max(320, Math.floor(measured || 0));
     }
     export function addAxes(svg, x, y, width, height, margin, yLabel) {
         svg.append("g")

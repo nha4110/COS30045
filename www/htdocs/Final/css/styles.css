@@ -131,7 +131,7 @@
     --chart-axis: #587184;
     --chart-grid: #334e62;
     --chart-primary: #42c49a;
-    --chart-secondary: #e69f00;
+    --chart-secondary: #f0d45a;
     --pattern-contrast: #102333;
     --series-blue: #f07859;
     --series-orange: #e69f00;
@@ -470,12 +470,14 @@ h2:focus-visible {
     border-color: var(--card-accent-border);
     background: var(--card-accent-background);
 }
+.summary-card-secondary { background: #f0f4f8; border-color: #c7d5df; }
 
 :root[data-theme="dark"] .summary-card-accent {
     border-color: #4c9b96;
     background: #183f46;
     box-shadow: inset 4px 0 0 #63c6bf, var(--shadow-card);
 }
+:root[data-theme="dark"] .summary-card-secondary { background: #263d50; border-color: #526b7f; }
 
 .summary-label {
     margin-bottom: 0.3rem;
@@ -707,6 +709,21 @@ h2:focus-visible {
 .change-sequence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .change-sequence-grid .comparison-item { min-width: 0; }
 .chart-wrap { position: relative; }
+.story-callout { margin-top: 18px; padding: 16px 20px; border-left: 4px solid var(--series-orange); border-radius: 6px; color: var(--ink); background: var(--card-accent-background); }
+.story-callout ul { margin: 8px 0; padding-left: 22px; }
+.story-callout p:last-child { margin-bottom: 0; }
+.demographic-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 14px; }
+.demographic-option h3 { margin: 0; color: var(--navy); font-size: var(--font-size-subheading); }
+.demographic-option h4, .interactive-demographic-grid h4, .demographic-panel h4 { margin: 10px 0 4px; color: var(--navy); font-size: var(--font-size-small); }
+.demographic-stack { display: block; }
+.demographic-panel { padding: 10px 0; }
+.interactive-demographic-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.interactive-demographic-grid > section { min-width: 0; padding: 10px; border: 1px solid var(--card-nested-border); border-radius: 6px; background: var(--card-nested-background); }
+.interactive-demographic-grid .chart-wrap { min-height: 180px; }
+.ratio-label { margin: 5px 0; text-align: center; color: var(--navy) !important; font-weight: 750; }
+.policy-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 18px; }
+.policy-grid .notes-panel { padding: 18px 20px; }
+.policy-grid h2 { margin: 0 0 8px; }
 .chart-wrap > .chart-exit { z-index: 2; pointer-events: none; }
 .sex-count { fill: var(--navy); font-size: 1.15rem !important; font-weight: 800; }
 .sex-percent { fill: var(--muted) !important; font-size: var(--font-size-svg-small) !important; }
@@ -968,6 +985,8 @@ h2:focus-visible {
         grid-template-columns: 1fr;
     }
 
+    .demographic-options, .interactive-demographic-grid, .policy-grid { grid-template-columns: 1fr; }
+
     .change-sequence-grid { grid-template-columns: 1fr; }
 
     .chart-card-wide {
@@ -1062,4 +1081,575 @@ h2:focus-visible {
 
 .current-key {
     opacity: 1;
+}
+/* Editorial story layout */
+.header-inner,
+.page-shell {
+    width: min(1080px, calc(100% - 48px));
+}
+
+.page-shell {
+    padding: 4rem 0 4.5rem;
+}
+
+.header-inner {
+    min-height: 62px;
+}
+
+.header-nav {
+    gap: 1rem;
+}
+
+#filters {
+    position: relative;
+    z-index: auto;
+    top: auto;
+    margin: 1.5rem 0 1.25rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 6px 18px rgb(16 42 67 / 8%);
+}
+
+#filters .filter-heading {
+    align-items: center;
+    margin: 0;
+}
+
+#filters .filter-heading .eyebrow,
+#filters .filter-heading h2,
+#filters .filter-note {
+    display: none;
+}
+
+#filters .filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#filters .filter-control {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    font-size: 0.76rem;
+}
+
+#filters .filter-control select {
+    min-height: 36px;
+    padding: 0.35rem 1.8rem 0.35rem 0.55rem;
+}
+
+#filters .text-button {
+    white-space: nowrap;
+    font-size: 0.76rem;
+}
+
+.summary-grid {
+    margin: 1rem 0 0;
+    gap: 1rem;
+}
+
+.summary-card {
+    min-height: 100px;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.story-sections {
+    display: block;
+}
+
+.story-chapter {
+    margin: 2.35rem 0;
+    padding: 0 0 1.6rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.chapter-heading {
+    max-width: 780px;
+    margin: 0 auto 1.15rem;
+    text-align: center;
+}
+
+.chapter-heading h2 {
+    font-size: clamp(1.65rem, 3vw, 2.2rem);
+    letter-spacing: -0.025em;
+}
+
+.chapter-deck {
+    margin: 0.75rem auto 0;
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+.chart-wrap {
+    min-height: 230px;
+}
+
+#road-user-chart,
+#road-user-trend-chart {
+    display: block !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 360px;
+}
+
+#road-user-chart > svg,
+#road-user-trend-chart > svg {
+    display: block !important;
+    width: 100%;
+    min-height: 340px;
+}
+
+.story-chapter > .chart-wrap,
+.demographic-panel > .chart-wrap {
+    margin: 1.25rem 0;
+}
+
+.story-chapter .chart-description,
+.story-chapter .chart-data-note {
+    max-width: 820px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.story-callout,
+.chapter-aside {
+    max-width: 800px;
+    margin: 1.5rem auto 0;
+    padding: 1.25rem 1.5rem;
+    border: 0;
+    border-left: 3px solid var(--series-orange);
+    border-radius: 0;
+    background: var(--card-nested-background);
+    line-height: 1.7;
+}
+
+.chapter-aside h3 {
+    margin: 0 0 0.5rem;
+    color: var(--navy);
+}
+
+.chapter-aside p,
+.story-callout p:last-child {
+    margin-bottom: 0;
+}
+
+.demographic-comparison {
+    margin-top: 2.5rem;
+}
+
+.demographic-year-control {
+    max-width: 320px;
+    margin: 0 auto 2rem;
+}
+
+.demographic-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+:root {
+    --donut-male: #d9e2e9;
+    --donut-female: #cbd6de;
+    --donut-soft-a: #e4eaf0;
+    --donut-soft-b: #cbd6de;
+}
+
+[data-theme="dark"] {
+    --donut-male: #45596b;
+    --donut-female: #657789;
+    --donut-soft-a: #465b6d;
+    --donut-soft-b: #63788a;
+}
+
+.unified-sex-layout {
+    display: block;
+    max-width: 1040px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.demographic-sex-panel,
+.demographic-step {
+    min-width: 0;
+    padding: 1rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.demographic-sex-panel h3,
+.demographic-step h3 {
+    margin: 0 0 0.5rem;
+    color: var(--navy);
+    font-size: 1.08rem;
+    text-align: center;
+}
+
+.sex-chart-slot {
+    min-height: 400px;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.sex-chart-slot svg { width: 100%; height: auto; overflow: visible; }
+.sex-chart-visual { pointer-events: none; }
+.donut-animation-layer,
+.age-donut-leader-lines,
+.age-donut-leader-labels { pointer-events: none; }
+.donut-center-label { fill: var(--chart-label); font-weight: 750; pointer-events: none; }
+.donut-sex-name { font-size: 1.05rem; }
+.donut-sex-count { font-size: 1rem; }
+.donut-sex-share { font-size: 0.9rem; }
+.age-trajectory-panel { margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+.age-trajectory-panel h3 { color: var(--navy); text-align: center; }
+#age-sex-trajectory-chart { width: 100%; max-width: none; min-height: 410px; }
+#age-sex-trajectory-chart > svg { display: block; width: 100%; height: auto; }
+.age-trajectory-value { fill: var(--chart-label); font-size: 0.72rem !important; font-weight: 700; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.age-trajectory-legend text { fill: var(--chart-label); font-size: 0.72rem; }
+
+.trend-chart-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0.5rem 0 0.2rem;
+}
+
+.trend-chart-heading > p { margin: 0; }
+.trend-chart-heading .trend-legend { margin: 0; justify-content: flex-end; }
+.trend-chart-heading .trend-legend { display: flex; grid-template-columns: none; gap: 0.9rem; }
+
+.annual-step,
+.pictogram-panel {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.annual-step .chart-wrap { min-height: 360px; }
+.annual-sex-bar { cursor: pointer; stroke: var(--surface); stroke-width: 1px; }
+.annual-value { fill: var(--chart-label); font-size: 0.64rem !important; font-weight: 700; pointer-events: none; }
+.annual-year-label { fill: var(--chart-label); font-size: 0.65rem !important; pointer-events: none; }
+.fraction-dot { transition: opacity 180ms ease; }
+.ratio-label { margin: 0.5rem 0; color: var(--navy); font-size: 1.15rem; font-weight: 750; text-align: center; }
+.pictogram-panel .chart-wrap { min-height: 110px; }
+.pictogram-panel .chart-wrap svg { width: 100%; height: auto; }
+.year-sex-legend { display: flex; justify-content: center; gap: 1rem; color: var(--muted); font-size: 0.72rem; }
+.year-sex-legend > span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.year-sex-swatch { width: 16px; height: 12px; border: 1px solid var(--chart-label); }
+.male-swatch { background: repeating-linear-gradient(135deg, var(--series-blue) 0 4px, var(--pattern-contrast) 4px 5px); }
+.female-swatch { background: repeating-linear-gradient(45deg, var(--series-orange) 0 3px, var(--pattern-contrast) 3px 4px, var(--series-orange) 4px 7px, var(--pattern-contrast) 7px 8px); }
+.fraction-count-label { fill: var(--chart-label); font-size: 0.72rem !important; font-weight: 650; }
+.pictogram-panel { text-align: center; }
+
+.context-filter-bar {
+    position: fixed;
+    z-index: 30;
+    top: 72px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: min(1080px, calc(100% - 48px));
+    min-height: 54px;
+    padding: 0.55rem 0.85rem;
+    transform: translateX(-50%);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+}
+
+.context-filter-bar[hidden] { display: none !important; }
+.context-filter-label { color: var(--teal); font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
+.context-filter-control { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; white-space: nowrap; }
+.context-filter-control select { min-height: 34px; padding: 0.3rem 1.6rem 0.3rem 0.5rem; }
+.context-filter-jump { margin-left: auto; color: var(--teal); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.context-filter-jump:hover { color: var(--navy); }
+
+.supplementary-panel {
+    padding-bottom: 3rem;
+}
+
+.supplementary-panel .comparison-item {
+    max-width: 940px;
+    margin: 1.5rem auto 0;
+    padding: 1rem 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+}
+
+.supplementary-controls {
+    max-width: 320px;
+    margin: 1rem auto;
+}
+
+.policy-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1.2rem 0 1.4rem;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+html { scroll-behavior: smooth; scroll-padding-top: 112px; }
+
+.policy-card {
+    width: 100%;
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    line-height: 1.75;
+}
+
+.policy-card h2 {
+    margin: 0 0 1rem;
+    font-size: 1.45rem;
+}
+
+.policy-card li {
+    margin: 0.5rem 0;
+}
+
+.editorial-notes {
+    margin: 2rem 0 1rem;
+}
+
+/* Step 3 brings the comparison controls and headline figures alongside its chart. */
+.relative-change-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+    align-items: start;
+    gap: 1.4rem;
+}
+
+.relative-change-main,
+.relative-change-sidebar {
+    min-width: 0;
+}
+
+.relative-change-main > .chapter-heading {
+    margin-left: 0;
+    text-align: left;
+}
+
+.relative-change-sidebar #filters {
+    display: block;
+    margin: 0;
+    padding: 0.8rem;
+    box-shadow: none;
+}
+
+.relative-change-sidebar #filters .filter-heading .eyebrow,
+.relative-change-sidebar #filters .filter-heading h2,
+.relative-change-sidebar #filters .filter-note {
+    display: block;
+}
+
+.relative-change-sidebar #filters .filter-heading h2 {
+    margin-bottom: 0;
+    font-size: 1rem;
+}
+
+.relative-change-sidebar #filters .filter-heading .eyebrow {
+    margin-bottom: 0.25rem;
+}
+
+.relative-change-sidebar #filters .filter-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+}
+
+.relative-change-sidebar #filters .filter-control {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.relative-change-sidebar #filters .filter-control select {
+    width: 100%;
+}
+
+.relative-change-sidebar #filters .filter-note {
+    margin: 0.6rem 0 0;
+    font-size: 0.72rem;
+}
+
+.relative-change-sidebar .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+}
+
+.relative-change-sidebar .summary-card {
+    min-height: 0;
+    padding: 0.7rem 0.85rem;
+}
+
+.relative-change-sidebar .summary-value {
+    margin: 0.15rem 0;
+    font-size: 1.45rem;
+}
+
+.unified-sex-donut {
+    width: min(100%, 1040px);
+    min-height: 520px;
+    margin: 0 auto;
+    overflow: visible;
+}
+
+.unified-sex-donut svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.outer-sex-leader-lines,
+.outer-sex-leader-labels,
+.age-donut-leader-lines,
+.age-donut-leader-labels,
+.donut-center-label {
+    pointer-events: none;
+}
+
+.donut-leader-line {
+    fill: none;
+    stroke: var(--chart-axis);
+    stroke-width: 1.25px;
+    vector-effect: non-scaling-stroke;
+}
+
+.donut-leader-label {
+    fill: var(--chart-label);
+    font-size: 0.84rem;
+    font-weight: 750;
+}
+
+.donut-center-label {
+    fill: var(--chart-label);
+    font-weight: 750;
+}
+
+.donut-center-title { font-size: 1rem; }
+.donut-center-count { font-size: 0.95rem; }
+.sex-slice-hit-target,
+.age-slice-hit-target,
+.donut-center-hit-target {
+    pointer-events: all;
+    cursor: pointer;
+}
+
+:root {
+    --sex-male-fill: #0072b2;
+    --sex-female-fill: #b63e1a;
+    --donut-label: #ffffff;
+    --donut-outline: #243f57;
+    --donut-age-1: #e3e9ed;
+    --donut-age-2: #d6e0e5;
+    --donut-age-3: #c9d6dc;
+    --donut-age-4: #bdcdd5;
+    --donut-age-5: #afc1ca;
+    --donut-age-6: #9eb4bf;
+    --donut-age-7: #8da6b2;
+    --donut-age-label: #243f57;
+    --age-male-line: #c23b22;
+    --age-female-line: #1769aa;
+}
+
+:root[data-theme="dark"] {
+    --sex-male-fill: #0072b2;
+    --sex-female-fill: #b63e1a;
+    --donut-label: #ffffff;
+    --donut-outline: #102333;
+    --donut-age-1: #385466;
+    --donut-age-2: #486477;
+    --donut-age-3: #587487;
+    --donut-age-4: #2d495b;
+    --donut-age-5: #657f90;
+    --donut-age-6: #78909f;
+    --donut-age-7: #263f51;
+    --donut-age-label: #ffffff;
+    --age-male-line: #42c49a;
+    --age-female-line: #f0d45a;
+}
+
+@media (max-width: 760px) {
+    .relative-change-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .relative-change-main > .chapter-heading {
+        text-align: center;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .relative-change-sidebar .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .relative-change-sidebar .summary-card:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .unified-sex-donut { min-height: 440px; }
+    .donut-leader-label { font-size: 0.68rem; }
+    .trend-chart-heading { align-items: flex-start; flex-direction: column; }
+    .trend-chart-heading .trend-legend { justify-content: flex-start; }
+    .page-shell {
+        padding-top: 2rem;
+    }
+
+    #filters .filter-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    #filters .filter-heading {
+        flex-wrap: wrap;
+    }
+
+    .story-chapter {
+        margin: 2rem 0;
+        padding-bottom: 1.4rem;
+    }
+
+    .policy-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .context-filter-bar {
+        top: 8px;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.6rem;
+    }
+
+    .context-filter-control { order: 3; width: 100%; justify-content: space-between; }
+    .context-filter-control select { width: min(60vw, 260px); }
+
+    .sex-chart-slot { min-height: 340px; }
+    .age-trajectory-value { font-size: 0.62rem !important; }
+
+    .policy-grid {
+        gap: 1rem;
+        margin: 3rem 0;
+    }
 }
