@@ -1,102 +1,7 @@
-import { d3, data, filters, rowsForUser, summarizeRows, setEmptyState, chartWidth, addAxes, addChartPatterns, attachTooltip, revealChart, clearChart, COLORS, numberFormat, SERIES_COLORS, SERIES_DASHES, SERIES_SYMBOLS, fullStateName, reducedMotion, animateMarks, attachSeriesHover } from "./state.js";
+import { d3, data, filters, rowsForUser, summarizeRows, setEmptyState, chartWidth, addAxes, addChartPatterns, attachTooltip, revealChart, clearChart, COLORS, numberFormat, SERIES_COLORS, reducedMotion, animateMarks } from "./state.js";
 
-    export function renderRoadUserSeries() {
-        const container = document.getElementById("road-user-series-chart");
-        const empty = document.getElementById("road-user-series-empty");
-        clearChart(container);
-        const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
-        const users = [...new Set(data.national.map((row) => row.user))].sort((a, b) => a.localeCompare(b));
-        const series = users.map((user) => {
-            const rows = data.national.filter((row) => row.user === user);
-            const byYear = new Map(rows.map((row) => [row.year, row]));
-            return { user, values: years.map((year) => ({ year, ...(byYear.get(year) || { value: null, suppressed: false }) })) };
-        }).filter((item) => item.values.some((row) => row.value !== null));
-        setEmptyState(empty, "No complete road-user series are available.", !series.length);
-        if (!series.length) return;
-        const width = chartWidth(container), height = 330;
-        const margin = { top: 18, right: 18, bottom: 40, left: 64 };
-        const maxYear = d3.max(years), minYear = d3.min(years);
-        const x = d3.scaleLinear().domain(minYear === maxYear ? [minYear - 1, maxYear + 1] : [minYear, maxYear]).range([margin.left, width - margin.right]);
-        const y = d3.scaleLinear().domain([0, d3.max(series, (item) => d3.max(item.values, (row) => row.value || 0)) * 1.08]).nice().range([height - margin.bottom, margin.top]);
-        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-            .attr("aria-label", `Annual national hospitalisations by road-user group, ${minYear} to ${maxYear}`);
-        addAxes(svg, x, y, width, height, margin, "Hospitalisations");
-        const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
-        const legend = document.createElement("div"); legend.className = "series-legend"; legend.setAttribute("aria-label", "Road-user series key");
-        series.forEach((item, index) => {
-            const color = SERIES_COLORS[index % SERIES_COLORS.length], dash = SERIES_DASHES[index % SERIES_DASHES.length];
-            const seriesPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("data-series", item.user).attr("stroke", color).attr("stroke-dasharray", dash)
-                .attr("aria-label", `${item.user} annual national counts`)
-                .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
-            attachSeriesHover(seriesPath);
-            const marks = svg.append("g").selectAll(".series-mark").data(item.values.filter((row) => row.value !== null)).join("path")
-                .attr("class", "series-point focusable-mark series-mark").attr("data-series", item.user).attr("tabindex", 0).attr("role", "img")
-                .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
-                .attr("aria-label", (row) => `${row.year}, ${item.user}: ${numberFormat.format(row.value)} recorded hospitalisations`)
-                .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
-                .attr("d", d3.symbol().type(SERIES_SYMBOLS[index % SERIES_SYMBOLS.length]).size(44)())
-                .attr("fill", color).attr("stroke", "var(--surface)");
-            attachTooltip(marks, (row) => `${row.year}  |  ${item.user}: ${numberFormat.format(row.value)} recorded hospitalisations`);
-            animateMarks(marks);
-            svg.append("g").attr("class", "point-values").selectAll("text").data(item.values.filter((row) => row.value !== null)).join("text")
-                .attr("class", "point-value").attr("data-series", item.user).attr("x", (row) => x(row.year)).attr("y", (row) => y(row.value) - 7)
-                .attr("text-anchor", "middle").text((row) => numberFormat.format(row.value));
-            const key = document.createElement("span"); key.className = "series-legend-item";
-            const swatch = document.createElement("span"); swatch.className = "series-legend-line"; swatch.style.borderTopColor = color;
-            swatch.style.borderTopStyle = dash ? "dashed" : "solid"; swatch.setAttribute("aria-hidden", "true");
-            const label = document.createElement("span"); label.textContent = item.user; key.append(swatch, label); legend.append(key);
-        });
-        container.append(legend);
-        revealChart(svg);
-    }
-    export function renderStateTrend() {
-        const container = document.getElementById("state-trend-chart");
-        const empty = document.getElementById("state-trend-empty");
-        clearChart(container);
-        const years = [...new Set(data.state.map((row) => row.year))].sort((a, b) => a - b);
-        const states = [...new Set(data.state.map((row) => row.state).filter(Boolean))]
-            .filter((state) => !filters.state || state === filters.state).sort((a, b) => a.localeCompare(b));
-        const series = states.map((state) => {
-            const rows = data.state.filter((row) => row.state === state && row.user === filters.user);
-            const yearly = d3.rollups(rows, (group) => {
-                if (group.some((row) => row.value === null || row.suppressed)) return null;
-                return d3.sum(group, (row) => row.value);
-            }, (row) => row.year);
-            const map = new Map(yearly);
-            return { state, values: years.map((year) => ({ year, value: map.get(year) ?? null })) };
-        }).filter((item) => item.values.some((row) => row.value !== null));
-        setEmptyState(empty, "No jurisdiction trend records match this selection.", !series.length);
-        if (!series.length) return;
-        const width = chartWidth(container), height = 300;
-        const margin = { top: 18, right: 12, bottom: 40, left: 66 };
-        const x = d3.scaleLinear().domain(d3.extent(years)).range([margin.left, width - margin.right]);
-        const y = d3.scaleLinear().domain([0, d3.max(series, (item) => d3.max(item.values, (row) => row.value || 0)) * 1.08]).nice().range([height - margin.bottom, margin.top]);
-        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-            .attr("aria-label", `${filters.user} hospitalisations by jurisdiction, ${years[0]} to ${years[years.length - 1]}`);
-        addAxes(svg, x, y, width, height, margin, "Hospitalisations");
-        const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
-        series.forEach((item, index) => {
-            const color = SERIES_COLORS[index % SERIES_COLORS.length], dash = SERIES_DASHES[index % SERIES_DASHES.length];
-            const seriesPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("data-series", item.state).attr("stroke", color).attr("stroke-dasharray", dash)
-                .attr("aria-label", `${fullStateName(item.state)} jurisdiction trend`)
-                .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
-            attachSeriesHover(seriesPath);
-            const marks = svg.append("g").selectAll(".state-trend-mark").data(item.values.filter((row) => row.value !== null)).join("path")
-                .attr("class", "series-point focusable-mark state-trend-mark").attr("data-series", item.state).attr("tabindex", 0).attr("role", "img")
-                .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
-                .attr("aria-label", (row) => `${row.year}, ${fullStateName(item.state)}, ${filters.user}: ${numberFormat.format(row.value)} injuries`)
-                .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
-                .attr("d", d3.symbol().type(SERIES_SYMBOLS[index % SERIES_SYMBOLS.length]).size(40)()).attr("fill", color);
-            attachTooltip(marks, (row) => `${row.year}  |  ${fullStateName(item.state)}  |  ${filters.user}: ${numberFormat.format(row.value)} injuries`);
-            animateMarks(marks);
-            svg.append("g").attr("class", "point-values").selectAll("text").data(item.values.filter((row) => row.value !== null)).join("text")
-                .attr("class", "point-value").attr("data-series", item.state).attr("x", (row) => x(row.year)).attr("y", (row) => y(row.value) - 7 - index % 2 * 10)
-                .attr("text-anchor", "middle").text((row) => numberFormat.format(row.value));
-        });
-        revealChart(svg);
-    }
+let compositionFocus = null;
+
     export function renderFirstNationsTrend() {
         const container = document.getElementById("first-nations-chart");
         const empty = document.getElementById("first-nations-empty");
@@ -104,7 +9,7 @@ import { d3, data, filters, rowsForUser, summarizeRows, setEmptyState, chartWidt
         const rows = rowsForUser(data.firstNations);
         document.getElementById("first-nations-title").textContent = `First Nations  |  ${filters.user}`;
         const missingCount = rows.filter((row) => row.suppressed || row.value === null).length;
-        document.getElementById("first-nations-data-note").textContent = `${filters.user}: ${missingCount} suppressed or unavailable year(s). No partial totals are connected. The jurisdiction and Step 2 year filters do not apply to this panel.`;
+        document.getElementById("first-nations-data-note").textContent = `${filters.user}: ${missingCount} suppressed or unavailable year(s). No partial totals are connected. The jurisdiction and Step 2 comparison-year filters do not apply to this panel.`;
         const allYearly = summarizeRows(rows, (row) => row.year)
             .map((row) => ({ year: row.key, ...row, value: row.suppressedCount ? null : row.value }))
             .sort((a, b) => a.year - b.year);
@@ -166,5 +71,132 @@ import { d3, data, filters, rowsForUser, summarizeRows, setEmptyState, chartWidt
         svg.append("g").attr("class", "point-values").selectAll("text").data(yearly).join("text")
             .attr("class", "point-value").attr("data-series", "first-nations").attr("x", (row) => x(row.year)).attr("y", (row) => y(row.value) - 8)
             .attr("text-anchor", "middle").text((row) => numberFormat.format(row.value));
+        revealChart(svg);
+    }
+
+    export function renderRoadUserComposition() {
+        const container = document.getElementById("road-user-composition-chart");
+        const empty = document.getElementById("road-user-composition-empty");
+        if (!container || !empty) return;
+        const title = document.getElementById("road-user-composition-title");
+        const note = container.parentElement.querySelector(".comparison-note");
+        const back = document.getElementById("road-user-composition-back");
+        if (back && !back.dataset.listenerBound) {
+            back.addEventListener("click", () => {
+                compositionFocus = null;
+                renderRoadUserComposition();
+            });
+            back.dataset.listenerBound = "true";
+        }
+        if (back) back.hidden = !compositionFocus;
+        if (title) title.textContent = compositionFocus ? `${compositionFocus} across years` : "Road-user composition across years";
+        if (note) note.textContent = compositionFocus
+            ? `Annual ${compositionFocus} counts. Suppressed and missing values are left as gaps.`
+            : "Stacked annual counts compare the known road-user categories. Years with suppressed category values are left as gaps.";
+        clearChart(container);
+        const users = [...new Set(data.national.map((row) => row.user))].sort((a, b) => a.localeCompare(b));
+        const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
+        const lookup = new Map(data.national.map((row) => [`${row.year}|${row.user}`, row]));
+        const yearRows = years.map((year) => {
+            const rows = users.map((user) => lookup.get(`${year}|${user}`));
+            return { year, values: Object.fromEntries(users.map((user, index) => [user,
+                rows[index] && !rows[index].suppressed ? rows[index].value : null])) };
+        });
+        const values = yearRows.filter((row) => users.every((user) => row.values[user] !== null))
+            .map((row) => ({ year: row.year, ...row.values }));
+        setEmptyState(empty, "No year has complete counts for every road-user category. Suppressed values remain gaps.", !values.length);
+        if (compositionFocus && !yearRows.some((row) => row.values[compositionFocus] !== null)) {
+            setEmptyState(empty, `No unsuppressed annual counts are available for ${compositionFocus}.`, true);
+            return;
+        }
+        if (compositionFocus) setEmptyState(empty, "", false);
+        if (!compositionFocus && !values.length) return;
+
+        const width = chartWidth(container);
+        const height = 350;
+        const margin = { top: 20, right: 20, bottom: 48, left: 68 };
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img").attr("aria-label", compositionFocus
+                ? `Annual national hospitalisations for ${compositionFocus}; suppressed and missing years are gaps`
+                : "Stacked annual national hospitalisations by road-user category; incomplete years are gaps");
+        const x = d3.scaleBand().domain(years).range([margin.left, width - margin.right]).padding(0.18);
+        if (compositionFocus) {
+            const focusRows = yearRows.filter((row) => row.values[compositionFocus] !== null)
+                .map((row) => ({ year: row.year, value: row.values[compositionFocus] }));
+            const y = d3.scaleLinear().domain([0, (d3.max(focusRows, (row) => row.value) || 1) * 1.08]).nice()
+                .range([height - margin.bottom, margin.top]);
+            addAxes(svg, x, y, width, height, margin, "Hospitalisations");
+            const bars = svg.append("g").selectAll("rect").data(focusRows).join("rect")
+                .attr("class", "focusable-mark").attr("tabindex", 0).attr("role", "img")
+                .attr("x", (row) => x(row.year)).attr("width", x.bandwidth()).attr("y", y(0)).attr("height", 0)
+                .attr("fill", SERIES_COLORS[users.indexOf(compositionFocus) % SERIES_COLORS.length])
+                .attr("aria-label", (row) => `${row.year}, ${compositionFocus}: ${numberFormat.format(row.value)} hospitalisations`);
+            const valueLabels = svg.append("g").attr("class", "composition-drilldown-labels")
+                .selectAll("text").data(focusRows).join("text")
+                .attr("class", "composition-drilldown-value")
+                .attr("data-year", (row) => row.year)
+                .attr("x", (row) => x(row.year) + x.bandwidth() / 2)
+                .attr("y", height - margin.bottom - 8)
+                .attr("text-anchor", "middle")
+                .style("opacity", 0)
+                .text((row) => numberFormat.format(row.value));
+            valueLabels.transition("composition-label-enter").duration(reducedMotion.matches ? 0 : 550)
+                .attr("y", (row) => y(row.value) - 8).style("opacity", 1);
+            attachTooltip(bars, (row) => `${row.year}: ${compositionFocus}, ${numberFormat.format(row.value)} hospitalisations`);
+            const emphasizeValue = (year) => valueLabels.interrupt("composition-value-focus")
+                .transition("composition-value-focus").duration(reducedMotion.matches ? 0 : 160)
+                .style("opacity", function () { return Number(this.getAttribute("data-year")) === year ? 1 : 0; });
+            const restoreValues = () => valueLabels.interrupt("composition-value-focus")
+                .transition("composition-value-focus").duration(reducedMotion.matches ? 0 : 180).style("opacity", 1);
+            bars.on("pointerenter.composition-values focus.composition-values", (_, row) => emphasizeValue(row.year))
+                .on("pointerleave.composition-values blur.composition-values", restoreValues);
+            bars.transition("composition-drilldown").duration(reducedMotion.matches ? 0 : 550)
+                .attr("y", (row) => y(row.value)).attr("height", (row) => y(0) - y(row.value));
+            revealChart(svg);
+            return;
+        }
+        const stacks = d3.stack().keys(users)(values);
+        const maximum = d3.max(stacks, (series) => d3.max(series, (point) => point[1])) || 1;
+        const y = d3.scaleLinear().domain([0, maximum * 1.08]).nice().range([height - margin.bottom, margin.top]);
+        addAxes(svg, x, y, width, height, margin, "Hospitalisations");
+        const color = d3.scaleOrdinal().domain(users).range(SERIES_COLORS);
+        const layers = svg.append("g").selectAll("g").data(stacks).join("g")
+            .attr("fill", (series) => color(series.key)).attr("data-series", (series) => series.key);
+        const bars = layers.selectAll("rect").data((series) => series.map((point) => ({
+            year: point.data.year, user: series.key, value: point.data[series.key], y0: point[0], y1: point[1]
+        }))).join("rect")
+            .attr("class", "composition-stack-bar")
+            .attr("x", (row) => x(row.year)).attr("width", x.bandwidth())
+            .attr("y", y(0)).attr("height", 0).attr("stroke", "var(--surface)").attr("stroke-width", 0.6)
+            .attr("tabindex", 0).attr("role", "button")
+            .attr("aria-label", (row) => `${row.year}, ${row.user}: ${numberFormat.format(row.value)} hospitalisations`);
+        attachTooltip(bars, (row) => `${row.year} · ${row.user}: ${numberFormat.format(row.value)} hospitalisations`);
+        const drillToSeries = (row) => {
+            compositionFocus = row.user;
+            renderRoadUserComposition();
+        };
+        bars.on("click", (_, row) => drillToSeries(row)).on("keydown", (event, row) => {
+            if (!["Enter", " "].includes(event.key)) return;
+            event.preventDefault();
+            drillToSeries(row);
+        });
+        bars.transition("composition-enter").duration(reducedMotion.matches ? 0 : 650)
+            .attr("y", (row) => y(row.y1)).attr("height", (row) => Math.max(0, y(row.y0) - y(row.y1)));
+
+        const legend = document.createElement("div");
+        legend.className = "composition-legend";
+        users.forEach((user) => {
+            const item = document.createElement("span");
+            item.className = "trend-legend-item";
+            const swatch = document.createElement("span");
+            swatch.className = "composition-swatch";
+            swatch.style.backgroundColor = color(user);
+            swatch.setAttribute("aria-hidden", "true");
+            const label = document.createElement("span");
+            label.textContent = user;
+            item.append(swatch, label);
+            legend.append(item);
+        });
+        container.append(legend);
         revealChart(svg);
     }

@@ -6,6 +6,7 @@ const AGE_GROUPS = ["0-7", "8-16", "17-25", "26-39", "40-64", "65-74", "75+"];
 const SEXES = ["Male", "Female"];
 const duration = (milliseconds) => reducedMotion.matches ? 0 : milliseconds;
 let chartSequence = 0;
+let selectedAgeGroup = null;
 
 function cyclistRows() {
     return data.demographic.filter((row) => row.user.toLowerCase() === "pedal cyclist" &&
@@ -167,16 +168,20 @@ function drawAgeDonut(svg, sex, width, height, radius) {
     });
 
     const total = sumKnown(rows);
+    svg.append("circle").attr("class", "donut-center-surface")
+        .attr("cx", cx).attr("cy", cy).attr("r", radius * 0.4);
     const center = svg.append("text").attr("class", "donut-center-label age-center-label")
-        .attr("x", cx).attr("y", cy - 8).attr("text-anchor", "middle").attr("pointer-events", "none");
+        .attr("x", cx).attr("y", cy - 10).attr("text-anchor", "middle").attr("pointer-events", "none");
     center.append("tspan").attr("x", cx).attr("class", "donut-center-title").text(`${sex} age groups`);
-    center.append("tspan").attr("x", cx).attr("dy", "1.45em").attr("class", "donut-center-count").text(countLabel(total));
+    center.append("tspan").attr("x", cx).attr("dy", "1.35em").attr("class", "donut-center-count").text(countLabel(total));
+    center.append("tspan").attr("x", cx).attr("dy", "1.4em").attr("class", "donut-center-instruction").text("Click to return");
 
     // Static transparent targets remain independent of the animated arcs.
     const hitTargets = svg.append("g").attr("transform", `translate(${cx},${cy})`)
         .selectAll("path").data(pie).join("path").attr("class", "age-slice-hit-target")
         .attr("d", arc).attr("fill", "transparent").attr("tabindex", 0).attr("role", "button")
-        .attr("aria-label", (d) => `${d.data.age}: ${countLabel(d.data.value)}`);
+        .attr("data-age", (d) => d.data.age)
+        .attr("aria-label", (d) => `Show Male and Female split for age ${d.data.age}: ${countLabel(d.data.value)}`);
     const centerTarget = svg.append("circle").attr("class", "donut-center-hit-target")
         .attr("cx", cx).attr("cy", cy).attr("r", radius * 0.4).attr("fill", "transparent")
         .attr("tabindex", 0).attr("role", "button").attr("aria-label", "Return to Male and Female totals");
@@ -204,14 +209,17 @@ function appendDonutCallouts(svg, entries, { cx, cy, radius, height, className, 
     });
 
     const leaders = svg.append("g").attr("class", `${className}-leader-lines`).attr("pointer-events", "none");
-    leaders.selectAll("polyline").data(points).join("polyline").attr("class", "donut-leader-line")
-        .attr("points", (point) => {
+    leaders.selectAll("path").data(points).join("path").attr("class", "donut-leader-line")
+        .attr("data-key", (point) => point.datum.data.age || point.datum.data.sex)
+        .attr("d", (point) => {
             const elbowX = cx + point.side * (radius + 12);
             const labelX = elbowX + point.side * 7;
-            return `${point.x},${point.y} ${elbowX},${point.labelY} ${labelX},${point.labelY}`;
+            const controlX = point.x + point.side * Math.max(12, radius * 0.16);
+            return `M${point.x},${point.y} C${controlX},${point.y} ${elbowX - point.side * 3},${point.labelY} ${elbowX},${point.labelY} L${labelX},${point.labelY}`;
         });
     svg.append("g").attr("class", `${className}-leader-labels`).attr("pointer-events", "none")
         .selectAll("text").data(points).join("text").attr("class", "donut-leader-label")
+        .attr("data-key", (point) => point.datum.data.age || point.datum.data.sex)
         .attr("x", (point) => cx + point.side * (radius + 19))
         .attr("y", (point) => point.labelY + 4)
         .attr("text-anchor", (point) => point.side > 0 ? "start" : "end")
@@ -222,30 +230,21 @@ function bindUnifiedDonut() {
     const container = document.getElementById("cyclist-sex-chart");
     if (!container) return;
     let lockedSex = null;
-    let previewSex = null;
     let mode = "outer";
 
     const draw = (nextMode, sex = null) => {
         mode = nextMode;
-        const width = chartWidth(container);
+        const width = Math.max(chartWidth(container), 900);
         const height = 520;
         const radius = Math.max(125, Math.min(height / 2 - 30, width / 2 - 180));
         clearChart(container);
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img").attr("aria-label", nextMode === "outer"
+            .attr("role", "group").attr("aria-label", nextMode === "outer"
                 ? "Combined Male and Female pedal cyclist hospitalisations"
                 : `${sex} pedal cyclist hospitalisations by age group`);
 
         if (nextMode === "outer") {
             const { hitTargets } = drawOuterDonut(svg, width, height, radius, ++chartSequence);
-            hitTargets.on("pointerenter", (_, d) => {
-                if (lockedSex) return;
-                previewSex = d.data.sex;
-                draw("age", previewSex);
-            });
-            container.onfocusout = (event) => {
-                if (!lockedSex && !container.contains(event.relatedTarget) && mode === "age") draw("outer");
-            };
             return;
         }
 
@@ -254,49 +253,128 @@ function bindUnifiedDonut() {
 
     container.onclick = (event) => {
         const sexTarget = event.target.closest(".sex-slice-hit-target");
-        const ageTarget = event.target.closest(".age-slice-hit-target, .donut-center-hit-target");
+        const ageTarget = event.target.closest(".age-slice-hit-target");
+        const centerTarget = event.target.closest(".donut-center-hit-target");
         if (mode === "outer") {
-            const selectedSex = sexTarget?.dataset.sex || previewSex;
+            const selectedSex = sexTarget?.dataset.sex;
             if (!selectedSex) return;
             lockedSex = selectedSex;
-            previewSex = selectedSex;
+            selectedAgeGroup = null;
             draw("age", selectedSex);
+            renderSexRatio();
             return;
         }
-        if (mode === "age" && !lockedSex && previewSex) {
-            lockedSex = previewSex;
+        if (mode === "age" && ageTarget) {
+            selectedAgeGroup = ageTarget.dataset.age;
+            d3.select(container).selectAll(".age-donut-leader-lines .donut-leader-line, .age-donut-leader-labels .donut-leader-label")
+                .classed("is-active", function () { return this.getAttribute("data-key") === selectedAgeGroup; });
+            renderSexRatio();
             return;
         }
-        if (ageTarget || mode === "age") {
+        if (centerTarget) {
             lockedSex = null;
-            previewSex = null;
+            selectedAgeGroup = null;
             draw("outer");
+            renderSexRatio();
         }
     };
     container.onkeydown = (event) => {
         if (!["Enter", " "].includes(event.key)) return;
         const sexTarget = event.target.closest(".sex-slice-hit-target");
+        const ageTarget = event.target.closest(".age-slice-hit-target");
+        const centerTarget = event.target.closest(".donut-center-hit-target");
         if (mode === "outer" && sexTarget) {
             event.preventDefault();
             lockedSex = sexTarget.dataset.sex;
-            previewSex = lockedSex;
+            selectedAgeGroup = null;
             draw("age", lockedSex);
+            renderSexRatio();
+            container.focus();
+        } else if (mode === "age" && ageTarget) {
+            event.preventDefault();
+            selectedAgeGroup = ageTarget.dataset.age;
+            d3.select(container).selectAll(".age-donut-leader-lines .donut-leader-line, .age-donut-leader-labels .donut-leader-label")
+                .classed("is-active", function () { return this.getAttribute("data-key") === selectedAgeGroup; });
+            renderSexRatio();
+        } else if (mode === "age" && centerTarget) {
+            event.preventDefault();
+            lockedSex = null;
+            selectedAgeGroup = null;
+            draw("outer");
+            renderSexRatio();
             container.focus();
         } else if (mode === "age") {
             event.preventDefault();
             lockedSex = null;
-            previewSex = null;
+            selectedAgeGroup = null;
             draw("outer");
+            renderSexRatio();
             container.focus();
         }
     };
-    container.onpointerleave = () => {
-        if (!lockedSex && mode === "age") {
-            previewSex = null;
-            draw("outer");
-        }
-    };
     draw("outer");
+}
+
+function renderSexRatio() {
+    const chart = document.getElementById("sex-ratio-chart");
+    const caption = document.getElementById("ratio-caption");
+    const legend = document.getElementById("ratio-legend");
+    if (!chart || !caption || !legend) return;
+    clearChart(chart);
+    const chosenRows = selectedAgeGroup
+        ? cyclistRows().filter((row) => row.age === selectedAgeGroup)
+        : cyclistRows();
+    const values = Object.fromEntries(SEXES.map((sex) => [sex, sumKnown(chosenRows.filter((row) => row.sex.toLowerCase() === sex.toLowerCase()))]));
+    const male = values.Male;
+    const female = values.Female;
+    const total = male !== null && female !== null ? male + female : null;
+    const scope = selectedAgeGroup ? ` · ${selectedAgeGroup}` : "";
+    caption.textContent = total === null || female === 0
+        ? `Male ${countLabel(male)} · Female ${countLabel(female)}${scope} · ratio unavailable`
+        : `For every 1 Female, ${(male / female).toFixed(2)} Males recorded${scope} · Male ${numberFormat.format(male)} · Female ${numberFormat.format(female)}`;
+    legend.replaceChildren();
+    [
+        { name: "Male", shape: "Circle", symbol: "●", className: "ratio-male-symbol" },
+        { name: "Female", shape: "Square", symbol: "■", className: "ratio-female-symbol" }
+    ].forEach((item) => {
+        const entry = document.createElement("span");
+        entry.className = "ratio-legend-item";
+        const symbol = document.createElement("span");
+        symbol.className = `ratio-legend-symbol ${item.className}`;
+        symbol.setAttribute("aria-hidden", "true");
+        symbol.textContent = item.symbol;
+        const text = document.createElement("span");
+        text.textContent = `${item.shape} = ${item.name}`;
+        entry.append(symbol, text);
+        legend.append(entry);
+    });
+    if (selectedAgeGroup) {
+        const scopeLabel = document.createElement("span");
+        scopeLabel.className = "ratio-scope";
+        scopeLabel.textContent = `${selectedAgeGroup} split`;
+        legend.append(scopeLabel);
+    }
+    if (total === null || total <= 0) return;
+
+    const width = chartWidth(chart);
+    const height = 82;
+    const svg = d3.select(chart).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img").attr("aria-label", `Male ${numberFormat.format(male)}; Female ${numberFormat.format(female)}${scope}`);
+    const dotCount = 30;
+    const maleDots = Math.round(male / total * dotCount);
+    const gap = Math.min(9, (width - 80) / (dotCount - 1));
+    const startX = (width - gap * (dotCount - 1)) / 2;
+    svg.selectAll("circle").data(d3.range(maleDots)).join("circle")
+        .attr("cx", (index) => startX + index * gap).attr("cy", height / 2).attr("r", Math.min(7, gap * 0.43))
+        .attr("fill", "var(--ratio-male)")
+        .attr("stroke", "var(--surface)").attr("stroke-width", 1)
+        .attr("opacity", 0).transition("ratio-enter").duration(duration(500)).attr("opacity", 1);
+    svg.selectAll("rect").data(d3.range(dotCount - maleDots)).join("rect")
+        .attr("x", (index) => startX + (maleDots + index) * gap - Math.min(7, gap * 0.43))
+        .attr("y", height / 2 - Math.min(7, gap * 0.43))
+        .attr("width", Math.min(14, gap * 0.86)).attr("height", Math.min(14, gap * 0.86))
+        .attr("rx", 1).attr("fill", "var(--ratio-female)").attr("stroke", "var(--surface)").attr("stroke-width", 1)
+        .attr("opacity", 0).transition("ratio-enter").duration(duration(500)).attr("opacity", 1);
 }
 
 export function demographicLabelYear() {
@@ -311,4 +389,6 @@ export function renderDemographics() {
         `Pedal cyclist hospitalisations for ${demographicLabelYear().toLowerCase()}. Counts are hospitalised cases, not population-adjusted rates. Sex totals include records with missing age; the donut shows the seven published age groups.`;
     bindUnifiedDonut();
     renderAgeSexTrajectory();
+    selectedAgeGroup = null;
+    renderSexRatio();
 }

@@ -20,7 +20,7 @@ export const SUPPRESSED_VALUES = new Set([
         "n.p.", "not available", "-", "\u2014", "\u2013", "..", "..."
     ]);
 export const data = { national: [], state: [], firstNations: [], demographic: [] };
-export const filters = { year: "", state: "", user: "Pedal cyclist", demographicYear: "" };
+export const filters = { year: "2012", state: "", user: "Pedal cyclist", demographicYear: "" };
 export const tooltip = document.getElementById("chart-tooltip");
 export const themeToggle = document.getElementById("theme-toggle");
 export const themeToggleLabel = document.getElementById("theme-toggle-label");
@@ -168,9 +168,10 @@ export const annotationLabels = {
             .sort((a, b) => a.localeCompare(b));
 
         const yearSelect = document.getElementById("year-filter");
-        updateSelect(yearSelect, years, "Latest available year", filters.year === "all" ? "" : filters.year);
-        yearSelect.add(new Option("All Years Total (2011\u20132021)", "all"), 1);
-        if (filters.year === "all") yearSelect.value = "all";
+        yearSelect.replaceChildren(new Option("All Years Total (2011\u20132021)", "all"));
+        years.filter((year) => Number(year) > 2011).forEach((year) => yearSelect.add(new Option(year, year)));
+        yearSelect.value = filters.year === "" ? "all" : filters.year;
+        if (!yearSelect.value) yearSelect.value = "all";
         updateSelect(document.getElementById("state-filter"), states, "All jurisdictions", filters.state, fullStateName);
         updateSelect(document.getElementById("user-filter"), users, "Choose a road-user group", filters.user);
         const demographicYears = [...new Set(data.demographic.map((row) => row.year))].sort((a, b) => a - b).map(String);
@@ -409,7 +410,7 @@ export const annotationLabels = {
         document.getElementById("user-filter").addEventListener("change", (event) => { filters.user = event.target.value; handlers.onUser(); });
         document.getElementById("demographic-year-filter").addEventListener("change", (event) => { filters.demographicYear = event.target.value; handlers.onDemographicYear(); });
         document.getElementById("reset-filters").addEventListener("click", () => {
-            filters.year = ""; filters.state = ""; filters.user = "Pedal cyclist"; filters.demographicYear = "";
+            filters.year = "2012"; filters.state = ""; filters.user = "Pedal cyclist"; filters.demographicYear = "";
             updateFilters(); handlers.onReset();
         });
     }

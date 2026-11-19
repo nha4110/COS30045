@@ -113,25 +113,26 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         const legend = document.getElementById("road-user-trend-legend");
         clearChart(container); legend.replaceChildren();
         const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
+        const baselineYear = filters.year === "all" ? 2011 : selectedYear();
         const series = [{ name: filters.user, user: filters.user, color: "var(--chart-primary)", dash: "" },
             { name: "National", user: "", color: "var(--chart-secondary)", dash: "6 4" }].map((item) => {
-            const baseline = nationalCount(2011, item.user);
+            const baseline = nationalCount(baselineYear, item.user);
             return { ...item, values: years.map((year) => {
                 const count = nationalCount(year, item.user);
                 return { year, count, value: baseline > 0 && count !== null ? count / baseline * 100 : null };
             }) };
         });
-        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs National | 2011 = 100`;
+        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs National | ${baselineYear} = 100`;
         const values = series.flatMap((item) => item.values).filter((row) => row.value !== null);
-        setEmptyState(document.getElementById("road-user-trend-empty"), "A positive 2011 baseline is required to calculate the index.", !values.length);
+        setEmptyState(document.getElementById("road-user-trend-empty"), `A positive ${baselineYear} baseline is required to calculate the index.`, !values.length);
         if (!values.length) return;
         const width = chartWidth(container), height = 340;
         const margin = { top: 18, right: 16, bottom: 40, left: 62 };
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img").attr("aria-label", `${filters.user} and all road users, indexed counts, 2011 equals 100`);
+            .attr("role", "img").attr("aria-label", `${filters.user} and all road users, indexed counts, ${baselineYear} equals 100`);
         const x = d3.scaleLinear().domain(d3.extent(years)).range([margin.left, width - margin.right]);
         const y = d3.scaleLinear().domain([0, d3.max(values, (row) => row.value) * 1.12]).nice().range([height - margin.bottom, margin.top]);
-        addAxes(svg, x, y, width, height, margin, "Recorded count index  |  2011 = 100");
+        addAxes(svg, x, y, width, height, margin, `Recorded count index  |  ${baselineYear} = 100`);
         svg.append("line").attr("class", "baseline-guide").attr("x1", margin.left).attr("x2", width - margin.right)
             .attr("y1", y(100)).attr("y2", y(100));
         const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value)).curve(d3.curveMonotoneX);

@@ -16,7 +16,7 @@ import {
     renderRoadUserBars,
     renderRoadUserTrends
 } from "./modules/roadUserCharts.js";
-import { renderFirstNationsTrend } from "./modules/supplementaryCharts.js";
+import { renderFirstNationsTrend, renderRoadUserComposition } from "./modules/supplementaryCharts.js";
 
 function renderAll() {
     hideTooltip();
@@ -26,12 +26,14 @@ function renderAll() {
     renderRoadUserBars();
     renderRoadUserTrends();
     renderFirstNationsTrend();
+    renderRoadUserComposition();
 }
 
 function renderComparisonYear() {
     hideTooltip();
     updateSummary();
     renderRoadUserBars();
+    renderRoadUserTrends();
 }
 
 function renderRoadUser() {
@@ -59,25 +61,34 @@ function bindContextualFilterBar() {
     const jump = document.getElementById("context-filter-jump");
     const zones = [
         {
+            section: document.querySelector("article[aria-labelledby='road-user-chart-title']"),
+            name: "Step 2 - Explore the change",
+            href: "#road-user-chart-title",
+            sources: [document.getElementById("year-filter"), document.getElementById("user-filter")]
+        },
+        {
             section: document.querySelector(".demographic-comparison"),
-            name: "Step 4 year",
+            name: "Step 3 year",
             href: "#demographic-title",
-            source: document.getElementById("demographic-year-filter")
+            sources: [document.getElementById("demographic-year-filter")]
         },
         {
             section: document.getElementById("supplementary"),
-            name: "Jurisdiction - state charts",
+            name: "Step 4 - Place and community",
             href: "#supplementary-title",
-            source: document.getElementById("state-filter")
+            sources: [document.getElementById("state-filter")]
         }
     ];
     let activeZone = null;
 
     function syncControl(zone) {
-        if (!zone?.clone) return;
-        const value = zone.source.value;
-        zone.clone.replaceChildren(...[...zone.source.options].map((option) => option.cloneNode(true)));
-        zone.clone.value = value;
+        if (!zone?.clones) return;
+        zone.sources.forEach((source, index) => {
+            const clone = zone.clones[index];
+            const value = source.value;
+            clone.replaceChildren(...[...source.options].map((option) => option.cloneNode(true)));
+            clone.value = value;
+        });
     }
 
     function showZone(zone) {
@@ -91,20 +102,23 @@ function bindContextualFilterBar() {
         label.textContent = zone.name;
         jump.href = zone.href;
         jump.textContent = `Jump to ${zone.name}`;
-        const controlLabel = document.createElement("label");
-        controlLabel.className = "context-filter-control";
-        const controlText = document.createElement("span");
-        controlText.textContent = zone.source.closest("label").querySelector("span").textContent;
-        zone.clone = zone.source.cloneNode(false);
-        zone.clone.id = `context-${zone.source.id}`;
-        controlLabel.htmlFor = zone.clone.id;
-        controlLabel.append(controlText, zone.clone);
-        slot.append(controlLabel);
-        syncControl(zone);
-        zone.clone.addEventListener("change", () => {
-            zone.source.value = zone.clone.value;
-            zone.source.dispatchEvent(new Event("change", { bubbles: true }));
+        zone.clones = zone.sources.map((source) => {
+            const controlLabel = document.createElement("label");
+            controlLabel.className = "context-filter-control";
+            const controlText = document.createElement("span");
+            controlText.textContent = source.closest("label").querySelector("span").textContent;
+            const clone = source.cloneNode(false);
+            clone.id = `context-${source.id}`;
+            controlLabel.htmlFor = clone.id;
+            controlLabel.append(controlText, clone);
+            slot.append(controlLabel);
+            return clone;
         });
+        syncControl(zone);
+        zone.clones.forEach((clone, index) => clone.addEventListener("change", () => {
+            zone.sources[index].value = clone.value;
+            zone.sources[index].dispatchEvent(new Event("change", { bubbles: true }));
+        }));
         bar.hidden = false;
     }
 
@@ -126,7 +140,7 @@ function bindContextualFilterBar() {
         document.getElementById("reset-filters").click();
         refreshContextFilters();
     });
-    zones.forEach((zone) => zone.source.addEventListener("change", refreshContextFilters));
+    zones.forEach((zone) => zone.sources.forEach((source) => source.addEventListener("change", refreshContextFilters)));
 
     let scheduled = false;
     window.addEventListener("scroll", () => {
