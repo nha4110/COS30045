@@ -1,202 +1,208 @@
-import { d3, data, filters, rowsForUser, summarizeRows, setEmptyState, chartWidth, addAxes, addChartPatterns, attachTooltip, revealChart, clearChart, COLORS, numberFormat, SERIES_COLORS, reducedMotion, animateMarks } from "./state.js";
+import { d3, data, filters, setEmptyState, chartWidth, attachTooltip, revealChart, clearChart, numberFormat, SERIES_COLORS, reducedMotion, fullStateName } from "./state.js";
 
-let compositionFocus = null;
+const STATE_NAMES = ["ACT", "NSW", "NT", "Qld", "SA", "Tas", "Vic", "WA"];
+const STATE_SHAPES = {
+    WA: "55,70 195,70 195,218 218,232 203,320 58,300",
+    NT: "195,70 305,70 305,158 245,158 245,218 195,218",
+    SA: "195,218 245,218 245,158 305,158 305,244 255,260 218,238 203,232",
+    Qld: "305,70 443,70 467,164 431,188 365,166 305,158",
+    NSW: "305,158 365,166 431,188 418,252 330,260 305,244",
+    Vic: "295,260 330,260 418,252 400,300 298,300",
+    Tas: "365,326 388,326 396,350 374,356 360,344",
+    ACT: "350,230 361,230 361,241 350,241"
+};
+const STATE_LABELS = { WA: [118,180], NT: [250,135], SA: [250,220], Qld: [382,132], NSW: [370,220], Vic: [354,286], Tas: [380,350], ACT: [356,237] };
+const duration = (ms) => reducedMotion.matches ? 0 : ms;
+let selectedRoadUser = "Pedal cyclist";
+let hasChosenJurisdiction = false;
+let hasRevealedTreemap = false;
 
-    export function renderFirstNationsTrend() {
-        const container = document.getElementById("first-nations-chart");
-        const empty = document.getElementById("first-nations-empty");
-        clearChart(container);
-        const rows = rowsForUser(data.firstNations);
-        document.getElementById("first-nations-title").textContent = `First Nations  |  ${filters.user}`;
-        const missingCount = rows.filter((row) => row.suppressed || row.value === null).length;
-        document.getElementById("first-nations-data-note").textContent = `${filters.user}: ${missingCount} suppressed or unavailable year(s). No partial totals are connected. The jurisdiction and Step 2 comparison-year filters do not apply to this panel.`;
-        const allYearly = summarizeRows(rows, (row) => row.year)
-            .map((row) => ({ year: row.key, ...row, value: row.suppressedCount ? null : row.value }))
-            .sort((a, b) => a.year - b.year);
-        const yearly = allYearly.filter((row) => row.value !== null);
+function jurisdictionTotals() {
+    return d3.rollups(data.state, (rows) => d3.sum(rows.filter((row) => !row.suppressed && row.value !== null), (row) => row.value), (row) => row.state)
+        .map(([state, total]) => ({ state, total }));
+}
 
-        if (!yearly.length) {
-            setEmptyState(empty, "No First Nations records match this filter. Suppressed values are not zero.", true);
-            return;
-        }
-        setEmptyState(empty, "", false);
+function renderJurisdictionMap() {
+    const container = document.getElementById("jurisdiction-map-chart");
+    if (!container) return;
+    clearChart(container);
+    const totals = jurisdictionTotals();
+    const topFive = new Set([...totals].sort((a, b) => b.total - a.total).slice(0, 5).map((row) => row.state.toUpperCase()));
+    const totalByCode = new Map(totals.map((row) => [row.state.toUpperCase(), row.total]));
+    const width = chartWidth(container);
+    const height = 400;
+    const scale = Math.min((width - 30) / 620, (height - 54) / 380);
+    const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img").attr("aria-label", "Clickable map of Australian states and territories; the five with highest known recorded totals are highlighted");
+    const map = svg.append("g").attr("transform", `translate(${(width - 620 * scale) / 2},${(height - 360 * scale) / 2}) scale(${scale})`);
+    const regions = map.selectAll("g").data(STATE_NAMES).join("g").attr("class", "jurisdiction-region")
+        .attr("data-jurisdiction", (state) => state);
+    regions.append("polygon").attr("points", (state) => STATE_SHAPES[state])
+        .attr("fill", (state) => topFive.has(state.toUpperCase()) ? "#c94b40" : "#8ab7c7")
+        .attr("stroke", "var(--surface)")
+        .attr("stroke-width", 3 / scale)
+        .attr("tabindex", 0).attr("role", "button")
+        .attr("aria-label", (state) => `${fullStateName(state)}: ${numberFormat.format(totalByCode.get(state.toUpperCase()) || 0)} known recorded injuries${topFive.has(state.toUpperCase()) ? ", among the five highest" : ""}`)
+        .on("click", (_, state) => selectJurisdiction(state))
+        .on("keydown", (event, state) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectJurisdiction(state); } });
+    regions.filter((state) => state !== "ACT").append("text")
+        .attr("x", (state) => STATE_LABELS[state][0]).attr("y", (state) => STATE_LABELS[state][1])
+        .attr("text-anchor", "middle").attr("dominant-baseline", "middle").attr("class", "jurisdiction-map-label")
+        .each(function (state) {
+            const words = fullStateName(state).split(" ");
+            const label = d3.select(this);
+            if (words.length > 1) {
+                label.append("tspan").attr("x", STATE_LABELS[state][0]).text(words.slice(0, Math.ceil(words.length / 2)).join(" "));
+                label.append("tspan").attr("x", STATE_LABELS[state][0]).attr("dy", "1.1em")
+                    .text(words.slice(Math.ceil(words.length / 2)).join(" "));
+            } else label.text(words[0]);
+        });
+    attachTooltip(regions.select("polygon"), (state) => `${fullStateName(state)}: ${numberFormat.format(totalByCode.get(state.toUpperCase()) || 0)} known recorded injuries` +
+        (topFive.has(state.toUpperCase()) ? " Top five recorded total" : ""));
+    const legend = svg.append("g").attr("class", "jurisdiction-map-legend").attr("transform", `translate(${Math.max(14, width / 2 - 118)},${height - 18})`);
+    [["#c94b40", "Top 5 recorded totals"], ["#8ab7c7", "Other jurisdictions"]].forEach(([fill, label], i) => {
+        const item = legend.append("g").attr("transform", `translate(${i * 155},0)`);
+        item.append("rect").attr("width", 13).attr("height", 13).attr("rx", 2).attr("fill", fill);
+        item.append("text").attr("x", 19).attr("y", 11).text(label);
+    });
+    revealChart(svg);
+}
 
-        const width = chartWidth(container);
-        const height = 220;
-        const margin = { top: 14, right: 16, bottom: 36, left: 66 };
-        const minYear = d3.min(allYearly, (row) => row.year);
-        const maxYear = d3.max(allYearly, (row) => row.year);
-        const xDomain = minYear === maxYear ? [minYear - 1, maxYear + 1] : [minYear, maxYear];
-        const svg = d3.select(container).append("svg")
-            .attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img")
-            .attr("aria-label", `First Nations known hospitalised injury counts, ${minYear} to ${maxYear}`);
-        const patterns = addChartPatterns(svg, "first-nations");
-        const x = d3.scaleLinear().domain(xDomain).range([margin.left, width - margin.right]);
-        const y = d3.scaleLinear()
-            .domain([0, (d3.max(yearly, (row) => row.value) || 1) * 1.08])
-            .nice()
-            .range([height - margin.bottom, margin.top]);
-        addAxes(svg, x, y, width, height, margin, "Recorded hospitalisations");
-        const line = d3.line()
-            .defined((row) => row.value !== null)
-            .x((row) => x(row.year))
-            .y((row) => y(row.value));
-        const nationsLine = svg.append("path")
-            .datum(allYearly)
-            .attr("class", "series-line")
-            .attr("data-series", "first-nations")
-            .attr("stroke", COLORS.firstNations)
-            .attr("stroke-dasharray", "6 3")
-            .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-        nationsLine.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
-        const points = svg.selectAll(".first-nations-point")
-            .data(yearly)
-            .join("circle")
-            .attr("class", "series-point focusable-mark first-nations-point")
-            .attr("data-series", "first-nations")
-            .attr("tabindex", 0)
-            .attr("role", "img")
-            .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
-            .attr("cx", (row) => x(row.year))
-            .attr("cy", (row) => y(row.value))
-            .attr("r", 4)
-            .attr("fill", (row) => row.suppressedCount ? `url(#${patterns.dots})` : COLORS.firstNations)
-            .attr("aria-label", (row) => `${row.year}: ${numberFormat.format(row.value)} known injuries${row.suppressedCount ? `, ${row.suppressedCount} suppressed categories excluded` : ""}`);
-        attachTooltip(points, (row) =>
-            `${row.year}: ${numberFormat.format(row.value)} known injuries` +
-            (row.suppressedCount ? ` (known subtotal; ${row.suppressedCount} suppressed category value(s) excluded)` : "")
-        );
-        animateMarks(points);
-        svg.append("g").attr("class", "point-values").selectAll("text").data(yearly).join("text")
-            .attr("class", "point-value").attr("data-series", "first-nations").attr("x", (row) => x(row.year)).attr("y", (row) => y(row.value) - 8)
-            .attr("text-anchor", "middle").text((row) => numberFormat.format(row.value));
-        revealChart(svg);
+function selectJurisdiction(state) {
+    filters.state = state;
+    if (!hasRevealedTreemap) {
+        hasChosenJurisdiction = true;
+        hasRevealedTreemap = true;
     }
+    selectedRoadUser = "Pedal cyclist";
+    renderRoadUserComposition();
+}
 
-    export function renderRoadUserComposition() {
-        const container = document.getElementById("road-user-composition-chart");
-        const empty = document.getElementById("road-user-composition-empty");
-        if (!container || !empty) return;
-        const title = document.getElementById("road-user-composition-title");
-        const note = container.parentElement.querySelector(".comparison-note");
-        const back = document.getElementById("road-user-composition-back");
-        if (back && !back.dataset.listenerBound) {
-            back.addEventListener("click", () => {
-                compositionFocus = null;
-                renderRoadUserComposition();
-            });
-            back.dataset.listenerBound = "true";
-        }
-        if (back) back.hidden = !compositionFocus;
-        if (title) title.textContent = compositionFocus ? `${compositionFocus} across years` : "Road-user composition across years";
-        if (note) note.textContent = compositionFocus
-            ? `Annual ${compositionFocus} counts. Suppressed and missing values are left as gaps.`
-            : "Stacked annual counts compare the known road-user categories. Years with suppressed category values are left as gaps.";
-        clearChart(container);
-        const users = [...new Set(data.national.map((row) => row.user))].sort((a, b) => a.localeCompare(b));
-        const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
-        const lookup = new Map(data.national.map((row) => [`${row.year}|${row.user}`, row]));
-        const yearRows = years.map((year) => {
-            const rows = users.map((user) => lookup.get(`${year}|${user}`));
-            return { year, values: Object.fromEntries(users.map((user, index) => [user,
-                rows[index] && !rows[index].suppressed ? rows[index].value : null])) };
-        });
-        const values = yearRows.filter((row) => users.every((user) => row.values[user] !== null))
-            .map((row) => ({ year: row.year, ...row.values }));
-        setEmptyState(empty, "No year has complete counts for every road-user category. Suppressed values remain gaps.", !values.length);
-        if (compositionFocus && !yearRows.some((row) => row.values[compositionFocus] !== null)) {
-            setEmptyState(empty, `No unsuppressed annual counts are available for ${compositionFocus}.`, true);
-            return;
-        }
-        if (compositionFocus) setEmptyState(empty, "", false);
-        if (!compositionFocus && !values.length) return;
+function renderTreemap() {
+    const container = document.getElementById("road-user-composition-chart");
+    const empty = document.getElementById("road-user-composition-empty");
+    if (!container || !empty) return;
+    const dataNote = document.getElementById("road-user-composition-note");
+    clearChart(container);
+    const selectedRows = data.state.filter((row) => !filters.state || row.state.toUpperCase() === filters.state.toUpperCase());
+    const totals = d3.rollups(selectedRows, (rows) => ({
+        value: d3.sum(rows.filter((row) => !row.suppressed && row.value !== null), (row) => row.value),
+        suppressed: rows.filter((row) => row.suppressed || row.value === null).length
+    }), (row) => row.user).map(([user, summary]) => ({ user, ...summary }))
+        .filter((row) => row.value > 0).sort((a, b) => b.value - a.value);
+    const suppressedCount = selectedRows.filter((row) => row.suppressed || row.value === null).length;
+    setEmptyState(empty, "No recorded road-user counts are available for this jurisdiction.", !totals.length);
+    if (dataNote) dataNote.textContent = `${suppressedCount} suppressed or unavailable record(s) excluded. Unknown values remain unknown, not zero.`;
+    if (!totals.length) return;
 
-        const width = chartWidth(container);
-        const height = 350;
-        const margin = { top: 20, right: 20, bottom: 48, left: 68 };
-        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
-            .attr("role", "img").attr("aria-label", compositionFocus
-                ? `Annual national hospitalisations for ${compositionFocus}; suppressed and missing years are gaps`
-                : "Stacked annual national hospitalisations by road-user category; incomplete years are gaps");
-        const x = d3.scaleBand().domain(years).range([margin.left, width - margin.right]).padding(0.18);
-        if (compositionFocus) {
-            const focusRows = yearRows.filter((row) => row.values[compositionFocus] !== null)
-                .map((row) => ({ year: row.year, value: row.values[compositionFocus] }));
-            const y = d3.scaleLinear().domain([0, (d3.max(focusRows, (row) => row.value) || 1) * 1.08]).nice()
-                .range([height - margin.bottom, margin.top]);
-            addAxes(svg, x, y, width, height, margin, "Hospitalisations");
-            const bars = svg.append("g").selectAll("rect").data(focusRows).join("rect")
-                .attr("class", "focusable-mark").attr("tabindex", 0).attr("role", "img")
-                .attr("x", (row) => x(row.year)).attr("width", x.bandwidth()).attr("y", y(0)).attr("height", 0)
-                .attr("fill", SERIES_COLORS[users.indexOf(compositionFocus) % SERIES_COLORS.length])
-                .attr("aria-label", (row) => `${row.year}, ${compositionFocus}: ${numberFormat.format(row.value)} hospitalisations`);
-            const valueLabels = svg.append("g").attr("class", "composition-drilldown-labels")
-                .selectAll("text").data(focusRows).join("text")
-                .attr("class", "composition-drilldown-value")
-                .attr("data-year", (row) => row.year)
-                .attr("x", (row) => x(row.year) + x.bandwidth() / 2)
-                .attr("y", height - margin.bottom - 8)
-                .attr("text-anchor", "middle")
-                .style("opacity", 0)
-                .text((row) => numberFormat.format(row.value));
-            valueLabels.transition("composition-label-enter").duration(reducedMotion.matches ? 0 : 550)
-                .attr("y", (row) => y(row.value) - 8).style("opacity", 1);
-            attachTooltip(bars, (row) => `${row.year}: ${compositionFocus}, ${numberFormat.format(row.value)} hospitalisations`);
-            const emphasizeValue = (year) => valueLabels.interrupt("composition-value-focus")
-                .transition("composition-value-focus").duration(reducedMotion.matches ? 0 : 160)
-                .style("opacity", function () { return Number(this.getAttribute("data-year")) === year ? 1 : 0; });
-            const restoreValues = () => valueLabels.interrupt("composition-value-focus")
-                .transition("composition-value-focus").duration(reducedMotion.matches ? 0 : 180).style("opacity", 1);
-            bars.on("pointerenter.composition-values focus.composition-values", (_, row) => emphasizeValue(row.year))
-                .on("pointerleave.composition-values blur.composition-values", restoreValues);
-            bars.transition("composition-drilldown").duration(reducedMotion.matches ? 0 : 550)
-                .attr("y", (row) => y(row.value)).attr("height", (row) => y(0) - y(row.value));
-            revealChart(svg);
-            return;
-        }
-        const stacks = d3.stack().keys(users)(values);
-        const maximum = d3.max(stacks, (series) => d3.max(series, (point) => point[1])) || 1;
-        const y = d3.scaleLinear().domain([0, maximum * 1.08]).nice().range([height - margin.bottom, margin.top]);
-        addAxes(svg, x, y, width, height, margin, "Hospitalisations");
-        const color = d3.scaleOrdinal().domain(users).range(SERIES_COLORS);
-        const layers = svg.append("g").selectAll("g").data(stacks).join("g")
-            .attr("fill", (series) => color(series.key)).attr("data-series", (series) => series.key);
-        const bars = layers.selectAll("rect").data((series) => series.map((point) => ({
-            year: point.data.year, user: series.key, value: point.data[series.key], y0: point[0], y1: point[1]
-        }))).join("rect")
-            .attr("class", "composition-stack-bar")
-            .attr("x", (row) => x(row.year)).attr("width", x.bandwidth())
-            .attr("y", y(0)).attr("height", 0).attr("stroke", "var(--surface)").attr("stroke-width", 0.6)
-            .attr("tabindex", 0).attr("role", "button")
-            .attr("aria-label", (row) => `${row.year}, ${row.user}: ${numberFormat.format(row.value)} hospitalisations`);
-        attachTooltip(bars, (row) => `${row.year} · ${row.user}: ${numberFormat.format(row.value)} hospitalisations`);
-        const drillToSeries = (row) => {
-            compositionFocus = row.user;
-            renderRoadUserComposition();
-        };
-        bars.on("click", (_, row) => drillToSeries(row)).on("keydown", (event, row) => {
-            if (!["Enter", " "].includes(event.key)) return;
-            event.preventDefault();
-            drillToSeries(row);
+    const width = chartWidth(container);
+    const height = 400;
+    const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img").attr("aria-label", `Treemap of known recorded hospitalisations by road-user group${filters.state ? ` in ${fullStateName(filters.state)}` : " across all jurisdictions"}`);
+    const color = d3.scaleOrdinal().domain(totals.map((row) => row.user)).range(SERIES_COLORS);
+    const root = d3.hierarchy({ children: totals }).sum((row) => row.value).sort((a, b) => b.value - a.value);
+    d3.treemap().size([width, height]).paddingInner(4).paddingOuter(2).round(true)(root);
+    const leaves = root.leaves();
+    const tiles = svg.selectAll("g.road-user-tile").data(leaves).join("g").attr("class", "road-user-tile")
+        .attr("transform", (node) => `translate(${node.x0},${node.y0})`)
+        .on("click", (_, node) => { selectedRoadUser = node.data.user; renderTreemap(); renderBars(); });
+    tiles.append("rect").attr("width", (node) => node.x1 - node.x0).attr("height", (node) => node.y1 - node.y0)
+        .attr("rx", 6).attr("fill", (node) => color(node.data.user)).attr("stroke", "var(--surface)").attr("stroke-width", 2)
+        .attr("tabindex", 0).attr("role", "button")
+        .attr("aria-label", (node) => `${node.data.user}: ${numberFormat.format(node.data.value)} known hospitalisations; select to show annual bars`)
+        .on("keydown", (event, node) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectedRoadUser = node.data.user; renderTreemap(); renderBars(); } });
+    attachTooltip(tiles.select("rect"), (node) => `${node.data.user}: ${numberFormat.format(node.data.value)} known recorded hospitalisations` +
+        (node.data.suppressed ? `; ${node.data.suppressed} suppressed records excluded` : ""));
+    const defs = svg.append("defs");
+    const labelLayer = svg.append("g").attr("class", "treemap-label-layer").attr("pointer-events", "none");
+    leaves.forEach((node, index) => {
+        const w = node.x1 - node.x0, h = node.y1 - node.y0;
+        const clipId = `road-user-tile-clip-${index}`;
+        defs.append("clipPath").attr("id", clipId).append("rect")
+            .attr("x", node.x0 + 6).attr("y", node.y0 + 3)
+            .attr("width", Math.max(0, w - 12)).attr("height", Math.max(0, h - 6));
+        const fontSize = Math.max(7, Math.min(14, w / 14, h / 3.4));
+        if (w < 58 || h < 28) return;
+        const charsPerLine = Math.max(3, Math.floor((w - 18) / (fontSize * 0.58)));
+        const maxLines = Math.max(1, Math.floor((h - 8) / (fontSize * 1.15)));
+        const lines = [];
+        let current = "";
+        node.data.user.split(/\s+/).forEach((word) => {
+            if (word.length > charsPerLine) {
+                if (current) { lines.push(current); current = ""; }
+                lines.push(word.slice(0, charsPerLine));
+            } else if (!current) current = word;
+            else if (`${current} ${word}`.length <= charsPerLine) current += ` ${word}`;
+            else { lines.push(current); current = word; }
         });
-        bars.transition("composition-enter").duration(reducedMotion.matches ? 0 : 650)
-            .attr("y", (row) => y(row.y1)).attr("height", (row) => Math.max(0, y(row.y0) - y(row.y1)));
+        if (current) lines.push(current);
+        const visibleLines = lines.slice(0, maxLines);
+        const label = labelLayer.append("text").attr("class", "treemap-tile-label")
+            .attr("x", node.x0 + 9).attr("y", node.y0 + fontSize + 4)
+            .attr("clip-path", `url(#${clipId})`).attr("font-size", fontSize);
+        visibleLines.forEach((line, lineIndex) => label.append("tspan")
+            .attr("x", node.x0 + 9).attr("dy", lineIndex ? "1.15em" : null).text(line));
+        if (h > fontSize * (visibleLines.length + 2) && w > 64) label.append("tspan")
+            .attr("x", node.x0 + 9).attr("dy", "1.25em").attr("class", "treemap-tile-value")
+            .text(numberFormat.format(node.data.value));
+    });
+    tiles.filter((node) => node.data.user === selectedRoadUser).select("rect").attr("stroke", "#111").attr("stroke-width", 4);
+    revealChart(svg);
+}
 
-        const legend = document.createElement("div");
-        legend.className = "composition-legend";
-        users.forEach((user) => {
-            const item = document.createElement("span");
-            item.className = "trend-legend-item";
-            const swatch = document.createElement("span");
-            swatch.className = "composition-swatch";
-            swatch.style.backgroundColor = color(user);
-            swatch.setAttribute("aria-hidden", "true");
-            const label = document.createElement("span");
-            label.textContent = user;
-            item.append(swatch, label);
-            legend.append(item);
-        });
-        container.append(legend);
-        revealChart(svg);
-    }
+function renderBars() {
+    const container = document.getElementById("jurisdiction-user-bars-chart");
+    const empty = document.getElementById("jurisdiction-user-bars-empty");
+    if (!container || !empty) return;
+    clearChart(container);
+    const note = document.getElementById("jurisdiction-user-bars-note");
+    const stateRows = data.state.filter((row) => (!filters.state || row.state.toUpperCase() === filters.state.toUpperCase()) && row.user === selectedRoadUser);
+    const yearly = d3.rollups(stateRows, (rows) => rows.some((row) => row.suppressed || row.value === null)
+        ? null : d3.sum(rows, (row) => row.value), (row) => row.year)
+        .map(([year, value]) => ({ year, value })).sort((a, b) => b.year - a.year).filter((row) => row.value !== null);
+    const place = filters.state ? fullStateName(filters.state) : "all jurisdictions";
+    if (note) note.textContent = `${selectedRoadUser} annual recorded counts for ${place}. 2021 appears first. A star marks a top-five yearly count. Select a treemap tile to change group; selecting a map region resets to pedal cyclist.`;
+    setEmptyState(empty, `No complete annual counts are available for ${selectedRoadUser} in this selection.`, !yearly.length);
+    if (!yearly.length) return;
+    const width = chartWidth(container), height = 360;
+    const margin = { top: 18, right: 74, bottom: 30, left: 62 };
+    const max = d3.max(yearly, (row) => row.value) || 1;
+    const x = d3.scaleLinear().domain([0, max * 1.08]).nice().range([margin.left, width - margin.right]);
+    const y = d3.scaleBand().domain(yearly.map((row) => row.year)).range([margin.top, height - margin.bottom]).padding(0.2);
+    const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img").attr("aria-label", `Horizontal bars of ${selectedRoadUser} hospitalisations by year for ${place}`);
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).ticks(5).tickFormat((value) => numberFormat.format(value)));
+    svg.append("g").attr("class", "grid").attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).ticks(5).tickSize(-(height - margin.top - margin.bottom)).tickFormat("")).lower();
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y));
+    const topYears = new Set([...yearly].sort((a, b) => b.value - a.value).slice(0, 5).map((row) => row.year));
+    const bars = svg.selectAll(".jurisdiction-year-bar").data(yearly).join("rect")
+        .attr("class", "bar jurisdiction-year-bar").attr("x", x(0)).attr("y", (row) => y(row.year))
+        .attr("height", y.bandwidth()).attr("width", 0).attr("rx", 3)
+        .attr("fill", (row) => topYears.has(row.year) ? "var(--series-vermilion)" : "var(--chart-primary)")
+        .attr("tabindex", 0).attr("role", "img").attr("opacity", 1)
+        .attr("aria-label", (row) => `${row.year}: ${numberFormat.format(row.value)} ${selectedRoadUser} hospitalisations`);
+    attachTooltip(bars, (row) => `${row.year}: ${numberFormat.format(row.value)} recorded ${selectedRoadUser} hospitalisations`);
+    const valueLabels = svg.selectAll(".jurisdiction-year-value").data(yearly).join("text")
+        .attr("class", (row) => `bar-value jurisdiction-year-value${topYears.has(row.year) ? " is-top-five" : ""}`)
+        .attr("data-mark", (row) => row.year)
+        .attr("x", (row) => x(row.value) + 7).attr("y", (row) => y(row.year) + y.bandwidth() / 2 + 4)
+        .text((row) => `${numberFormat.format(row.value)}${topYears.has(row.year) ? " \u2605" : ""}`);
+    bars.on("pointerenter.bar-focus focus.bar-focus", (_, row) => {
+        valueLabels.interrupt("bar-focus").transition("bar-focus").duration(duration(140))
+            .style("opacity", (datum) => datum.year === row.year ? 1 : 0);
+    }).on("pointerleave.bar-focus blur.bar-focus", () => {
+        valueLabels.interrupt("bar-focus").transition("bar-focus").duration(duration(160)).style("opacity", 1);
+    });
+    bars.transition("horizontal-bar-enter").duration(duration(700)).ease(d3.easeCubicOut).attr("width", (row) => x(row.value) - x(0));
+    revealChart(svg);
+}
+
+export function renderRoadUserComposition() {
+    const layout = document.getElementById("jurisdiction-visual-pair");
+    if (layout) layout.classList.toggle("has-jurisdiction", hasChosenJurisdiction);
+    renderJurisdictionMap();
+    renderTreemap();
+    renderBars();
+}

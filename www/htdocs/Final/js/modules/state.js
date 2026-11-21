@@ -172,7 +172,8 @@ export const annotationLabels = {
         years.filter((year) => Number(year) > 2011).forEach((year) => yearSelect.add(new Option(year, year)));
         yearSelect.value = filters.year === "" ? "all" : filters.year;
         if (!yearSelect.value) yearSelect.value = "all";
-        updateSelect(document.getElementById("state-filter"), states, "All jurisdictions", filters.state, fullStateName);
+        const stateSelect = document.getElementById("state-filter");
+        if (stateSelect) updateSelect(stateSelect, states, "All jurisdictions", filters.state, fullStateName);
         updateSelect(document.getElementById("user-filter"), users, "Choose a road-user group", filters.user);
         const demographicYears = [...new Set(data.demographic.map((row) => row.year))].sort((a, b) => a - b).map(String);
         updateSelect(document.getElementById("demographic-year-filter"), demographicYears, "All Years Total (2011\u20132021)", filters.demographicYear);
@@ -180,7 +181,7 @@ export const annotationLabels = {
         userSelect.options[0].disabled = true;
         if (!userSelect.value && users.length) userSelect.value = users.includes("Pedal cyclist") ? "Pedal cyclist" : users[0];
         filters.year = document.getElementById("year-filter").value;
-        filters.state = document.getElementById("state-filter").value;
+        if (stateSelect) filters.state = stateSelect.value;
         filters.user = document.getElementById("user-filter").value;
         filters.demographicYear = document.getElementById("demographic-year-filter").value;
     }
@@ -367,15 +368,25 @@ export const annotationLabels = {
         const emphasize = function () {
             const active = this;
             const series = active.getAttribute("data-series");
-            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-point, .point-value, .trajectory-label")
+            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label")
                 .interrupt("series-focus")
                 .transition("series-focus")
                 .duration(reducedMotion.matches ? 0 : 180)
-                .style("opacity", function () { return this.getAttribute("data-series") === series ? 1 : 0; })
-                .style("pointer-events", function () { return this.classList.contains("series-line") && this.getAttribute("data-series") === series ? "stroke" : "none"; });
+                .style("opacity", function () {
+                    const ownSeries = this.getAttribute("data-series");
+                    return ownSeries === "National" || ownSeries === series ? 1 : 0;
+                })
+                .style("pointer-events", function () {
+                    const ownSeries = this.getAttribute("data-series");
+                    if (ownSeries !== "National" && ownSeries !== series) return "none";
+                    if (this.classList.contains("series-line")) return "stroke";
+                    if (this.classList.contains("series-area")) return "visiblePainted";
+                    if (this.classList.contains("series-point")) return "visiblePainted";
+                    return "none";
+                });
         };
         const restore = function () {
-            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-point, .point-value, .trajectory-label")
+            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label")
                 .interrupt("series-focus")
                 .transition("series-focus")
                 .duration(reducedMotion.matches ? 0 : 220)
@@ -406,7 +417,8 @@ export const annotationLabels = {
     }
     export function bindFilterListeners(handlers) {
         document.getElementById("year-filter").addEventListener("change", (event) => { filters.year = event.target.value; handlers.onYear(); });
-        document.getElementById("state-filter").addEventListener("change", (event) => { filters.state = event.target.value; handlers.onState(); });
+        const stateSelect = document.getElementById("state-filter");
+        if (stateSelect) stateSelect.addEventListener("change", (event) => { filters.state = event.target.value; handlers.onState(); });
         document.getElementById("user-filter").addEventListener("change", (event) => { filters.user = event.target.value; handlers.onUser(); });
         document.getElementById("demographic-year-filter").addEventListener("change", (event) => { filters.demographicYear = event.target.value; handlers.onDemographicYear(); });
         document.getElementById("reset-filters").addEventListener("click", () => {

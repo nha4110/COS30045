@@ -122,14 +122,14 @@
                     <section class="relative-change-trend" aria-labelledby="road-user-trend-title">
                         <header class="chapter-heading trend-chapter-heading">
                             <h2 id="road-user-trend-title" tabindex="0">Did the focused group rise faster?</h2>
-                            <p class="chapter-deck">Both series begin at the selected base year. The indexed view shows how the focused group compares with the national trend.</p>
+                            <p class="chapter-deck">Both series are indexed to the selected base year (100). The focused group is shown as a shaded area; the dashed National trend stays visible for comparison.</p>
                         </header>
                         <div class="trend-chart-heading">
                             <p id="road-user-trend-unit" class="chart-data-note"></p>
                             <div id="road-user-trend-legend" class="trend-legend" role="group" aria-label="Road-user trend series"></div>
                         </div>
                         <div id="road-user-trend-chart" class="chart-wrap step-chart-wrap" role="group" aria-labelledby="road-user-trend-title" aria-describedby="road-user-trend-description"></div>
-                        <p id="road-user-trend-description" class="chart-description">These indices describe changes in counts, not population-adjusted rates.</p>
+                        <p id="road-user-trend-description" class="chart-description">Hover a series to highlight it. The National line remains visible as a reference. An index of 100 marks the selected base year; changes show recorded counts, not population-adjusted rates.</p>
                         <p id="road-user-trend-empty" class="empty-state" hidden></p>
                     </section>
                 </div>
@@ -150,6 +150,12 @@
                     <select id="demographic-year-filter"><option value="">All Years Total (2011&ndash;2021)</option></select>
                 </label>
 
+                <section class="age-trajectory-panel" aria-labelledby="age-trajectory-title">
+                    <h3 id="age-trajectory-title">Age-group area chart by sex</h3>
+                    <p class="chart-description">Recorded pedal cyclist hospitalisations by age group. Male counts form the lower red area; Female counts form the blue area above it.</p>
+                    <div id="age-sex-trajectory-chart" class="chart-wrap" role="group" aria-labelledby="age-trajectory-title" aria-describedby="age-trajectory-description"></div>
+                    <p id="age-trajectory-description" class="chart-description">The filled areas show recorded counts, not rates. Suppressed age and sex counts are left out.</p>
+                </section>
                 <div class="demographic-view">
                     <div class="unified-sex-layout">
                         <div id="cyclist-sex-chart" class="chart-wrap unified-sex-donut" role="group" aria-label="Cyclist hospitalisations by sex; click a segment to view age groups"></div>
@@ -161,41 +167,35 @@
                     <div id="ratio-legend" class="ratio-legend" role="group" aria-label="Pictorial fraction legend"></div>
                     <div id="sex-ratio-chart" class="chart-wrap" role="img" aria-label="Horizontal comparison using Male circles and Female squares"></div>
                 </section>
-                <section class="age-trajectory-panel" aria-labelledby="age-trajectory-title">
-                    <h3 id="age-trajectory-title">Age-group trajectory by sex</h3>
-                    <p class="chart-description">Male and Female hospitalisations peak in the 40&ndash;64 age group. Values are recorded counts, not rates.</p>
-                    <div id="age-sex-trajectory-chart" class="chart-wrap" role="group" aria-labelledby="age-trajectory-title" aria-describedby="age-trajectory-description"></div>
-                    <p id="age-trajectory-description" class="chart-description">Exact hospitalisation counts across age groups.</p>
-                </section>
             </article>
         </section>
 
         <section id="supplementary" class="story-chapter supplementary-panel" aria-labelledby="supplementary-title">
             <header class="chapter-heading">
                 <p class="eyebrow">STEP 4 &middot; PLACE &amp; COMMUNITY</p>
-                <h2 id="supplementary-title">Jurisdiction and First Nations records</h2>
-                <p class="chapter-deck">The First Nations trend comes from a separate file. Suppressed values remain unknown, not zero.</p>
+                <h2 id="supplementary-title">Road-user totals by jurisdiction</h2>
+                <p class="chapter-deck">Compare recorded hospitalisations across road-user groups. Suppressed values remain unknown and are excluded from tile totals.</p>
             </header>
             <p id="supplementary-data-status" class="chart-data-note"></p>
-            <div class="supplementary-controls">
-                <label id="state-filter-control" class="filter-control">
-                    <span>Jurisdiction &middot; state charts</span>
-                    <select id="state-filter"><option value="">All jurisdictions</option></select>
-                </label>
-            </div>
-            <section class="comparison-item">
-                <h3 id="first-nations-title">First Nations | Pedal cyclist</h3>
-                <p class="comparison-note">Recorded counts for the focused road-user group. Suppressed years are gaps, never zero.</p>
-                <div id="first-nations-chart" class="chart-wrap"></div>
-                <p id="first-nations-empty" class="empty-state" hidden></p>
-                <p id="first-nations-data-note" class="chart-data-note"></p>
+            <div class="jurisdiction-visual-pair map-first" id="jurisdiction-visual-pair">
+            <section class="comparison-item" aria-labelledby="jurisdiction-map-title">
+                <h3 id="jurisdiction-map-title">Australia jurisdiction map</h3>
+                <p class="comparison-note">Top five jurisdictions by known recorded total are highlighted. Select a state or territory to reveal its road-user composition.</p>
+                <div id="jurisdiction-map-chart" class="chart-wrap" role="group" aria-labelledby="jurisdiction-map-title"></div>
             </section>
             <section class="comparison-item" aria-labelledby="road-user-composition-title">
-                <h3 id="road-user-composition-title">Road-user composition across years</h3>
-                <p class="comparison-note">Stacked annual counts compare the known road-user categories. Years with suppressed category values are left as gaps.</p>
-                <button id="road-user-composition-back" class="text-button composition-back" type="button" hidden>Back to stacked chart</button>
+                <h3 id="road-user-composition-title">Road-user composition treemap</h3>
+                <p class="comparison-note">Recorded totals across all years for the selected jurisdiction. Select a tile to update the annual bar chart.</p>
                 <div id="road-user-composition-chart" class="chart-wrap" role="group" aria-labelledby="road-user-composition-title"></div>
                 <p id="road-user-composition-empty" class="empty-state" hidden></p>
+                <p id="road-user-composition-note" class="chart-data-note"></p>
+            </section>
+            </div>
+            <section class="comparison-item" aria-labelledby="jurisdiction-user-bars-title">
+                <h3 id="jurisdiction-user-bars-title">Annual totals by road-user group</h3>
+                <p id="jurisdiction-user-bars-note" class="comparison-note">The latest year appears first. Hover a bar to show its value and top-five marker.</p>
+                <div id="jurisdiction-user-bars-chart" class="chart-wrap" role="group" aria-labelledby="jurisdiction-user-bars-title"></div>
+                <p id="jurisdiction-user-bars-empty" class="empty-state" hidden></p>
             </section>
         </section>
 

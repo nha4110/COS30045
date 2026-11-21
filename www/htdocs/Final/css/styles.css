@@ -36,6 +36,8 @@
     --series-vermilion: #b63e1a;
     --series-yellow: #805c00;
     --series-grey: #4d5963;
+    --trajectory-male-fill: #c62828;
+    --trajectory-female-fill: #1976d2;
     --heat-low: #dff3f2;
     --heat-high: #075b67;
     --chart-pattern-background: #dff3f2;
@@ -147,6 +149,8 @@
     --series-vermilion: #f07859;
     --series-yellow: #f0d45a;
     --series-grey: #cbd5e1;
+    --trajectory-male-fill: #ef625d;
+    --trajectory-female-fill: #55a9ff;
     --heat-low: #264b53;
     --heat-high: #c5f3ed;
     --chart-pattern-background: #264b53;
@@ -1315,8 +1319,45 @@ h2:focus-visible {
 .age-trajectory-panel h3 { color: var(--navy); text-align: center; }
 #age-sex-trajectory-chart { width: 100%; max-width: none; min-height: 410px; }
 #age-sex-trajectory-chart > svg { display: block; width: 100%; height: auto; }
-.age-trajectory-value { fill: var(--chart-label); font-size: 0.72rem !important; font-weight: 700; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
 .age-trajectory-legend text { fill: var(--chart-label); font-size: 0.72rem; }
+.age-trajectory-area { stroke: var(--surface); stroke-width: 1.5px; fill-opacity: 0.88; }
+.age-trajectory-area.age-female { fill-opacity: 0.92; }
+.age-trajectory-legend rect { stroke: var(--surface); stroke-width: 1px; }
+.jurisdiction-region polygon { cursor: pointer; transition: filter 160ms ease, stroke-width 160ms ease; }
+.jurisdiction-region polygon:hover,
+.jurisdiction-region polygon:focus-visible { filter: brightness(1.12); stroke: var(--focus-ring); stroke-width: 5px !important; outline: none; }
+.jurisdiction-map-label { fill: #fff; stroke: #102a43; stroke-width: 3px; paint-order: stroke; stroke-linejoin: round; font-size: 15px; font-weight: 800; pointer-events: none; }
+.jurisdiction-map-callout { fill: var(--chart-label); stroke: var(--surface); stroke-width: 4px; font-size: 10px; }
+.chart-wrap svg text.jurisdiction-map-label { fill: #fff; }
+.chart-wrap svg text.jurisdiction-map-callout { fill: var(--chart-label); }
+.jurisdiction-map-legend text { fill: var(--chart-label); font-size: 11px; }
+.road-user-tile { cursor: pointer; }
+.road-user-tile rect:focus-visible { stroke: var(--focus-ring) !important; stroke-width: 4px !important; outline: none; }
+.treemap-tile-label { fill: #fff; font-weight: 750; paint-order: stroke; stroke: #000; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.chart-wrap svg text.treemap-tile-label { fill: #fff; }
+.treemap-tile-value { font-weight: 600; }
+.jurisdiction-year-value { fill: var(--chart-label); font-size: 11px; font-weight: 700; }
+.jurisdiction-year-value { pointer-events: none; }
+.jurisdiction-year-value.is-top-five { fill: var(--series-vermilion); }
+.chart-wrap .series-area { fill-opacity: 0.22; stroke: var(--chart-primary); stroke-width: 2.2; }
+.trend-legend-area { height: 10px; border: 0; border-radius: 2px; opacity: 0.72; }
+.jurisdiction-visual-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1280px; margin: 1.2rem auto 0; align-items: start; }
+.supplementary-panel .jurisdiction-visual-pair > .comparison-item { width: auto; max-width: none; min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--card-nested-border); border-radius: 7px; background: var(--card-nested-background); }
+.jurisdiction-visual-pair.map-first { grid-template-columns: minmax(0, 1fr); }
+.jurisdiction-visual-pair.map-first > [aria-labelledby="road-user-composition-title"] { display: none; }
+.jurisdiction-visual-pair.has-jurisdiction { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.jurisdiction-visual-pair.has-jurisdiction > [aria-labelledby="road-user-composition-title"] { display: block; animation: treemap-pop-in 500ms cubic-bezier(.2,.75,.25,1) both; transform-origin: left center; }
+@keyframes treemap-pop-in { from { opacity: 0; transform: scale(.93) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.jurisdiction-visual-pair .comparison-note { min-height: 3.2em; }
+.jurisdiction-visual-pair .chart-wrap { min-height: 400px; }
+.jurisdiction-visual-pair .chart-wrap > svg { display: block; width: 100%; height: auto; }
+.jurisdiction-year-bar { transition: opacity 140ms ease; }
+:root:not([data-theme="dark"]) .age-trajectory-panel .grid line { stroke: #111; stroke-opacity: 0.46; }
+:root:not([data-theme="dark"]) .age-trajectory-panel .axis path,
+:root:not([data-theme="dark"]) .age-trajectory-panel .axis line { stroke: #111; }
+:root:not([data-theme="dark"]) .age-trajectory-panel .axis text,
+:root:not([data-theme="dark"]) .age-trajectory-value { fill: #111 !important; }
+.age-trajectory-value { fill: var(--chart-label); font-size: 11px !important; font-weight: 800; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 
 .trend-chart-heading {
     display: flex;
@@ -1440,6 +1481,14 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 .donut-center-hit-target:focus-visible { stroke: var(--chart-primary); stroke-width: 3px; }
 .donut-center-instruction { fill: var(--muted); font-size: 0.62rem; font-weight: 600; }
 .donut-leader-line.is-active { stroke: var(--donut-leader); stroke-width: 3.5px; }
+
+@media (max-width: 900px) {
+    .jurisdiction-visual-pair,
+    .jurisdiction-visual-pair.has-jurisdiction { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .jurisdiction-visual-pair.has-jurisdiction > [aria-labelledby="road-user-composition-title"] { animation: none; }
+}
 .donut-leader-label.is-active { fill: var(--chart-primary); font-weight: 850; }
 
 .story-callout {

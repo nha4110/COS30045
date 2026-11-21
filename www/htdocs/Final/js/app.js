@@ -16,7 +16,7 @@ import {
     renderRoadUserBars,
     renderRoadUserTrends
 } from "./modules/roadUserCharts.js";
-import { renderFirstNationsTrend, renderRoadUserComposition } from "./modules/supplementaryCharts.js";
+import { renderRoadUserComposition } from "./modules/supplementaryCharts.js";
 
 function renderAll() {
     hideTooltip();
@@ -25,7 +25,6 @@ function renderAll() {
     renderDemographics();
     renderRoadUserBars();
     renderRoadUserTrends();
-    renderFirstNationsTrend();
     renderRoadUserComposition();
 }
 
@@ -42,11 +41,11 @@ function renderRoadUser() {
     renderDemographics();
     renderRoadUserBars();
     renderRoadUserTrends();
-    renderFirstNationsTrend();
 }
 
 function renderJurisdiction() {
     hideTooltip();
+    renderRoadUserComposition();
 }
 
 function renderDemographicYear() {
@@ -72,12 +71,6 @@ function bindContextualFilterBar() {
             href: "#demographic-title",
             sources: [document.getElementById("demographic-year-filter")]
         },
-        {
-            section: document.getElementById("supplementary"),
-            name: "Step 4 - Place and community",
-            href: "#supplementary-title",
-            sources: [document.getElementById("state-filter")]
-        }
     ];
     let activeZone = null;
 
@@ -185,9 +178,8 @@ async function start() {
     });
 
     const suppressedStateRows = data.state.filter((row) => row.suppressed).length;
-    const suppressedFirstNationsRows = data.firstNations.filter((row) => row.suppressed).length;
     document.getElementById("supplementary-data-status").textContent =
-        `Across the complete CSVs, ${suppressedStateRows} state records and ${suppressedFirstNationsRows} First Nations records are suppressed. They remain unknown, not zero. The visible selection may contain fewer suppressed records.`;
+        `Across the complete state CSV, ${suppressedStateRows} records are suppressed. They remain unknown, not zero. The visible selection may contain fewer suppressed records.`;
 
     setStatus(messages);
     updateFilters();

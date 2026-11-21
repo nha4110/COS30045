@@ -1,5 +1,5 @@
 import {
-    d3, data, filters, numberFormat, chartWidth, clearChart, reducedMotion, attachSeriesHover
+    d3, data, filters, numberFormat, chartWidth, clearChart, reducedMotion, attachTooltip
 } from "./state.js";
 
 const AGE_GROUPS = ["0-7", "8-16", "17-25", "26-39", "40-64", "65-74", "75+"];
@@ -36,11 +36,16 @@ export function renderAgeSexTrajectory() {
         return { sex, age, value: sumKnown(rows) };
     }));
     const width = chartWidth(container);
-    const height = 410;
-    const margin = { top: 52, right: 48, bottom: 62, left: 88 };
-    const x = d3.scalePoint().domain(AGE_GROUPS).range([margin.left, width - margin.right]).padding(0.3);
-    const maximum = d3.max(values, (d) => d.value || 0) || 1;
-    const y = d3.scaleLinear().domain([0, maximum * 1.2]).nice().range([height - margin.bottom, margin.top]);
+    const height = 430;
+    const margin = { top: 48, right: 30, bottom: 62, left: 88 };
+    const x = d3.scalePoint().domain(AGE_GROUPS).range([margin.left, width - margin.right]).padding(0.24);
+    const byAge = AGE_GROUPS.map((age) => {
+        const male = values.find((row) => row.age === age && row.sex === "Male")?.value;
+        const female = values.find((row) => row.age === age && row.sex === "Female")?.value;
+        return { age, Male: male, Female: female, known: male !== null && male !== undefined && female !== null && female !== undefined };
+    });
+    const maximum = d3.max(byAge, (row) => row.known ? row.Male + row.Female : 0) || 1;
+    const y = d3.scaleLinear().domain([0, maximum * 1.12]).nice().range([height - margin.bottom, margin.top]);
     const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
         .attr("role", "img").attr("aria-label", "Male and Female pedal cyclist hospitalisations by age group");
     svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x));
@@ -49,34 +54,51 @@ export function renderAgeSexTrajectory() {
     svg.append("g").attr("class", "grid").attr("transform", `translate(${margin.left},0)`)
         .call(d3.axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat("")).lower();
 
-    const colors = { Male: "var(--age-male-line)", Female: "var(--age-female-line)" };
-    SEXES.forEach((sex, index) => {
-        const series = values.filter((d) => d.sex === sex && d.value !== null);
-        const line = d3.line().x((d) => x(d.age)).y((d) => y(d.value)).curve(d3.curveMonotoneX);
-        const path = svg.append("path").datum(series).attr("class", `series-line age-trajectory-line age-${sex.toLowerCase()}`)
-            .attr("data-series", sex).attr("stroke", colors[sex])
-            .attr("stroke-dasharray", index ? "7 4" : null)
-            .attr("d", d3.line().x((d) => x(d.age)).y(() => y(0)).curve(d3.curveMonotoneX));
-        attachSeriesHover(path);
-        path.transition("trajectory-enter").duration(duration(620)).attr("d", line);
-        const points = svg.append("g").selectAll(`.age-point-${sex.toLowerCase()}`).data(series).join("path")
-            .attr("class", "age-trajectory-point focusable-mark").attr("tabindex", 0).attr("role", "img")
-            .attr("aria-label", (d) => `${sex}, age ${d.age}: ${numberFormat.format(d.value)}`)
-            .attr("transform", (d) => `translate(${x(d.age)},${y(d.value)})`)
-            .attr("d", d3.symbol().type(index ? d3.symbolSquare : d3.symbolCircle).size(62)())
-            .attr("fill", colors[sex]).attr("stroke", "var(--surface)").attr("stroke-width", 1.5);
-        points.append("title").text((d) => `${sex}, ${d.age}: ${numberFormat.format(d.value)}`);
-        svg.append("g").selectAll(`.age-value-${sex.toLowerCase()}`).data(series).join("text")
-            .attr("class", "age-trajectory-value").attr("data-series", sex)
-            .attr("x", (d) => x(d.age)).attr("y", (d) => y(d.value) + (index ? 20 : -12))
-            .attr("text-anchor", "middle").text((d) => numberFormat.format(d.value));
+    const colors = { Male: "var(--trajectory-male-fill)", Female: "var(--trajectory-female-fill)" };
+    const stack = d3.stack().keys(SEXES).value((row, key) => row.known ? row[key] : 0)(byAge);
+    const area = d3.area().defined((row) => row.data.known).x((row) => x(row.data.age))
+        .y0((row) => y(row[0])).y1((row) => y(row[1])).curve(d3.curveLinear);
+    const areaBaseline = d3.area().defined((row) => row.data.known).x((row) => x(row.data.age))
+        .y0(y(0)).y1(y(0)).curve(d3.curveLinear);
+    const valuePoints = SEXES.flatMap((sex) => byAge.filter((row) => row.known).map((row) => ({
+        sex, age: row.age, value: row[sex], plotted: sex === "Male" ? row.Male : row.Male + row.Female
+    })));
+    const emphasizeValues = (sex) => svg.selectAll(".age-trajectory-value").interrupt("age-value-focus")
+        .transition("age-value-focus").duration(duration(150)).style("opacity", (row) => row.sex === sex ? 1 : 0);
+    const restoreValues = () => svg.selectAll(".age-trajectory-value").interrupt("age-value-focus")
+        .transition("age-value-focus").duration(duration(180)).style("opacity", 1);
+    stack.forEach((series) => {
+        const path = svg.append("path").datum(series)
+            .attr("class", `age-trajectory-area age-${series.key.toLowerCase()}`)
+            .attr("fill", colors[series.key]).attr("data-series", series.key).attr("tabindex", 0).attr("role", "img")
+            .attr("aria-label", `${series.key} recorded cyclist hospitalisations by age group`)
+            .on("pointerenter.age-values focus.age-values", () => emphasizeValues(series.key))
+            .on("pointerleave.age-values blur.age-values", restoreValues)
+            .attr("d", areaBaseline);
+        path.append("title").text(`${series.key} hospitalisations; area is stacked by sex`);
+        path.transition("age-area-enter").duration(duration(620)).ease(d3.easeCubicOut).attr("d", area);
     });
+    const points = svg.selectAll(".age-trajectory-point").data(valuePoints).join("circle")
+        .attr("class", "age-trajectory-point focusable-mark").attr("tabindex", 0).attr("role", "img")
+        .attr("cx", (row) => x(row.age)).attr("cy", (row) => y(row.plotted)).attr("r", 4)
+        .attr("fill", (row) => colors[row.sex]).attr("stroke", "var(--surface)").attr("stroke-width", 1.5).attr("opacity", 0)
+        .attr("aria-label", (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} hospitalisations`)
+        .on("pointerenter.age-values focus.age-values", (_, row) => emphasizeValues(row.sex))
+        .on("pointerleave.age-values blur.age-values", restoreValues);
+    points.transition("age-point-enter").duration(duration(500)).delay((_, index) => index * 24).attr("opacity", 1);
+    attachTooltip(points, (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} recorded hospitalisations`);
+    const valueLabels = svg.selectAll(".age-trajectory-value").data(valuePoints).join("text")
+        .attr("class", "age-trajectory-value").attr("data-series", (row) => row.sex)
+        .attr("x", (row) => x(row.age)).attr("y", (row) => y(row.plotted) - 9)
+        .attr("text-anchor", "middle").attr("opacity", 0).text((row) => numberFormat.format(row.value))
+        .on("pointerenter.age-values focus.age-values", (_, row) => emphasizeValues(row.sex))
+        .on("pointerleave.age-values blur.age-values", restoreValues);
+    valueLabels.transition("age-value-enter").duration(duration(500)).delay((_, index) => index * 24).attr("opacity", 1);
     const legend = svg.append("g").attr("class", "age-trajectory-legend")
         .attr("transform", `translate(${width / 2 - 70},18)`);
     SEXES.forEach((sex, index) => {
         const item = legend.append("g").attr("transform", `translate(${index * 100},0)`);
-        item.append("line").attr("x1", 0).attr("x2", 18).attr("stroke", colors[sex])
-            .attr("stroke-width", 2.5).attr("stroke-dasharray", index ? "6 3" : null);
+        item.append("rect").attr("width", 18).attr("height", 10).attr("y", -5).attr("rx", 2).attr("fill", colors[sex]);
         item.append("text").attr("x", 23).attr("y", 4).text(sex);
     });
 }
