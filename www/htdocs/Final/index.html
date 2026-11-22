@@ -59,7 +59,7 @@
                     <select id="user-filter" aria-describedby="filter-scope-note"><option value="Pedal cyclist">Pedal cyclist</option></select>
                 </label>
             </div>
-            <p id="filter-scope-note" class="filter-note">The comparison year updates the change chart, summary cards and jurisdiction heatmap. Road user sets the focused group. Age &amp; sex has a separate period selector; trend charts retain the full time series.</p>
+            <p id="filter-scope-note" class="filter-note">The comparison year updates the change chart, summary cards and jurisdiction heatmap. Road user sets the focused group. Age &amp; sex has a separate period selector; trend charts retain the full time series. The additional national bar comparison stays fixed at 2011 and 2021.</p>
         </section>
 
         <div id="data-status" class="status-banner" role="status" aria-live="polite" hidden></div>
@@ -208,13 +208,13 @@
                         <p id="first-nations-data-note" class="chart-data-note"></p>
                     </section>
                 </div>
-                <details class="additional-trends"><summary>More time-series comparisons<span>Road users and jurisdictions</span></summary>
+                <details class="additional-trends"><summary>More comparisons<span>Road-user counts and jurisdiction trends</span></summary>
                 <div class="comparison-grid supplementary-chart-stack supplementary-extra-grid">
                     <section class="comparison-item" aria-labelledby="road-user-series-title">
-                        <h3 id="road-user-series-title">How each road-user series changed</h3>
-                        <p class="comparison-note">National annual counts, 2011–2021. Line patterns and marker shapes distinguish categories; breaks remain gaps.</p>
-                        <div id="road-user-series-chart" class="chart-wrap" role="group" aria-labelledby="road-user-series-title"></div>
-                        <p id="road-user-series-empty" class="empty-state" hidden>No complete road-user series are available.</p>
+                        <h3 id="road-user-series-title">How did hospitalisations change across road users?</h3>
+                        <p id="road-user-comparison-description" class="comparison-note">Two bars per group compare 2011 (grey) with 2021 (blue). Groups are sorted by the 2021 count. This national comparison is fixed and does not change with the filters.</p>
+                        <div id="road-user-series-chart" class="chart-wrap" role="group" aria-labelledby="road-user-series-title" aria-describedby="road-user-comparison-description"></div>
+                        <p id="road-user-series-empty" class="empty-state" hidden>No road-user comparison data is available.</p>
                     </section>
                     <section class="comparison-item" aria-labelledby="state-trend-title">
                         <h3 id="state-trend-title">Jurisdiction trends for the focused group</h3>
@@ -232,7 +232,7 @@
             <summary>About the data, suppression and interpretation</summary>
             <div class="notes-content">
                 <p><strong>Source and scope:</strong> BITRE Hospitalised Injury, September 2023, based on AIHW data, 2011–2021. The KNIME outputs retain road-traffic cases and use hospitalisation counts excluding deaths under the source definition. Records describe cases, not necessarily unique people.</p>
-                <p><strong>How the comparisons work:</strong> Changes compare 2011 with the selected year. Percentage change is (comparison − baseline) / baseline × 100. The contribution card divides the focused group's count change by the national net count change; it is not a share of all cases. The indexed chart divides each annual count by its own 2011 count × 100. No index or percentage is shown when its denominator is zero or unavailable.</p>
+                <p><strong>How the comparisons work:</strong> Changes compare 2011 with the selected year. Percentage change is (comparison − baseline) / baseline × 100. The contribution card divides the focused group's count change by the national net count change; it is not a share of all cases. The indexed chart divides each annual count by its own 2011 count × 100. The additional paired bar chart compares the national counts in 2011 and 2021 for every road-user group, independently of the filters. No index or percentage is shown when its denominator is zero or unavailable.</p>
                 <p><strong>Counts and exposure:</strong> These are recorded counts, not rates per population, trip or kilometre. Changes may reflect population, travel exposure, reporting and other factors. They do not establish a change in crash risk or its cause.</p>
                 <p><strong>Reporting breaks:</strong> Victoria's series is not directly comparable with previous years from 2012; New South Wales' from June 2017. The national overview labels these jurisdiction-specific breaks. They must be considered when interpreting long-term changes.</p>
                 <p><strong>Suppressed and absent records:</strong> Suppressed annual totals are blank in the prepared CSVs if an input period was not published. They remain unknown, never zero. First Nations lines contain gaps at suppressed years; no changing mixture of published categories is plotted as a total. A combination absent from a CSV is not automatically assigned zero.</p>

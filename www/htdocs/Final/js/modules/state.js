@@ -319,7 +319,7 @@ export const annotationLabels = {
             "national-chart": 600, "age-chart": 640, "sex-chart": 320,
             "age-sex-line-chart": 500, "road-user-chart": 520,
             "road-user-trend-chart": 500, "state-chart": 720,
-            "first-nations-chart": 540, "road-user-series-chart": 600,
+            "first-nations-chart": 540, "road-user-series-chart": 740,
             "state-trend-chart": 600
         };
         const minimum = minimums[element.id] || 280;

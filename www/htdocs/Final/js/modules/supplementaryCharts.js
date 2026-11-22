@@ -146,56 +146,6 @@ import { d3, data, filters, selectedYear, rowsForUser, summarizeRows, setEmptySt
         animateMarks(rects);
         revealChart(svg);
     }
-    export function renderRoadUserSeries() {
-        const container = document.getElementById("road-user-series-chart");
-        const empty = document.getElementById("road-user-series-empty");
-        clearChart(container);
-        const years = [...new Set(data.national.map((row) => row.year))].sort((a, b) => a - b);
-        const users = [...new Set(data.national.map((row) => row.user))].sort((a, b) => a.localeCompare(b));
-        const series = users.map((user) => {
-            const rows = data.national.filter((row) => row.user === user);
-            const byYear = new Map(summarizeRows(rows, row => row.year).map(row => [row.key, {
-                value: row.suppressedCount ? null : row.value,
-                suppressed: row.suppressedCount > 0
-            }]));
-            return { user, values: years.map((year) => ({ year, ...(byYear.get(year) || { value: null, suppressed: false }) })) };
-        }).filter((item) => item.values.some((row) => row.value !== null));
-        setEmptyState(empty, "No complete road-user series are available.", !series.length);
-        if (!series.length) return;
-        const width = chartWidth(container), height = 330;
-        const margin = { top: 18, right: 18, bottom: 40, left: 64 };
-        const maxYear = d3.max(years), minYear = d3.min(years);
-        const x = d3.scaleLinear().domain(minYear === maxYear ? [minYear - 1, maxYear + 1] : [minYear, maxYear]).range([margin.left, width - margin.right]);
-        const y = d3.scaleLinear().domain([0, d3.max(series, (item) => d3.max(item.values, (row) => row.value || 0)) * 1.08]).nice().range([height - margin.bottom, margin.top]);
-        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-            .attr("aria-label", `Annual national hospitalisations by road-user group, ${minYear} to ${maxYear}`);
-        addAxes(svg, x, y, width, height, margin, "Hospitalisations");
-        const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value));
-        const legend = document.createElement("div"); legend.className = "series-legend"; legend.setAttribute("role", "group"); legend.setAttribute("aria-label", "Road-user series key");
-        series.forEach((item, index) => {
-            const color = SERIES_COLORS[index % SERIES_COLORS.length], dash = SERIES_DASHES[index % SERIES_DASHES.length];
-            const seriesPath = svg.append("path").datum(item.values).attr("class", "series-line").attr("stroke", color).attr("stroke-dasharray", dash)
-                .attr("aria-label", `${item.user} annual national counts`)
-                .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)));
-            seriesPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 300).attr("d", line);
-            attachSeriesHover(seriesPath);
-            const marks = svg.append("g").selectAll(".series-mark").data(item.values.filter((row) => row.value !== null)).join("path")
-                .attr("class", "series-point focusable-mark series-mark").attr("tabindex", 0).attr("role", "img")
-                .attr("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight")
-                .attr("aria-label", (row) => `${row.year}, ${item.user}: ${numberFormat.format(row.value)} recorded hospitalisations`)
-                .attr("transform", (row) => `translate(${x(row.year)},${y(row.value)})`)
-                .attr("d", d3.symbol().type(SERIES_SYMBOLS[index % SERIES_SYMBOLS.length]).size(44)())
-                .attr("fill", color).attr("stroke", "var(--surface)");
-            attachTooltip(marks, (row) => `${row.year}  ·  ${item.user}: ${numberFormat.format(row.value)} recorded hospitalisations`);
-            animateMarks(marks);
-            const key = document.createElement("span"); key.className = "series-legend-item";
-            const swatch = document.createElement("span"); swatch.className = "series-legend-line"; swatch.style.borderTopColor = color;
-            swatch.style.borderTopStyle = dash ? "dashed" : "solid"; swatch.setAttribute("aria-hidden", "true");
-            const label = document.createElement("span"); label.textContent = item.user; key.append(swatch, label); legend.append(key);
-        });
-        container.append(legend);
-        revealChart(svg);
-    }
     export function renderStateTrend() {
         const container = document.getElementById("state-trend-chart");
         const empty = document.getElementById("state-trend-empty");

@@ -9,9 +9,10 @@ import {
     updateSummary, renderRoadUserBars, renderRoadUserTrends
 } from "./modules/roadUserCharts.js";
 import {
-    renderStateHeatmap, renderRoadUserSeries,
+    renderStateHeatmap,
     renderStateTrend, renderFirstNationsTrend
 } from "./modules/supplementaryCharts.js";
+import { renderRoadUserSeries } from "./modules/roadUserComparison.js";
 import { initializeInterface, updateViewContext } from "./modules/interface.js";
 
 const renderErrors = new Map();
@@ -50,12 +51,21 @@ const roadTrends = () => draw(renderRoadUserTrends, "road-user-trend-chart");
 const heatmap = () => draw(renderStateHeatmap, "state-chart");
 const firstNations = () => draw(renderFirstNationsTrend, "first-nations-chart");
 
-function extraTrends() {
-    const disclosure = document.getElementById("road-user-series-chart")?.closest("details");
+function drawAdditional(render, targetId) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    const disclosure = target.closest("details");
     if (disclosure && !disclosure.open) return;
-    draw(renderRoadUserSeries, "road-user-series-chart");
-    draw(renderStateTrend, "state-trend-chart");
+    draw(render, targetId);
 }
+
+// The national endpoint comparison stays fixed at 2011 and 2021.
+const roadComparison = () =>
+    drawAdditional(renderRoadUserSeries, "road-user-series-chart");
+
+// Jurisdiction trends respond to the road-user and state filters.
+const stateTrends = () =>
+    drawAdditional(renderStateTrend, "state-trend-chart");
 
 function summary() {
     try {
@@ -83,7 +93,7 @@ function queueRenders(...renders) {
 }
 
 function renderAll() {
-    queueRenders(summary, national, demographics, roadBars, roadTrends, heatmap, firstNations, extraTrends);
+    queueRenders(summary, national, demographics, roadBars, roadTrends, heatmap, firstNations, roadComparison, stateTrends);
 }
 
 function renderComparisonYear() {
@@ -91,11 +101,11 @@ function renderComparisonYear() {
 }
 
 function renderRoadUser() {
-    queueRenders(summary, demographics, roadBars, roadTrends, firstNations, extraTrends);
+    queueRenders(summary, demographics, roadBars, roadTrends, firstNations, stateTrends);
 }
 
 function renderJurisdiction() {
-    queueRenders(heatmap, extraTrends);
+    queueRenders(heatmap, stateTrends);
 }
 
 function renderDemographicYear() {

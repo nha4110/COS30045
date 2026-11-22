@@ -1309,3 +1309,26 @@ html { scroll-padding-top: 0; }
  .responsive-chart-note { display: block; margin: -8px 0 18px; font-size: 0.78rem; color: var(--muted); }
  #demographics, #changes, #supplementary, #visualisations, #filters, #data-notes { scroll-margin-top: 155px; }
 }
+
+/* Paired national comparison: fixed 2011 and 2021 endpoints. */
+:root {
+    --comparison-baseline: #94a3b8;
+    --comparison-current: #0072b2;
+}
+:root[data-theme="dark"] {
+    --comparison-baseline: #94a3b8;
+    --comparison-current: #69c4ff;
+}
+#road-user-series-chart .road-comparison-svg { min-width: 740px; }
+#road-user-series-chart .paired-value {
+    fill: var(--chart-label);
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+}
+#road-user-series-chart .paired-mark:focus-visible { outline: none; }
+#road-user-series-chart .paired-mark:hover .paired-bar,
+#road-user-series-chart .paired-mark:focus-visible .paired-bar {
+    stroke: var(--focus-ring);
+    stroke-width: 2px;
+}
