@@ -59,7 +59,7 @@
                     <select id="user-filter" aria-describedby="filter-scope-note"><option value="Pedal cyclist">Pedal cyclist</option></select>
                 </label>
             </div>
-            <p id="filter-scope-note" class="filter-note">The comparison year updates the change chart, summary cards and jurisdiction heatmap. Road user sets the focused group. Age &amp; sex has a separate period selector; trend charts retain the full time series. The additional national bar comparison stays fixed at 2011 and 2021.</p>
+            <p id="filter-scope-note" class="filter-note">The comparison year updates the change chart, summary cards, jurisdiction heatmap and jurisdiction profiles. Road user sets the focused group. Age &amp; sex has a separate period selector; trend charts retain the full time series. The additional national bar comparison stays fixed at 2011 and 2021.</p>
         </section>
 
         <div id="data-status" class="status-banner" role="status" aria-live="polite" hidden></div>
@@ -181,7 +181,7 @@
                     </div>
                     <p id="comparison-year-label" class="chart-unit"></p>
                 </div>
-                <p id="comparative-chart-description" class="chart-description">The heatmap uses the comparison year above. The focused road user applies to First Nations and jurisdiction trends. Jurisdiction selection affects the two state views; demographic-period selection does not apply here.</p>
+                <p id="comparative-chart-description" class="chart-description">The heatmap uses the comparison year above. The focused road user applies to the First Nations trend and jurisdiction profiles. Jurisdiction selection affects the two state views; demographic-period selection does not apply here.</p>
                 <div class="supplementary-controls">
                     <label class="filter-control" for="state-filter"><span>Jurisdiction · state charts</span><select id="state-filter"><option value="">All jurisdictions</option></select></label>
                 </div>
@@ -208,7 +208,7 @@
                         <p id="first-nations-data-note" class="chart-data-note"></p>
                     </section>
                 </div>
-                <details class="additional-trends"><summary>More comparisons<span>Road-user counts and jurisdiction trends</span></summary>
+                <details class="additional-trends"><summary>More comparisons<span>Road-user counts and jurisdiction profiles</span></summary>
                 <div class="comparison-grid supplementary-chart-stack supplementary-extra-grid">
                     <section class="comparison-item" aria-labelledby="road-user-series-title">
                         <h3 id="road-user-series-title">How did hospitalisations change across road users?</h3>
@@ -217,10 +217,12 @@
                         <p id="road-user-series-empty" class="empty-state" hidden>No road-user comparison data is available.</p>
                     </section>
                     <section class="comparison-item" aria-labelledby="state-trend-title">
-                        <h3 id="state-trend-title">Jurisdiction trends for the focused group</h3>
-                        <p class="comparison-note">Annual counts by usual residence. Suppressed or absent state-years are gaps, not zero.</p>
-                        <div id="state-trend-chart" class="chart-wrap" role="group" aria-labelledby="state-trend-title"></div>
-                        <p id="state-trend-empty" class="empty-state" hidden>No jurisdiction trend records match this selection.</p>
+                        <h3 id="state-trend-title">Hospitalisations by jurisdiction</h3>
+                        <p id="state-comparison-context" class="jurisdiction-comparison-context"></p>
+                        <p id="state-comparison-description" class="comparison-note">Left: cases for the focused road user. Right: its share of all road-user cases in each jurisdiction. Both charts use the same state order. Shares require complete totals; they are not population-adjusted risk measures.</p>
+                        <div id="state-trend-chart" class="chart-wrap" role="group" aria-labelledby="state-trend-title" aria-describedby="state-comparison-description state-comparison-note"></div>
+                        <p id="state-comparison-note" class="chart-data-note"></p>
+                        <p id="state-trend-empty" class="empty-state" hidden>No jurisdiction records match this selection.</p>
                     </section>
 
                 </div>
@@ -368,6 +370,7 @@
                 <p><strong>Grouping and geography:</strong> Car driver, passenger and unknown-position records are combined as Car occupant; heavy-transport positions are combined similarly to align source categories. State data describe jurisdiction of usual residence. Australia totals also include residence unrecorded or migratory/offshore, so eight jurisdiction totals need not equal National.</p>
                 <p><strong>Age and sex:</strong> The source variable is sex. The labels Missing and intersex or indeterminate or missing are retained as supplied; the latter is not a separate estimate of intersex people. All source sex categories remain visible in the distribution chart or its data note. The demographic section compares all recorded sex categories; labels are retained as supplied.</p>
                 <p><strong>First Nations:</strong> The supplied CSV includes First Nations people only. It cannot support a First Nations versus Non-Indigenous rate comparison. Interpretation should respect Indigenous data governance and the limitations of source identification.</p>
+                <p><strong>Jurisdiction profiles:</strong> The count chart shows the selected road-user group in the selected year. The 100% stacked chart divides this count by the complete all-road-user total for the same jurisdiction and year. Shares are withheld when any expected road-user category is suppressed or absent, or the total is zero. Both charts keep the same count-based ordering. These shares describe recorded hospitalisations, not population-adjusted risk.</p>
                 <p><strong>International policy examples:</strong> The New York, Toronto and London studies use different outcomes, exposure measures and study periods. Their reported changes are contextual evidence, not forecasts or a policy-effect estimate derived from the BITRE dataset.</p>
                 <p class="source-note">Sources: <a href="https://www.bitre.gov.au/resource/road-safety/hospitalised-injury" target="_blank" rel="noopener noreferrer">BITRE hospitalised injury files and data dictionary</a>. Prepared data and KNIME processing are described in the accompanying README.</p>
             </div>

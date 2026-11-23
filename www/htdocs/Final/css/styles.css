@@ -1411,3 +1411,25 @@ html { scroll-padding-top: 0; }
 }
 
 #cycling-policies { scroll-margin-top: 90px; }
+
+/* Matched jurisdiction counts and 100% composition charts. */
+.jurisdiction-comparison-context { color: var(--navy-soft); font-size: 1rem; font-weight: 600; margin: 8px 0; }
+#state-trend-chart { min-width: 0; }
+#state-trend-chart .jurisdiction-pair-key { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin: 4px 0 20px; color: var(--chart-text); font-size: 14px; }
+#state-trend-chart .jurisdiction-pair-key > span { display: inline-flex; align-items: center; gap: 8px; }
+#state-trend-chart .jurisdiction-key-swatch { display: inline-block; width: 16px; height: 12px; flex-shrink: 0; }
+#state-trend-chart .jurisdiction-pair-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+#state-trend-chart .jurisdiction-pair-panel { min-width: 0; }
+#state-trend-chart h4 { color: var(--navy); font-size: 18px; margin: 0 0 5px; }
+#state-trend-chart .jurisdiction-panel-subtitle { color: var(--muted); font-size: 14px; margin: 0 0 12px; min-height: 44px; }
+#state-trend-chart .jurisdiction-plot { min-width: 0; overflow-x: auto; }
+#state-trend-chart .jurisdiction-plot svg { display: block; width: 100%; min-width: 260px; height: auto; }
+#state-trend-chart .jurisdiction-bar-label { fill: var(--chart-label); font-size: 14px; font-weight: 600; pointer-events: none; }
+#state-trend-chart .jurisdiction-axis-title { fill: var(--chart-text); font-size: 14px; }
+#state-trend-chart .axis text { font-size: 13px; }
+#state-trend-chart .jurisdiction-count-mark:focus-visible rect,
+#state-trend-chart .jurisdiction-share-mark:focus-visible rect { stroke: var(--focus-ring); stroke-width: 2px; }
+@media (max-width: 900px) {
+  #state-trend-chart .jurisdiction-pair-grid { grid-template-columns: 1fr; gap: 24px; }
+  #state-trend-chart .jurisdiction-panel-subtitle { min-height: 0; }
+}
