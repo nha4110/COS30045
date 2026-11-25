@@ -731,9 +731,6 @@ h2:focus-visible {
 .interactive-demographic-grid > section { min-width: 0; padding: 10px; border: 1px solid var(--card-nested-border); border-radius: 6px; background: var(--card-nested-background); }
 .interactive-demographic-grid .chart-wrap { min-height: 180px; }
 .ratio-label { margin: 5px 0; text-align: center; color: var(--navy) !important; font-weight: 750; }
-.policy-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 18px; }
-.policy-grid .notes-panel { padding: 18px 20px; }
-.policy-grid h2 { margin: 0 0 8px; }
 .chart-wrap > .chart-exit { z-index: 2; pointer-events: none; }
 .sex-count { fill: var(--navy); font-size: 1.15rem !important; font-weight: 800; }
 .sex-percent { fill: var(--muted) !important; font-size: var(--font-size-svg-small) !important; }
@@ -1401,8 +1398,6 @@ h2:focus-visible {
 .composition-swatch { width: 12px; height: 12px; flex: 0 0 12px; border: 1px solid var(--surface); border-radius: 2px; }
 .supplementary-panel .comparison-item { margin-top: 1.2rem; }
 .supplementary-panel .comparison-item .chart-wrap { min-height: 280px; }
-.policy-grid { grid-template-columns: 1fr; max-width: 1040px; margin-right: auto; margin-left: auto; }
-.policy-card + .policy-card { margin-top: 1rem; padding-top: 1.35rem; border-top: 1px solid var(--line); }
 
 .context-filter-bar {
     position: fixed;
@@ -1448,15 +1443,6 @@ h2:focus-visible {
     margin: 1rem auto;
 }
 
-.policy-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin: 2rem 0;
-    padding: 1.2rem 0 1.4rem;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-}
 
 html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 
@@ -1528,27 +1514,8 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.policy-card {
-    width: 100%;
-    max-width: 940px;
-    margin: 0 auto;
-    padding: 1.25rem 1.5rem;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    color: var(--ink);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
-    line-height: 1.75;
-}
 
-.policy-card h2 {
-    margin: 0 0 1rem;
-    font-size: 1.45rem;
-}
 
-.policy-card li {
-    margin: 0.5rem 0;
-}
 
 .editorial-notes {
     margin: 2rem 0 1rem;
@@ -1765,9 +1732,6 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
         padding-bottom: 1.4rem;
     }
 
-    .policy-grid {
-        grid-template-columns: 1fr;
-    }
 
     .context-filter-bar {
         top: 8px;
@@ -1781,10 +1745,6 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
     .sex-chart-slot { min-height: 340px; }
     .age-trajectory-value { font-size: 0.62rem !important; }
 
-    .policy-grid {
-        gap: 1rem;
-        margin: 3rem 0;
-    }
 }
 
 .relative-change-sidebar { order: -1; width: 100%; }
@@ -1808,3 +1768,93 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
         border-left: 0;
     }
 }
+
+/* Cycling policy evidence and illustrative street layouts. */
+#cycling-policies {
+    --cp-bg: var(--surface);
+    --cp-panel: var(--card-nested-background);
+    --cp-text: var(--navy);
+    --cp-muted: var(--chart-text);
+    --cp-border: var(--line);
+    --cp-road: var(--surface-code);
+    --cp-blue: var(--series-blue);
+    --cp-cycle: var(--heat-low);
+    --cp-line: var(--surface);
+    --cp-marker: var(--series-vermilion);
+    color: var(--cp-text);
+    padding: 28px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  #cycling-policies * { box-sizing: border-box; }
+  #cycling-policies .cp-kicker { color: var(--cp-blue); font-size: 14px; letter-spacing: .11em; font-weight: 600; }
+  #cycling-policies h2 { font-size: 25px; line-height: 1.2; margin: 9px 0; color: var(--cp-text); font-weight: 650; }
+  #cycling-policies .cp-heading p { margin: 0 0 22px; color: var(--cp-muted); }
+  #cycling-policies .cp-cases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  #cycling-policies .cp-case { display: flex; flex-direction: column; background: var(--cp-panel); border: 1px solid var(--cp-border); border-radius: 9px; padding: 22px; min-width: 0; }
+  #cycling-policies .cp-place { font-size: 12px; letter-spacing: .06em; color: var(--cp-muted); font-weight: 600; }
+  #cycling-policies h3 { color: var(--cp-text); font-size: 20px; line-height: 1.3; margin: 8px 0 16px; min-height: 44px; font-weight: 600; }
+  #cycling-policies figure { margin: 0 0 16px; }
+  #cycling-policies .cp-design { min-height: 240px; }
+  #cycling-policies .cp-stage { display: block; color: var(--cp-muted); font-size: 14px; margin-bottom: 6px; }
+  #cycling-policies .cp-road { background: var(--cp-road); border-radius: 4px; overflow: hidden; }
+  #cycling-policies .cp-shared { display: flex; justify-content: space-around; align-items: center; height: 44px; }
+  #cycling-policies .cp-road i, #cycling-policies .cp-road svg { width: 25px; height: 25px; color: var(--cp-text); flex-shrink: 0; }
+  #cycling-policies .cp-connection { display: flex; justify-content: center; margin: 5px 0; color: var(--cp-muted); }
+  #cycling-policies .cp-connection i, #cycling-policies .cp-connection svg { width: 17px; height: 17px; }
+  #cycling-policies .cp-protected { display: flex; flex-direction: column; }
+  #cycling-policies .cp-motor { display: flex; justify-content: space-around; align-items: center; height: 38px; }
+  #cycling-policies .cp-barrier { height: 6px; background: repeating-linear-gradient(90deg, var(--cp-muted) 0 9px, var(--cp-line) 9px 13px); }
+  #cycling-policies .cp-cycle { background: var(--cp-cycle); display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; }
+  #cycling-policies .cp-cycle span { font-size: 12px; }
+  #cycling-policies .cp-cycle i, #cycling-policies .cp-cycle svg { color: var(--cp-blue); width: 23px; height: 23px; }
+  #cycling-policies figcaption { color: var(--cp-muted); font-size: 12px; margin-top: 8px; }
+  #cycling-policies .cp-speed-area { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 105px; }
+  #cycling-policies .cp-speed-sign { height: 76px; width: 76px; border: 5px solid var(--cp-marker); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--cp-bg); font-size: 29px; line-height: 1; font-weight: 650; }
+  #cycling-policies .cp-speed-sign span { font-size: 12px; font-weight: 400; margin-top: 3px; }
+  #cycling-policies .cp-speed-caption { color: var(--cp-muted); font-size: 12px; }
+  #cycling-policies .cp-slow { margin-top: 8px; }
+  #cycling-policies .cp-result { display: flex; flex-direction: column; gap: 6px; margin-top: 0; padding-top: 14px; border-top: 1px solid var(--cp-border); }
+  #cycling-policies .cp-number { color: var(--cp-text); font-size: 36px; line-height: 1.15; font-weight: 650; letter-spacing: -.03em; }
+  #cycling-policies .cp-number span { font-size: 16px; font-weight: 400; letter-spacing: 0; }
+  #cycling-policies .cp-result-label { font-size: 16px; font-weight: 600; min-height: 44px; }
+  #cycling-policies .cp-result-note { color: var(--cp-muted); font-size: 14px; min-height: 38px; }
+  #cycling-policies .cp-control { color: var(--cp-muted); font-size: 12px; }
+  #cycling-policies .cp-evidence { margin-top: auto; padding-top: 16px; font-size: 14px; }
+  #cycling-policies summary { color: var(--cp-text); cursor: pointer; padding: 7px 0; }
+  #cycling-policies .cp-evidence p { color: var(--cp-muted); margin: 8px 0; }
+  #cycling-policies a { color: var(--cp-blue); text-decoration: underline; text-underline-offset: 3px; }
+  #cycling-policies .cp-footnote { color: var(--cp-muted); font-size: 14px; margin-top: 18px; }
+  @media (max-width: 900px) {
+    #cycling-policies .cp-cases { grid-template-columns: 1fr; }
+      #cycling-policies h3 { min-height: 0; }
+    #cycling-policies .cp-design { min-height: 0; }
+    #cycling-policies .cp-result-label, #cycling-policies .cp-result-note { min-height: 0; }
+  }
+
+#cycling-policies .policy-icon-definitions { position: absolute; width: 0; height: 0; overflow: hidden; }
+#cycling-policies .policy-icon { display: inline-block; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#cycling-policies .cp-heading > p { max-width: 85ch; font-size: 16px; }
+#cycling-policies .cp-evidence summary { font-size: 14px; font-weight: 600; }
+#cycling-policies .cp-evidence > div { padding: 0 0 8px; }
+#cycling-policies .cp-evidence a { display: inline-block; padding: 6px 0; }
+@media (max-width: 480px) {
+  #cycling-policies { padding: 18px 14px; }
+  #cycling-policies .cp-case { padding: 18px; }
+  #cycling-policies h2 { font-size: 23px; }
+}
+#cycling-policies { margin: 2.35rem 0; }
+#cycling-policies .cp-case > header { min-height: 100px; }
+#cycling-policies .cp-case { overflow-wrap: anywhere; }
+#cycling-policies .cp-design { display: flex; flex-direction: column; }
+#cycling-policies .cp-design figcaption { margin-top: auto; padding-top: 8px; }
+#cycling-policies .cp-evidence summary { min-height: 44px; }
+#cycling-policies summary:focus-visible, #cycling-policies a:focus-visible {
+    outline: 3px solid var(--focus-ring); outline-offset: 4px; border-radius: 3px;
+}
+@media (max-width: 900px) {
+    #cycling-policies .cp-case > header { min-height: 0; }
+    #cycling-policies .cp-design { min-height: 0; }
+}
+
