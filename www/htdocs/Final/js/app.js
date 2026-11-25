@@ -53,101 +53,6 @@ function renderDemographicYear() {
     renderDemographics();
 }
 
-function bindContextualFilterBar() {
-    const bar = document.getElementById("context-filter-bar");
-    const label = document.getElementById("context-filter-label");
-    const slot = document.getElementById("context-filter-control-slot");
-    const jump = document.getElementById("context-filter-jump");
-    const zones = [
-        {
-            section: document.querySelector("article[aria-labelledby='road-user-chart-title']"),
-            name: "Step 2 - Explore the change",
-            href: "#road-user-chart-title",
-            sources: [document.getElementById("year-filter"), document.getElementById("user-filter")]
-        },
-        {
-            section: document.querySelector(".demographic-comparison"),
-            name: "Step 3 year",
-            href: "#demographic-title",
-            sources: [document.getElementById("demographic-year-filter")]
-        },
-    ];
-    let activeZone = null;
-
-    function syncControl(zone) {
-        if (!zone?.clones) return;
-        zone.sources.forEach((source, index) => {
-            const clone = zone.clones[index];
-            const value = source.value;
-            clone.replaceChildren(...[...source.options].map((option) => option.cloneNode(true)));
-            clone.value = value;
-        });
-    }
-
-    function showZone(zone) {
-        activeZone = zone;
-        slot.replaceChildren();
-        if (!zone) {
-            bar.hidden = true;
-            return;
-        }
-
-        label.textContent = zone.name;
-        jump.href = zone.href;
-        jump.textContent = `Jump to ${zone.name}`;
-        zone.clones = zone.sources.map((source) => {
-            const controlLabel = document.createElement("label");
-            controlLabel.className = "context-filter-control";
-            const controlText = document.createElement("span");
-            controlText.textContent = source.closest("label").querySelector("span").textContent;
-            const clone = source.cloneNode(false);
-            clone.id = `context-${source.id}`;
-            controlLabel.htmlFor = clone.id;
-            controlLabel.append(controlText, clone);
-            slot.append(controlLabel);
-            return clone;
-        });
-        syncControl(zone);
-        zone.clones.forEach((clone, index) => clone.addEventListener("change", () => {
-            zone.sources[index].value = clone.value;
-            zone.sources[index].dispatchEvent(new Event("change", { bubbles: true }));
-        }));
-        bar.hidden = false;
-    }
-
-    function updateContext() {
-        const marker = window.innerHeight * 0.3;
-        const zone = zones.find(({ section }) => {
-            const bounds = section.getBoundingClientRect();
-            return bounds.top <= marker && bounds.bottom > marker;
-        }) || null;
-        if (zone === activeZone) return;
-        showZone(zone);
-    }
-
-    function refreshContextFilters() {
-        if (activeZone) syncControl(activeZone);
-    }
-
-    document.getElementById("context-reset-filters").addEventListener("click", () => {
-        document.getElementById("reset-filters").click();
-        refreshContextFilters();
-    });
-    zones.forEach((zone) => zone.sources.forEach((source) => source.addEventListener("change", refreshContextFilters)));
-
-    let scheduled = false;
-    window.addEventListener("scroll", () => {
-        if (scheduled) return;
-        scheduled = true;
-        window.requestAnimationFrame(() => {
-            scheduled = false;
-            updateContext();
-        });
-    }, { passive: true });
-    window.addEventListener("resize", updateContext, { passive: true });
-    updateContext();
-    return refreshContextFilters;
-}
 async function start() {
     initializeTheme(renderAll);
     document.addEventListener("keydown", handleChartArrowNavigation);
@@ -158,7 +63,7 @@ async function start() {
         onDemographicYear: renderDemographicYear,
         onReset: renderAll
     });
-    const refreshContextFilters = bindContextualFilterBar();
+    // Filters stay in their story sections; do not create the floating contextual bar.
 
     const results = await Promise.all(Object.entries(FILES).map(async ([kind, path]) => {
         try {
@@ -183,7 +88,6 @@ async function start() {
 
     setStatus(messages);
     updateFilters();
-    refreshContextFilters();
     renderAll();
 
     let resizeTimer;

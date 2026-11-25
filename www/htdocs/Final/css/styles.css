@@ -1324,6 +1324,9 @@ h2:focus-visible {
 .jurisdiction-region polygon:hover,
 .jurisdiction-region polygon:focus-visible { filter: brightness(1.12); stroke: var(--focus-ring); stroke-width: 5px !important; outline: none; }
 .jurisdiction-map-label { fill: #fff; stroke: #102a43; stroke-width: 3px; paint-order: stroke; stroke-linejoin: round; font-size: 15px; font-weight: 800; pointer-events: none; }
+.jurisdiction-map-description { margin: 1.53rem 0 5.1rem; }
+.jurisdiction-map-legend { margin: 1.5rem 0 0; padding-bottom: 1.875rem; text-align: center; }
+.australia-jurisdiction:focus, .australia-jurisdiction:focus-visible { outline: none; stroke: var(--surface) !important; stroke-width: 1.2px !important; filter: none !important; }
 .jurisdiction-map-callout { fill: var(--chart-label); stroke: var(--surface); stroke-width: 4px; font-size: 10px; }
 .chart-wrap svg text.jurisdiction-map-label { fill: #fff; }
 .chart-wrap svg text.jurisdiction-map-callout { fill: var(--chart-label); }
@@ -1340,11 +1343,7 @@ h2:focus-visible {
 .trend-legend-area { height: 10px; border: 0; border-radius: 2px; opacity: 0.72; }
 .jurisdiction-visual-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1280px; margin: 1.2rem auto 0; align-items: start; }
 .supplementary-panel .jurisdiction-visual-pair > .comparison-item { width: auto; max-width: none; min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--card-nested-border); border-radius: 7px; background: var(--card-nested-background); }
-.jurisdiction-visual-pair.map-first { grid-template-columns: minmax(0, 1fr); }
-.jurisdiction-visual-pair.map-first > [aria-labelledby="road-user-composition-title"] { display: none; }
 .jurisdiction-visual-pair.has-jurisdiction { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.jurisdiction-visual-pair.has-jurisdiction > [aria-labelledby="road-user-composition-title"] { display: block; animation: treemap-pop-in 500ms cubic-bezier(.2,.75,.25,1) both; transform-origin: left center; }
-@keyframes treemap-pop-in { from { opacity: 0; transform: scale(.93) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .jurisdiction-visual-pair .comparison-note { min-height: 3.2em; }
 .jurisdiction-visual-pair .chart-wrap { min-height: 400px; }
 .jurisdiction-visual-pair .chart-wrap > svg { display: block; width: 100%; height: auto; }
@@ -1839,6 +1838,69 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 #cycling-policies .cp-evidence summary { font-size: 14px; font-weight: 600; }
 #cycling-policies .cp-evidence > div { padding: 0 0 8px; }
 #cycling-policies .cp-evidence a { display: inline-block; padding: 6px 0; }
+
+/* Compact editorial dashboard refinements. */
+.story-chapter { margin: 1.35rem 0; padding-bottom: 1rem; }
+.chapter-heading { margin-bottom: .75rem; }
+.chapter-deck { margin-top: .45rem; font-size: .96rem; line-height: 1.5; }
+.story-callout { margin-top: .8rem; padding: .8rem 1rem; }
+.relative-change-sidebar { margin-bottom: .65rem; }
+.relative-change-sidebar #filters { padding: .7rem .85rem; }
+.relative-change-sidebar .summary-card { padding: .55rem .7rem; }
+.relative-change-layout { gap: .85rem; }
+.relative-change-main, .relative-change-trend { padding: .7rem; border: 1px solid var(--card-nested-border); border-radius: 8px; background: var(--card-nested-background); }
+.relative-change-trend { border-left: 1px solid var(--card-nested-border); }
+#road-user-chart, #road-user-trend-chart { min-height: 270px; }
+#road-user-chart > svg, #road-user-trend-chart > svg { max-height: 290px; }
+.demographic-year-control { margin: 0 auto .7rem; }
+.demographic-chart-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .8rem; align-items: stretch; }
+.demographic-chart-grid > section, .demographic-chart-grid > .demographic-view { min-width: 0; margin: 0; padding: .75rem; border: 1px solid var(--card-nested-border); border-radius: 8px; background: var(--card-nested-background); }
+.demographic-chart-grid > .demographic-sex-detail { min-width: 0; padding: .75rem; border: 1px solid var(--card-nested-border); border-radius: 8px; background: var(--card-nested-background); }
+.demographic-chart-grid > .age-trajectory-panel { padding: .45rem .1rem; }
+.age-group-top-five { margin: .4rem .2rem 0; padding-left: 1.35rem; text-align: left; }
+.age-group-top-five li { display: flex; justify-content: space-between; gap: .8rem; padding: .18rem .3rem; border-bottom: 1px solid var(--line); }
+.age-group-top-five li.is-focus-age { color: var(--chart-primary); font-weight: 800; }
+.intro .story-callout { width: min(100%, 1100px); max-width: 1100px; margin-right: auto; margin-left: auto; text-align: center; }
+.intro .story-callout ul { display: inline-block; text-align: left; }
+.demographic-chart-grid h3 { margin: 0 0 .25rem; text-align: left; font-size: .95rem; }
+.demographic-chart-grid .chart-description { margin: .3rem 0; font-size: .76rem; }
+#age-sex-trajectory-chart { min-height: 250px; }
+#age-sex-trajectory-chart > svg { max-height: 285px; }
+.demographic-view { display: block; }
+.unified-sex-layout { max-width: none; }
+.unified-sex-donut { min-height: 0; width: 100%; overflow: visible; }
+.unified-sex-donut svg { min-width: 0; width: 100%; }
+.demographic-sex-detail .pictogram-panel { max-width: none; margin: .35rem 0 0; padding: .55rem 0 0; border-top: 1px solid var(--line); text-align: left; }
+.demographic-sex-detail .pictogram-panel h3 { margin: 0; }
+.demographic-chart-grid .ratio-label { font-size: .9rem; text-align: left; }
+.demographic-chart-grid .ratio-legend { justify-content: flex-start; font-size: .72rem; }
+.demographic-chart-grid .pictogram-panel .chart-wrap { min-height: 66px; }
+.ratio-legend-person { display: block; width: 14px; height: 19px; flex: 0 0 14px; }
+.series-end-label { font-size: 11px; font-weight: 800; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.age-trajectory-point.is-focus-age { stroke: var(--focus-ring); stroke-width: 3px; r: 6px; }
+.donut-leader-label.is-focus-age { fill: var(--series-vermilion); font-weight: 900; }
+.jurisdiction-visual-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.jurisdiction-visual-pair.has-jurisdiction > [aria-labelledby="road-user-composition-title"] { display: block; animation: none; }
+.jurisdiction-visual-pair .chart-wrap { min-height: 250px; }
+.supplementary-panel .comparison-item { padding: .8rem; }
+#jurisdiction-user-bars-chart { min-height: 290px; }
+.jurisdiction-map-label { font-size: 11px; stroke-width: 2px; }
+.jurisdiction-map-legend { fill: var(--chart-label); font-size: 9px; }
+.chart-wrap svg text.jurisdiction-map-legend { fill: var(--chart-label); font-size: 9px; }
+.jurisdiction-region:focus-visible { outline: none; stroke: var(--focus-ring) !important; stroke-width: 2.5px !important; }
+.sex-slice-hit-target:focus, .age-slice-hit-target:focus { filter: none; outline: none; }
+
+@media (max-width: 980px) {
+    .demographic-chart-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .demographic-chart-grid > .demographic-sex-detail { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+    .relative-change-layout, .demographic-chart-grid,
+    .jurisdiction-visual-pair { grid-template-columns: 1fr; }
+    .demographic-chart-grid > .demographic-sex-detail { grid-column: auto; }
+    .relative-change-trend { border-left: 1px solid var(--card-nested-border); }
+}
+#context-filter-bar { display: none !important; }
 @media (max-width: 480px) {
   #cycling-policies { padding: 18px 14px; }
   #cycling-policies .cp-case { padding: 18px; }

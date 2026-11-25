@@ -42,7 +42,7 @@
         <section class="intro story-chapter" aria-labelledby="page-title">
             <p class="eyebrow">TRANSPORT SAFETY &middot; HOSPITALISED INJURIES</p>
             <h1 id="page-title" tabindex="0">A national picture of road trauma, and the people behind the counts.</h1>
-            <p class="intro-copy">Hospitalised road injuries rose across 2011&ndash;2021. Pedal cyclist hospitalisations increased by 2,772 cases (+51.4%), accounting for 50.7% of the national net increase. Men and women aged 40&ndash;64 record the highest counts among age bands. These are hospitalisation counts, not measures of crash risk or cause.</p>
+            <p class="intro-copy">Hospitalised road injuries rose across 2011&ndash;2021. Pedal cyclist hospitalisations increased by 2,772 cases (+51.4%), accounting for 50.7% of the national net increase. Men and women aged 40&ndash;64 record the highest counts among age bands. The CSV files report hospitalised injury counts, not direct crash causes or population-adjusted rates.</p>
             <aside class="story-callout" aria-labelledby="story-callout-title">
                 <strong id="story-callout-title">What may shape exposure and outcomes for adults aged 40&ndash;64+</strong>
                 <ul>
@@ -84,7 +84,7 @@
                         <div class="filter-controls">
                             <label class="filter-control">
                                 <span>Comparison year</span>
-                                <select id="year-filter"><option value="2012" selected>2012</option></select>
+                                <select id="year-filter"><option value="2018" selected>2018</option></select>
                             </label>
                             <label class="filter-control">
                                 <span>Road user in focus</span>
@@ -122,20 +122,20 @@
                     <section class="relative-change-trend" aria-labelledby="road-user-trend-title">
                         <header class="chapter-heading trend-chapter-heading">
                             <h2 id="road-user-trend-title" tabindex="0">Did the focused group rise faster?</h2>
-                            <p class="chapter-deck">Both series are indexed to the selected base year (100). The focused group is shown as a shaded area; the dashed National trend stays visible for comparison.</p>
+                            <p class="chapter-deck">Both lines show indexed hospitalisation counts. Pedal cyclist is compared with all road users; the selected base year equals 100.</p>
                         </header>
                         <div class="trend-chart-heading">
                             <p id="road-user-trend-unit" class="chart-data-note"></p>
                             <div id="road-user-trend-legend" class="trend-legend" role="group" aria-label="Road-user trend series"></div>
                         </div>
                         <div id="road-user-trend-chart" class="chart-wrap step-chart-wrap" role="group" aria-labelledby="road-user-trend-title" aria-describedby="road-user-trend-description"></div>
-                        <p id="road-user-trend-description" class="chart-description">Hover a series to highlight it. The National line remains visible as a reference. An index of 100 marks the selected base year; changes show recorded counts, not population-adjusted rates.</p>
+                        <p id="road-user-trend-description" class="chart-description">Pedal cyclist and National (all road users) are indexed counts, not population-adjusted rates. Hover either line to highlight it.</p>
                         <p id="road-user-trend-empty" class="empty-state" hidden></p>
                     </section>
                 </div>
                 <aside class="chapter-aside" aria-labelledby="road-user-context-title">
-                    <h3 id="road-user-context-title">Why the 40&ndash;64+ pattern matters</h3>
-                    <p>Mixed-traffic commuting and fitness cycling can increase exposure. Age-related recovery and bone vulnerability can shape injury outcomes. Busy routes may also lack separated lanes. These are contextual discussion points, not crash causes recorded in BITRE.</p>
+            <h3 id="road-user-context-title">Adults aged 40&ndash;64 in the cyclist story</h3>
+                    <p>Men and women aged 40&ndash;64 have high recorded cyclist hospitalisation counts. Mixed-traffic commuting, fitness cycling, recovery, and street design offer context for discussing exposure and outcomes. They are not crash causes recorded by BITRE, and the counts are not population-adjusted rates.</p>
                 </aside>
             </article>
 
@@ -150,23 +150,28 @@
                     <select id="demographic-year-filter"><option value="">All Years Total (2011&ndash;2021)</option></select>
                 </label>
 
-                <section class="age-trajectory-panel" aria-labelledby="age-trajectory-title">
+                <div class="demographic-chart-grid">
+                    <section class="age-trajectory-panel" aria-labelledby="age-trajectory-title">
                     <h3 id="age-trajectory-title">Age-group area chart by sex</h3>
-                    <p class="chart-description">Recorded pedal cyclist hospitalisations by age group. Male counts form the lower red area; Female counts form the blue area above it.</p>
+                    <p class="chart-description">Adults aged 40–64 are highlighted. Male and Female pedal cyclist hospitalisations are shown by age group.</p>
                     <div id="age-sex-trajectory-chart" class="chart-wrap" role="group" aria-labelledby="age-trajectory-title" aria-describedby="age-trajectory-description"></div>
-                    <p id="age-trajectory-description" class="chart-description">The filled areas show recorded counts, not rates. Suppressed age and sex counts are left out.</p>
+                    <p class="chart-description">Top five age groups are ranked by Male plus Female pedal cyclist hospitalisations across the selected year or all years. Suppressed records are excluded; counts are not rates.</p>
+                    <p id="age-trajectory-description" class="chart-description">Both sex areas use the same zero baseline so their heights show comparable recorded counts. Suppressed age and sex counts are left out.</p>
                 </section>
+                    <div class="demographic-sex-detail">
                 <div class="demographic-view">
                     <div class="unified-sex-layout">
                         <div id="cyclist-sex-chart" class="chart-wrap unified-sex-donut" role="group" aria-label="Cyclist hospitalisations by sex; click a segment to view age groups"></div>
                     </div>
                 </div>
                 <section class="pictogram-panel" aria-labelledby="ratio-title">
-                    <h3 id="ratio-title">Male/Female pictorial fraction</h3>
+                    <h3 id="ratio-title">Pictorial fraction chart</h3>
                     <p id="ratio-caption" class="ratio-label"></p>
                     <div id="ratio-legend" class="ratio-legend" role="group" aria-label="Pictorial fraction legend"></div>
-                    <div id="sex-ratio-chart" class="chart-wrap" role="img" aria-label="Horizontal comparison using Male circles and Female squares"></div>
+                            <div id="sex-ratio-chart" class="chart-wrap" role="img" aria-label="Pictorial fraction using Male and Female person icons"></div>
                 </section>
+                    </div>
+                </div>
             </article>
         </section>
 
@@ -177,12 +182,13 @@
                 <p class="chapter-deck">Compare recorded hospitalisations across road-user groups. Suppressed values remain unknown and are excluded from tile totals.</p>
             </header>
             <p id="supplementary-data-status" class="chart-data-note"></p>
-            <div class="jurisdiction-visual-pair map-first" id="jurisdiction-visual-pair">
             <section class="comparison-item" aria-labelledby="jurisdiction-map-title">
                 <h3 id="jurisdiction-map-title">Australia jurisdiction map</h3>
-                <p class="comparison-note">Top five jurisdictions by known recorded total are highlighted. Select a state or territory to reveal its road-user composition.</p>
+                <p class="comparison-note jurisdiction-map-description">Australia’s geographic outline is shown. Select it to view road-user composition from the available jurisdiction records.</p>
                 <div id="jurisdiction-map-chart" class="chart-wrap" role="group" aria-labelledby="jurisdiction-map-title"></div>
+                <p class="comparison-note jurisdiction-map-legend">State and territory boundaries · top five known totals highlighted.</p>
             </section>
+            <div class="jurisdiction-visual-pair" id="jurisdiction-visual-pair">
             <section class="comparison-item" aria-labelledby="road-user-composition-title">
                 <h3 id="road-user-composition-title">Road-user composition treemap</h3>
                 <p class="comparison-note">Recorded totals across all years for the selected jurisdiction. Select a tile to update the annual bar chart.</p>
@@ -190,17 +196,16 @@
                 <p id="road-user-composition-empty" class="empty-state" hidden></p>
                 <p id="road-user-composition-note" class="chart-data-note"></p>
             </section>
-            </div>
             <section class="comparison-item" aria-labelledby="jurisdiction-user-bars-title">
                 <h3 id="jurisdiction-user-bars-title">Annual totals by road-user group</h3>
                 <p id="jurisdiction-user-bars-note" class="comparison-note">The latest year appears first. Hover a bar to show its value and top-five marker.</p>
                 <div id="jurisdiction-user-bars-chart" class="chart-wrap" role="group" aria-labelledby="jurisdiction-user-bars-title"></div>
                 <p id="jurisdiction-user-bars-empty" class="empty-state" hidden></p>
             </section>
+            </div>
         </section>
 
         <section id="cycling-policies" class="notes-panel policy-panel story-chapter" aria-labelledby="cp-title">
-            
           <svg class="policy-icon-definitions" xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false">
             <defs>
               <symbol id="policy-icon-car" viewBox="0 0 24 24">

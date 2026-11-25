@@ -20,7 +20,7 @@ export const SUPPRESSED_VALUES = new Set([
         "n.p.", "not available", "-", "\u2014", "\u2013", "..", "..."
     ]);
 export const data = { national: [], state: [], firstNations: [], demographic: [] };
-export const filters = { year: "2012", state: "", user: "Pedal cyclist", demographicYear: "" };
+export const filters = { year: "2018", state: "", user: "Pedal cyclist", demographicYear: "" };
 export const tooltip = document.getElementById("chart-tooltip");
 export const themeToggle = document.getElementById("theme-toggle");
 export const themeToggleLabel = document.getElementById("theme-toggle-label");
@@ -368,7 +368,7 @@ export const annotationLabels = {
         const emphasize = function () {
             const active = this;
             const series = active.getAttribute("data-series");
-            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label")
+            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label, .series-end-label")
                 .interrupt("series-focus")
                 .transition("series-focus")
                 .duration(reducedMotion.matches ? 0 : 180)
@@ -386,7 +386,7 @@ export const annotationLabels = {
                 });
         };
         const restore = function () {
-            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label")
+            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label, .series-end-label")
                 .interrupt("series-focus")
                 .transition("series-focus")
                 .duration(reducedMotion.matches ? 0 : 220)

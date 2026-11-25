@@ -1,24 +1,27 @@
 import { d3, data, filters, setEmptyState, chartWidth, attachTooltip, revealChart, clearChart, numberFormat, SERIES_COLORS, reducedMotion, fullStateName } from "./state.js";
 
-const STATE_NAMES = ["ACT", "NSW", "NT", "Qld", "SA", "Tas", "Vic", "WA"];
-const STATE_SHAPES = {
-    WA: "55,70 195,70 195,218 218,232 203,320 58,300",
-    NT: "195,70 305,70 305,158 245,158 245,218 195,218",
-    SA: "195,218 245,218 245,158 305,158 305,244 255,260 218,238 203,232",
-    Qld: "305,70 443,70 467,164 431,188 365,166 305,158",
-    NSW: "305,158 365,166 431,188 418,252 330,260 305,244",
-    Vic: "295,260 330,260 418,252 400,300 298,300",
-    Tas: "365,326 388,326 396,350 374,356 360,344",
-    ACT: "350,230 361,230 361,241 350,241"
-};
-const STATE_LABELS = { WA: [118,180], NT: [250,135], SA: [250,220], Qld: [382,132], NSW: [370,220], Vic: [354,286], Tas: [380,350], ACT: [356,237] };
+const WORLD_BOUNDARIES_URL = "maps/world_countries.geojson";
+const AUSTRALIA_JURISDICTIONS_URL = "maps/australia_jurisdictions.geojson";
+const CODE_BY_NAME = new Map([["New South Wales", "NSW"], ["Victoria", "Vic"], ["Queensland", "Qld"], ["South Australia", "SA"], ["Western Australia", "WA"], ["Tasmania", "Tas"], ["Northern Territory", "NT"], ["Australian Capital Territory", "ACT"]]);
+const JURISDICTION_MAP = [
+    { code: "WA", points: [[112,-14],[129,-14],[129,-31],[126,-33],[120,-35],[115,-34],[113,-27],[114,-22]] },
+    { code: "NT", points: [[129,-14],[138,-14],[138,-26],[129,-26]] },
+    { code: "SA", points: [[129,-26],[138,-26],[141,-26],[141,-34],[138,-35],[135,-35],[129,-32]] },
+    { code: "Qld", points: [[138,-10],[143,-10],[153,-25],[150,-29],[141,-29],[138,-26]] },
+    { code: "NSW", points: [[141,-29],[150,-29],[153,-29],[153,-34],[150,-37],[146,-36],[141,-34]] },
+    { code: "Vic", points: [[141,-34],[146,-36],[150,-37],[149,-39],[146,-39],[143,-38]] },
+    { code: "Tas", points: [[144,-40],[148,-40],[148,-43],[145,-44],[143,-42]] },
+    { code: "ACT", points: [[148.76,-35.12],[149.40,-35.12],[149.40,-35.92],[148.76,-35.92]] }
+];
 const duration = (ms) => reducedMotion.matches ? 0 : ms;
 let selectedRoadUser = "Pedal cyclist";
-let hasChosenJurisdiction = false;
-let hasRevealedTreemap = false;
+let mapRenderSequence = 0;
 
 function jurisdictionTotals() {
-    return d3.rollups(data.state, (rows) => d3.sum(rows.filter((row) => !row.suppressed && row.value !== null), (row) => row.value), (row) => row.state)
+    return d3.rollups(data.state, (rows) => {
+        const known = rows.filter((row) => !row.suppressed && row.value !== null);
+        return known.length ? d3.sum(known, (row) => row.value) : null;
+    }, (row) => row.state)
         .map(([state, total]) => ({ state, total }));
 }
 
@@ -27,53 +30,80 @@ function renderJurisdictionMap() {
     if (!container) return;
     clearChart(container);
     const totals = jurisdictionTotals();
-    const topFive = new Set([...totals].sort((a, b) => b.total - a.total).slice(0, 5).map((row) => row.state.toUpperCase()));
-    const totalByCode = new Map(totals.map((row) => [row.state.toUpperCase(), row.total]));
-    const width = chartWidth(container);
-    const height = 400;
-    const scale = Math.min((width - 30) / 620, (height - 54) / 380);
-    const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
-        .attr("role", "img").attr("aria-label", "Clickable map of Australian states and territories; the five with highest known recorded totals are highlighted");
-    const map = svg.append("g").attr("transform", `translate(${(width - 620 * scale) / 2},${(height - 360 * scale) / 2}) scale(${scale})`);
-    const regions = map.selectAll("g").data(STATE_NAMES).join("g").attr("class", "jurisdiction-region")
-        .attr("data-jurisdiction", (state) => state);
-    regions.append("polygon").attr("points", (state) => STATE_SHAPES[state])
-        .attr("fill", (state) => topFive.has(state.toUpperCase()) ? "#c94b40" : "#8ab7c7")
-        .attr("stroke", "var(--surface)")
-        .attr("stroke-width", 3 / scale)
-        .attr("tabindex", 0).attr("role", "button")
-        .attr("aria-label", (state) => `${fullStateName(state)}: ${numberFormat.format(totalByCode.get(state.toUpperCase()) || 0)} known recorded injuries${topFive.has(state.toUpperCase()) ? ", among the five highest" : ""}`)
-        .on("click", (_, state) => selectJurisdiction(state))
-        .on("keydown", (event, state) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectJurisdiction(state); } });
-    regions.filter((state) => state !== "ACT").append("text")
-        .attr("x", (state) => STATE_LABELS[state][0]).attr("y", (state) => STATE_LABELS[state][1])
-        .attr("text-anchor", "middle").attr("dominant-baseline", "middle").attr("class", "jurisdiction-map-label")
-        .each(function (state) {
-            const words = fullStateName(state).split(" ");
-            const label = d3.select(this);
-            if (words.length > 1) {
-                label.append("tspan").attr("x", STATE_LABELS[state][0]).text(words.slice(0, Math.ceil(words.length / 2)).join(" "));
-                label.append("tspan").attr("x", STATE_LABELS[state][0]).attr("dy", "1.1em")
-                    .text(words.slice(Math.ceil(words.length / 2)).join(" "));
-            } else label.text(words[0]);
-        });
-    attachTooltip(regions.select("polygon"), (state) => `${fullStateName(state)}: ${numberFormat.format(totalByCode.get(state.toUpperCase()) || 0)} known recorded injuries` +
-        (topFive.has(state.toUpperCase()) ? " Top five recorded total" : ""));
-    const legend = svg.append("g").attr("class", "jurisdiction-map-legend").attr("transform", `translate(${Math.max(14, width / 2 - 118)},${height - 18})`);
-    [["#c94b40", "Top 5 recorded totals"], ["#8ab7c7", "Other jurisdictions"]].forEach(([fill, label], i) => {
-        const item = legend.append("g").attr("transform", `translate(${i * 155},0)`);
-        item.append("rect").attr("width", 13).attr("height", 13).attr("rx", 2).attr("fill", fill);
-        item.append("text").attr("x", 19).attr("y", 11).text(label);
+    const topFive = new Set([...totals].filter(row => row.total !== null).sort((a, b) => b.total - a.total).slice(0, 5).map((row) => stateCode(row.state)));
+    const totalByCode = new Map(totals.map((row) => [stateCode(row.state), row.total]));
+    const knownRows = data.state.filter(row => !row.suppressed && row.value !== null);
+    totalByCode.set("AUS", knownRows.length ? d3.sum(knownRows, row => row.value) : null);
+    const suppressedByCode = new Map(d3.rollups(data.state.filter((row) => row.suppressed || row.value === null), rows => rows.length, row => stateCode(row.state)));
+    suppressedByCode.set("AUS", data.state.filter(row => row.suppressed || row.value === null).length);
+    const renderId = ++mapRenderSequence;
+    const drawMap = (boundaryData) => {
+        if (renderId !== mapRenderSequence || !container.isConnected) return;
+        const width = chartWidth(container), height = 210;
+        const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "group").attr("aria-label", "Zoomed map of Australian states and territories. Click a region to filter the charts.");
+        const features = boundaryData.features.map(feature => ({ ...feature, properties: { ...feature.properties,
+            code: CODE_BY_NAME.get(feature.properties.STATE_NAME) } })).filter(feature => feature.properties.code)
+            .map(feature => ({ ...feature, geometry: { ...feature.geometry, coordinates: feature.geometry.type === "MultiPolygon"
+                ? feature.geometry.coordinates.filter(polygon => {
+                    const ring = polygon[0];
+                    const xs = ring.map(point => point[0]), ys = ring.map(point => point[1]);
+                    return Math.max(...xs) - Math.min(...xs) > 1 && Math.max(...ys) - Math.min(...ys) > 1;
+                }) : feature.geometry.coordinates } }));
+        const projection = d3.geoMercator().center([134, -27]).scale(2.66 * Math.min(width, height)).translate([width * .49, height * .47]);
+        const path = d3.geoPath(projection);
+        const regions = svg.selectAll("path.australia-jurisdiction").data(features).join("path")
+            .attr("class", feature => `australia-jurisdiction${totalByCode.get(feature.properties.code) != null ? " has-jurisdiction-data" : ""}`)
+            .attr("data-jurisdiction", feature => feature.properties.code).attr("d", path)
+            .attr("fill", feature => feature.properties.code === (filters.state && stateCode(filters.state)) ? "#123f62" : topFive.has(feature.properties.code) ? "#c94b40" : "#cbd3d9")
+            .attr("stroke", "var(--surface)").attr("stroke-width", 1.2).attr("vector-effect", "non-scaling-stroke")
+            .attr("tabindex", feature => totalByCode.has(feature.properties.code) && totalByCode.get(feature.properties.code) !== null ? 0 : -1)
+            .attr("role", feature => totalByCode.has(feature.properties.code) && totalByCode.get(feature.properties.code) !== null ? "button" : null)
+            .attr("aria-disabled", feature => String(totalByCode.get(feature.properties.code) == null))
+            .attr("aria-label", feature => mapValueLabel(feature.properties.code, totalByCode, suppressedByCode))
+          .on("click", (_, feature) => {
+              const code = feature.properties.code;
+              if (totalByCode.has(code) && totalByCode.get(code) !== null) selectJurisdiction(code);
+          }).on("keydown", (event, feature) => {
+              const code = feature.properties.code;
+              if (totalByCode.has(code) && totalByCode.get(code) !== null && ["Enter", " "].includes(event.key)) {
+                  event.preventDefault(); selectJurisdiction(code);
+              }
+          });
+        attachTooltip(regions, feature => mapValueLabel(feature.properties.code, totalByCode, suppressedByCode) +
+            (topFive.has(feature.properties.code) ? "; among top five known totals" : ""));
+        const labelPoints = { WA:[121,-25], NT:[133,-20], SA:[135,-31], Qld:[146,-21], NSW:[147,-33], Vic:[145,-37], Tas:[146,-42], ACT:[149,-35.5] };
+        svg.selectAll("text.jurisdiction-map-label").data(features).join("text").attr("class", "jurisdiction-map-label")
+            .attr("x", feature => projection(labelPoints[feature.properties.code])[0]).attr("y", feature => projection(labelPoints[feature.properties.code])[1])
+            .attr("pointer-events", "none").attr("text-anchor", "middle").attr("dominant-baseline", "middle").text(feature => feature.properties.code);
+        revealChart(svg);
+    };
+    d3.json(AUSTRALIA_JURISDICTIONS_URL).then(drawMap).catch(() => {
+        if (renderId !== mapRenderSequence) return;
+        container.innerHTML = '<p class="empty-state">Local Australia jurisdiction boundaries could not be loaded from maps/australia_jurisdictions.geojson.</p>';
     });
-    revealChart(svg);
+}
+
+function countryJurisdictionCode(feature) {
+    const name = feature.properties?.name || feature.properties?.ADMIN || feature.properties?.NAME || "";
+    return name.toLowerCase() === "australia" ? "AUS" : "";
+}
+
+function stateCode(value) {
+    const normalized = String(value).trim().toLowerCase();
+    const codes = { act:"ACT", nsw:"NSW", nt:"NT", qld:"Qld", queensland:"Qld", sa:"SA", tas:"Tas", tasmania:"Tas", vic:"Vic", victoria:"Vic", wa:"WA", "western australia":"WA", "south australia":"SA", "northern territory":"NT", "new south wales":"NSW", "australian capital territory":"ACT" };
+    return codes[normalized] || value;
+}
+
+function mapValueLabel(code, totals, suppressed) {
+    const name = fullStateName(code);
+    const known = totals.get(code);
+    const unknown = suppressed.get(code) || 0;
+    return `${name}: ${known == null ? "n.p. / unknown (suppressed)" : `${numberFormat.format(known)} known recorded hospitalisations`}${unknown ? `; ${unknown} suppressed or unavailable records` : ""}`;
 }
 
 function selectJurisdiction(state) {
-    filters.state = state;
-    if (!hasRevealedTreemap) {
-        hasChosenJurisdiction = true;
-        hasRevealedTreemap = true;
-    }
+    filters.state = state === "AUS" ? "" : state;
     selectedRoadUser = "Pedal cyclist";
     renderRoadUserComposition();
 }
@@ -147,7 +177,7 @@ function renderTreemap() {
             .text(numberFormat.format(node.data.value));
     });
     tiles.filter((node) => node.data.user === selectedRoadUser).select("rect").attr("stroke", "#111").attr("stroke-width", 4);
-    revealChart(svg);
+    svg.style("opacity", 1);
 }
 
 function renderBars() {
@@ -200,8 +230,6 @@ function renderBars() {
 }
 
 export function renderRoadUserComposition() {
-    const layout = document.getElementById("jurisdiction-visual-pair");
-    if (layout) layout.classList.toggle("has-jurisdiction", hasChosenJurisdiction);
     renderJurisdictionMap();
     renderTreemap();
     renderBars();

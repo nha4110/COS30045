@@ -36,9 +36,12 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         document.getElementById("kpi-latest-year").textContent = allYears ? (change === null ? "-" : numberFormat.format(change)) : change === null || !start ? "-" : percent(change / start * 100);
         document.getElementById("kpi-change-note").textContent = change === null ? "Data unavailable" : allYears ? `${filters.user} cases across 2011-2021` : `${signed(change)} cases | 2011 to ${year}`;
         document.getElementById("kpi-share-label").textContent = allYears ? "SHARE OF NATIONAL TOTAL" : "SHARE OF NATIONAL NET CHANGE";
-        document.getElementById("kpi-current-view").textContent = change === null || !net ? "-" : `${(change / net * 100).toFixed(1)}%`;
-        document.getElementById("kpi-current-note").textContent = !net
+        const meaningfulShare = net !== null && net > 0;
+        document.getElementById("kpi-current-view").textContent = change === null || net === null ? "-" : meaningfulShare ? `${(change / net * 100).toFixed(1)}%` : "N/A";
+        document.getElementById("kpi-current-note").textContent = net === null
             ? "No national total available for comparison"
+            : net <= 0
+                ? `National net change was ${signed(net)} cases; a contribution share is not meaningful`
             : allYears
                 ? `${filters.user} total divided by the national total for 2011-2021`
                 : `${filters.user} change divided by national net change; not a share of all cases`;
@@ -119,12 +122,12 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
                 return { year, count, value: baseline > 0 && count !== null ? count / baseline * 100 : null };
             }) };
         });
-        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs National | ${baselineYear} = 100`;
+        document.getElementById("road-user-trend-unit").textContent = `${filters.user} vs National (all road users) | ${baselineYear} = 100`;
         const values = series.flatMap((item) => item.values).filter((row) => row.value !== null);
         setEmptyState(document.getElementById("road-user-trend-empty"), `A positive ${baselineYear} baseline is required to calculate the index.`, !values.length);
         if (!values.length) return;
         const width = chartWidth(container), height = 340;
-        const margin = { top: 18, right: 16, bottom: 40, left: 62 };
+        const margin = { top: 18, right: 104, bottom: 40, left: 62 };
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
             .attr("role", "img").attr("aria-label", `${filters.user} and all road users, indexed counts, ${baselineYear} equals 100`);
         const years = series[0].values.map((row) => row.year);
@@ -134,21 +137,17 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
         svg.append("line").attr("class", "baseline-guide").attr("x1", margin.left).attr("x2", width - margin.right)
             .attr("y1", y(100)).attr("y2", y(100));
         const line = d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y((row) => y(row.value)).curve(d3.curveLinear);
-        const mainSeries = series[0];
-        const nationalSeries = series[1];
-        const area = d3.area().defined((row) => row.value !== null).x((row) => x(row.year))
-            .y0(y(0)).y1((row) => y(row.value)).curve(d3.curveLinear);
-        const areaBaseline = d3.area().defined((row) => row.value !== null).x((row) => x(row.year))
-            .y0(y(0)).y1(y(0)).curve(d3.curveLinear);
-        const areaPath = svg.append("path").datum(mainSeries.values).attr("class", "series-area")
-            .attr("data-series", mainSeries.name).attr("fill", mainSeries.color).attr("d", areaBaseline);
-        areaPath.transition("series-area-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", area);
-        attachSeriesHover(areaPath);
-        const trendPath = svg.append("path").datum(nationalSeries.values).attr("class", "series-line")
-            .attr("data-series", nationalSeries.name).attr("stroke", nationalSeries.color).attr("stroke-dasharray", nationalSeries.dash)
-            .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)).curve(d3.curveLinear));
-        attachSeriesHover(trendPath);
-        trendPath.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
+        series.forEach((item, index) => {
+            const path = svg.append("path").datum(item.values).attr("class", "series-line")
+                .attr("data-series", item.name).attr("stroke", item.color).attr("stroke-dasharray", item.dash)
+                .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)).curve(d3.curveLinear));
+            attachSeriesHover(path);
+            path.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
+            const last = item.values.filter((row) => row.value !== null).at(-1);
+            if (last) svg.append("text").attr("class", "series-end-label").attr("data-series", item.name)
+                .attr("x", x(last.year) + 7).attr("y", y(last.value) + 4).attr("fill", item.color)
+                .text(index === 0 ? filters.user : "National");
+        });
         series.forEach((item, index) => {
             const label = (row) => `${row.year}  |  ${item.name}: index ${row.value.toFixed(1)}; ${numberFormat.format(row.count)} cases`;
             const marks = svg.append("g").selectAll("path").data(item.values.filter((row) => row.value !== null)).join("path")
@@ -162,9 +161,8 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
                 .attr("class", "point-value").attr("data-series", item.name).attr("x", (row) => x(row.year)).attr("y", (row) => y(row.value) - (index ? 9 : 4))
                 .attr("text-anchor", "middle").text((row) => row.value.toFixed(0));
             const entry = document.createElement("span"); entry.className = "trend-legend-item";
-            const swatch = document.createElement("span"); swatch.className = `trend-legend-line${index ? "" : " trend-legend-area"}`;
+            const swatch = document.createElement("span"); swatch.className = "trend-legend-line";
             swatch.style.borderTopColor = item.color; swatch.style.borderTopStyle = index ? "dashed" : "solid";
-            if (!index) swatch.style.backgroundColor = item.color;
             swatch.setAttribute("aria-hidden", "true");
             const text = document.createElement("span"); text.className = "trend-legend-label"; text.textContent = item.name;
             entry.append(swatch, text); legend.append(entry);

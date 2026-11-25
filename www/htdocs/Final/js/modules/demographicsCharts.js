@@ -6,7 +6,7 @@ const AGE_GROUPS = ["0-7", "8-16", "17-25", "26-39", "40-64", "65-74", "75+"];
 const SEXES = ["Male", "Female"];
 const duration = (milliseconds) => reducedMotion.matches ? 0 : milliseconds;
 let chartSequence = 0;
-let selectedAgeGroup = null;
+let selectedAgeGroup = "40-64";
 
 function cyclistRows() {
     return data.demographic.filter((row) => row.user.toLowerCase() === "pedal cyclist" &&
@@ -36,8 +36,8 @@ export function renderAgeSexTrajectory() {
         return { sex, age, value: sumKnown(rows) };
     }));
     const width = chartWidth(container);
-    const height = 430;
-    const margin = { top: 48, right: 30, bottom: 62, left: 88 };
+    const height = 330;
+    const margin = { top: 38, right: 12, bottom: 52, left: 54 };
     const x = d3.scalePoint().domain(AGE_GROUPS).range([margin.left, width - margin.right]).padding(0.24);
     const byAge = AGE_GROUPS.map((age) => {
         const male = values.find((row) => row.age === age && row.sex === "Male")?.value;
@@ -55,38 +55,36 @@ export function renderAgeSexTrajectory() {
         .call(d3.axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat("")).lower();
 
     const colors = { Male: "var(--trajectory-male-fill)", Female: "var(--trajectory-female-fill)" };
-    const stack = d3.stack().keys(SEXES).value((row, key) => row.known ? row[key] : 0)(byAge);
-    const area = d3.area().defined((row) => row.data.known).x((row) => x(row.data.age))
-        .y0((row) => y(row[0])).y1((row) => y(row[1])).curve(d3.curveLinear);
-    const areaBaseline = d3.area().defined((row) => row.data.known).x((row) => x(row.data.age))
-        .y0(y(0)).y1(y(0)).curve(d3.curveLinear);
+    const area = d3.area().defined((row) => row.known).x((row) => x(row.age))
+        .y0(y(0)).y1((row) => y(row.value)).curve(d3.curveLinear);
     const valuePoints = SEXES.flatMap((sex) => byAge.filter((row) => row.known).map((row) => ({
-        sex, age: row.age, value: row[sex], plotted: sex === "Male" ? row.Male : row.Male + row.Female
+        sex, age: row.age, value: row[sex], plotted: row[sex]
     })));
     const emphasizeValues = (sex) => svg.selectAll(".age-trajectory-value").interrupt("age-value-focus")
         .transition("age-value-focus").duration(duration(150)).style("opacity", (row) => row.sex === sex ? 1 : 0);
     const restoreValues = () => svg.selectAll(".age-trajectory-value").interrupt("age-value-focus")
         .transition("age-value-focus").duration(duration(180)).style("opacity", 1);
-    stack.forEach((series) => {
+    SEXES.forEach((sex) => {
+        const series = byAge.map((row) => ({ age: row.age, value: row[sex], known: row.known }));
         const path = svg.append("path").datum(series)
-            .attr("class", `age-trajectory-area age-${series.key.toLowerCase()}`)
-            .attr("fill", colors[series.key]).attr("data-series", series.key).attr("tabindex", 0).attr("role", "img")
-            .attr("aria-label", `${series.key} recorded cyclist hospitalisations by age group`)
-            .on("pointerenter.age-values focus.age-values", () => emphasizeValues(series.key))
+            .attr("class", `age-trajectory-area age-${sex.toLowerCase()}`)
+            .attr("fill", colors[sex]).attr("data-series", sex).attr("tabindex", 0).attr("role", "img")
+            .attr("aria-label", `${sex} recorded cyclist hospitalisations by age group`)
+            .on("pointerenter.age-values focus.age-values", () => emphasizeValues(sex))
             .on("pointerleave.age-values blur.age-values", restoreValues)
-            .attr("d", areaBaseline);
-        path.append("title").text(`${series.key} hospitalisations; area is stacked by sex`);
-        path.transition("age-area-enter").duration(duration(620)).ease(d3.easeCubicOut).attr("d", area);
+            .attr("d", area(series.map(row => ({...row, known:false}))));
+        path.append("title").text(`${sex} cyclist hospitalisations; both areas use the same zero baseline`);
+        path.transition("age-area-enter").duration(duration(620)).ease(d3.easeCubicOut).attr("d", area(series));
     });
     const points = svg.selectAll(".age-trajectory-point").data(valuePoints).join("circle")
-        .attr("class", "age-trajectory-point focusable-mark").attr("tabindex", 0).attr("role", "img")
+        .attr("class", (row) => `age-trajectory-point focusable-mark${row.age === "40-64" ? " is-focus-age" : ""}`).attr("tabindex", 0).attr("role", "img")
         .attr("cx", (row) => x(row.age)).attr("cy", (row) => y(row.plotted)).attr("r", 4)
         .attr("fill", (row) => colors[row.sex]).attr("stroke", "var(--surface)").attr("stroke-width", 1.5).attr("opacity", 0)
-        .attr("aria-label", (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} hospitalisations`)
+        .attr("aria-label", (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} recorded hospitalisations${row.age === "40-64" ? "; highlighted story age group" : ""}`)
         .on("pointerenter.age-values focus.age-values", (_, row) => emphasizeValues(row.sex))
         .on("pointerleave.age-values blur.age-values", restoreValues);
     points.transition("age-point-enter").duration(duration(500)).delay((_, index) => index * 24).attr("opacity", 1);
-    attachTooltip(points, (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} recorded hospitalisations`);
+    attachTooltip(points, (row) => `${row.sex}, age ${row.age}: ${numberFormat.format(row.value)} recorded hospitalisations${row.age === "40-64" ? " · focus age group" : ""}`);
     const valueLabels = svg.selectAll(".age-trajectory-value").data(valuePoints).join("text")
         .attr("class", "age-trajectory-value").attr("data-series", (row) => row.sex)
         .attr("x", (row) => x(row.age)).attr("y", (row) => y(row.plotted) - 9)
@@ -101,6 +99,14 @@ export function renderAgeSexTrajectory() {
         item.append("rect").attr("width", 18).attr("height", 10).attr("y", -5).attr("rx", 2).attr("fill", colors[sex]);
         item.append("text").attr("x", 23).attr("y", 4).text(sex);
     });
+    const ageRankings = AGE_GROUPS.map((age) => {
+        const groupRows = cyclistRows().filter((row) => row.age === age && !row.suppressed && row.value !== null);
+        return { age, value: groupRows.length ? d3.sum(groupRows, (row) => row.value) : null };
+    }).filter((row) => row.value !== null).sort((a, b) => b.value - a.value).slice(0, 5);
+    const rankingList = d3.select(container).append("ol").attr("class", "age-group-top-five").attr("aria-label", "Top five age groups by pedal cyclist hospitalisations");
+    rankingList.selectAll("li").data(ageRankings).join("li")
+        .classed("is-focus-age", (row) => row.age === "40-64")
+        .html((row) => `<span>${row.age}${row.age === "40-64" ? " (focus)" : ""}</span><strong>${numberFormat.format(row.value)}</strong>`);
 }
 
 function addSexPatterns(svg, suffix) {
@@ -151,7 +157,7 @@ function drawOuterDonut(svg, width, height, radius, suffix) {
 
     const center = svg.append("text").attr("class", "donut-center-label")
         .attr("x", cx).attr("y", cy - 5).attr("text-anchor", "middle").attr("pointer-events", "none");
-    center.append("tspan").attr("x", cx).attr("class", "donut-center-title").text("Cyclists");
+    center.append("tspan").attr("x", cx).attr("class", "donut-center-title").text("40–64 focus");
     center.append("tspan").attr("x", cx).attr("dy", "1.45em").attr("class", "donut-center-count")
         .text(combined === null ? "Total unknown" : numberFormat.format(combined));
 
@@ -161,6 +167,7 @@ function drawOuterDonut(svg, width, height, radius, suffix) {
         .attr("d", hitArc).attr("fill", "transparent").attr("tabindex", 0).attr("role", "button")
         .attr("data-sex", (d) => d.data.sex)
         .attr("aria-label", (d) => `${d.data.sex}: ${d.data.value === null ? "unknown" : numberFormat.format(d.data.value)}`);
+    attachTooltip(hitTargets, (d) => `${d.data.sex}: ${countLabel(d.data.value)} recorded cyclist hospitalisations. Adults aged 40–64 are the story focus; click to view age groups.`);
     return { hitTargets };
 }
 
@@ -204,6 +211,7 @@ function drawAgeDonut(svg, sex, width, height, radius) {
         .attr("d", arc).attr("fill", "transparent").attr("tabindex", 0).attr("role", "button")
         .attr("data-age", (d) => d.data.age)
         .attr("aria-label", (d) => `Show Male and Female split for age ${d.data.age}: ${countLabel(d.data.value)}`);
+    attachTooltip(hitTargets, (d) => `Male and Female cyclists aged ${d.data.age}: ${countLabel(d.data.value)} recorded hospitalisations${d.data.age === "40-64" ? " · focus age group" : ""}. Click to update the pictorial fraction.`);
     const centerTarget = svg.append("circle").attr("class", "donut-center-hit-target")
         .attr("cx", cx).attr("cy", cy).attr("r", radius * 0.4).attr("fill", "transparent")
         .attr("tabindex", 0).attr("role", "button").attr("aria-label", "Return to Male and Female totals");
@@ -245,7 +253,8 @@ function appendDonutCallouts(svg, entries, { cx, cy, radius, height, className, 
         .attr("x", (point) => cx + point.side * (radius + 19))
         .attr("y", (point) => point.labelY + 4)
         .attr("text-anchor", (point) => point.side > 0 ? "start" : "end")
-        .text((point) => label(point.datum));
+        .classed("is-focus-age", (point) => point.datum.data.age === "40-64")
+        .text((point) => `${label(point.datum)}${point.datum.data.age === "40-64" ? " ★" : ""}`);
 }
 
 function bindUnifiedDonut() {
@@ -256,9 +265,9 @@ function bindUnifiedDonut() {
 
     const draw = (nextMode, sex = null) => {
         mode = nextMode;
-        const width = Math.max(chartWidth(container), 900);
-        const height = 520;
-        const radius = Math.max(125, Math.min(height / 2 - 30, width / 2 - 180));
+        const width = Math.max(chartWidth(container), 720);
+        const height = 360;
+        const radius = Math.max(112, Math.min(height / 2 - 38, width / 2 - 145));
         clearChart(container);
         const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
             .attr("role", "group").attr("aria-label", nextMode === "outer"
@@ -356,17 +365,19 @@ function renderSexRatio() {
         : `For every 1 Female, ${(male / female).toFixed(2)} Males recorded${scope} · Male ${numberFormat.format(male)} · Female ${numberFormat.format(female)}`;
     legend.replaceChildren();
     [
-        { name: "Male", shape: "Circle", symbol: "●", className: "ratio-male-symbol" },
-        { name: "Female", shape: "Square", symbol: "■", className: "ratio-female-symbol" }
+        { name: "Male", className: "ratio-male-symbol" },
+        { name: "Female", className: "ratio-female-symbol" }
     ].forEach((item) => {
         const entry = document.createElement("span");
         entry.className = "ratio-legend-item";
-        const symbol = document.createElement("span");
-        symbol.className = `ratio-legend-symbol ${item.className}`;
+        const symbol = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        symbol.setAttribute("viewBox", "0 0 16 22");
+        symbol.setAttribute("class", `ratio-legend-person ${item.className}`);
         symbol.setAttribute("aria-hidden", "true");
-        symbol.textContent = item.symbol;
+        const icon = d3.select(symbol).append("g").attr("transform", "translate(8,11)");
+        drawPersonIcon(icon, item.name);
         const text = document.createElement("span");
-        text.textContent = `${item.shape} = ${item.name}`;
+        text.textContent = item.name;
         entry.append(symbol, text);
         legend.append(entry);
     });
@@ -382,21 +393,25 @@ function renderSexRatio() {
     const height = 82;
     const svg = d3.select(chart).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
         .attr("role", "img").attr("aria-label", `Male ${numberFormat.format(male)}; Female ${numberFormat.format(female)}${scope}`);
-    const dotCount = 30;
-    const maleDots = Math.round(male / total * dotCount);
-    const gap = Math.min(9, (width - 80) / (dotCount - 1));
-    const startX = (width - gap * (dotCount - 1)) / 2;
-    svg.selectAll("circle").data(d3.range(maleDots)).join("circle")
-        .attr("cx", (index) => startX + index * gap).attr("cy", height / 2).attr("r", Math.min(7, gap * 0.43))
-        .attr("fill", "var(--ratio-male)")
-        .attr("stroke", "var(--surface)").attr("stroke-width", 1)
-        .attr("opacity", 0).transition("ratio-enter").duration(duration(500)).attr("opacity", 1);
-    svg.selectAll("rect").data(d3.range(dotCount - maleDots)).join("rect")
-        .attr("x", (index) => startX + (maleDots + index) * gap - Math.min(7, gap * 0.43))
-        .attr("y", height / 2 - Math.min(7, gap * 0.43))
-        .attr("width", Math.min(14, gap * 0.86)).attr("height", Math.min(14, gap * 0.86))
-        .attr("rx", 1).attr("fill", "var(--ratio-female)").attr("stroke", "var(--surface)").attr("stroke-width", 1)
-        .attr("opacity", 0).transition("ratio-enter").duration(duration(500)).attr("opacity", 1);
+    const iconCount = 30;
+    const maleIcons = Math.round(male / total * iconCount);
+    const gap = Math.min(17, (width - 54) / (iconCount - 1));
+    const startX = (width - gap * (iconCount - 1)) / 2;
+    const people = svg.selectAll("g.fraction-person").data(d3.range(iconCount)).join("g")
+        .attr("class", "fraction-person")
+        .attr("transform", (index) => `translate(${startX + index * gap},${height / 2}) scale(${Math.min(1, gap / 13)})`)
+        .attr("color", (index) => index < maleIcons ? "var(--ratio-male)" : "var(--ratio-female)")
+        .attr("opacity", 0);
+    people.each(function (index) { drawPersonIcon(d3.select(this), index < maleIcons ? "Male" : "Female"); });
+    people.attr("opacity", 1);
+}
+
+function drawPersonIcon(group, sex) {
+    group.attr("fill", "currentColor");
+    group.append("circle").attr("cx", 0).attr("cy", -6).attr("r", 2.3);
+    group.append("path").attr("d", sex === "Male"
+        ? "M-3,-2 L-5,0 L-4,4 L-2.5,3 L-2,11 L2,11 L2.5,3 L4,4 L5,0 L3,-2 Z"
+        : "M-3,-2 L-5,0 L-4,4 L-2.5,3 L-2.5,5 L-5,11 L5,11 L2.5,5 L2.5,3 L4,4 L5,0 L3,-2 Z");
 }
 
 export function demographicLabelYear() {
@@ -411,6 +426,6 @@ export function renderDemographics() {
         `Pedal cyclist hospitalisations for ${demographicLabelYear().toLowerCase()}. Counts are hospitalised cases, not population-adjusted rates. Sex totals include records with missing age; the donut shows the seven published age groups.`;
     bindUnifiedDonut();
     renderAgeSexTrajectory();
-    selectedAgeGroup = null;
+    selectedAgeGroup = "40-64";
     renderSexRatio();
 }
