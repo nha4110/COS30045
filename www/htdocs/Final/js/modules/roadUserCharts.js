@@ -143,10 +143,7 @@ import { d3, data, filters, selectedYear, summarizeRows, setEmptyState, chartWid
                 .attr("d", d3.line().defined((row) => row.value !== null).x((row) => x(row.year)).y(() => y(0)).curve(d3.curveLinear));
             attachSeriesHover(path);
             path.transition("series-enter").duration(reducedMotion.matches ? 0 : 750).attr("d", line);
-            const last = item.values.filter((row) => row.value !== null).at(-1);
-            if (last) svg.append("text").attr("class", "series-end-label").attr("data-series", item.name)
-                .attr("x", x(last.year) + 7).attr("y", y(last.value) + 4).attr("fill", item.color)
-                .text(index === 0 ? filters.user : "National");
+            
         });
         series.forEach((item, index) => {
             const label = (row) => `${row.year}  |  ${item.name}: index ${row.value.toFixed(1)}; ${numberFormat.format(row.count)} cases`;

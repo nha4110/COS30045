@@ -365,37 +365,57 @@ export const annotationLabels = {
         selection.attr("opacity", 0).transition("mark-enter").duration(reducedMotion.matches ? 0 : 750).attr("opacity", targetOpacity);
     }
     export function attachSeriesHover(selection) {
-        const emphasize = function () {
-            const active = this;
-            const series = active.getAttribute("data-series");
-            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label, .series-end-label")
-                .interrupt("series-focus")
-                .transition("series-focus")
-                .duration(reducedMotion.matches ? 0 : 180)
-                .style("opacity", function () {
-                    const ownSeries = this.getAttribute("data-series");
-                    return ownSeries === "National" || ownSeries === series ? 1 : 0;
-                })
-                .style("pointer-events", function () {
-                    const ownSeries = this.getAttribute("data-series");
-                    if (ownSeries !== "National" && ownSeries !== series) return "none";
-                    if (this.classList.contains("series-line")) return "stroke";
-                    if (this.classList.contains("series-area")) return "visiblePainted";
-                    if (this.classList.contains("series-point")) return "visiblePainted";
+    const marks = ".series-line, .series-area, .series-point, .point-value, .trajectory-label, .series-end-label";
+
+    const emphasize = function () {
+        const series = this.getAttribute("data-series");
+
+        d3.select(this.ownerSVGElement)
+            .selectAll(marks)
+            .interrupt("series-focus")
+            .transition("series-focus")
+            .duration(reducedMotion.matches ? 0 : 180)
+            .style("opacity", function () {
+                return this.getAttribute("data-series") === series ? 1 : 0;
+            })
+            .style("pointer-events", function () {
+                if (this.getAttribute("data-series") !== series) {
                     return "none";
-                });
-        };
-        const restore = function () {
-            d3.select(this.ownerSVGElement).selectAll(".series-line, .series-area, .series-point, .point-value, .trajectory-label, .series-end-label")
-                .interrupt("series-focus")
-                .transition("series-focus")
-                .duration(reducedMotion.matches ? 0 : 220)
-                .style("opacity", 1)
-                .style("pointer-events", null);
-        };
-        selection.attr("tabindex", 0).attr("role", "img").on("pointerenter focus", emphasize).on("pointerleave blur", restore);
-        return selection;
-    }
+                }
+
+                if (this.classList.contains("series-line")) {
+                    return "stroke";
+                }
+
+                if (
+                    this.classList.contains("series-area") ||
+                    this.classList.contains("series-point")
+                ) {
+                    return "visiblePainted";
+                }
+
+                return "none";
+            });
+    };
+
+    const restore = function () {
+        d3.select(this.ownerSVGElement)
+            .selectAll(marks)
+            .interrupt("series-focus")
+            .transition("series-focus")
+            .duration(reducedMotion.matches ? 0 : 220)
+            .style("opacity", 1)
+            .style("pointer-events", null);
+    };
+
+    selection
+        .attr("tabindex", 0)
+        .attr("role", "img")
+        .on("pointerenter.series-hover focus.series-hover", emphasize)
+        .on("pointerleave.series-hover blur.series-hover", restore);
+
+    return selection;
+}
     export function attachBarValueHover(selection) {
         const dimOtherValues = function () {
             const active = this.getAttribute("data-mark");

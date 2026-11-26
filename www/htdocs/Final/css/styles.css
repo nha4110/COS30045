@@ -321,9 +321,17 @@ select {
     scroll-margin-top: 100px;
 }
 
-.intro {
-    max-width: 760px;
-    margin-bottom: 30px;
+.intro.story-chapter {
+    width: 100%;
+    max-width: 1100px;
+    margin: 1.35rem auto 30px;
+    text-align: center;
+}
+
+.intro h1 {
+    max-width: 100%;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 .eyebrow {
@@ -351,8 +359,8 @@ h1 {
 }
 
 .intro-copy {
-    max-width: 680px;
-    margin-bottom: 0;
+    max-width: 1000px;
+    margin: 0 auto;
     color: var(--muted);
     font-size: var(--font-size-intro);
 }
@@ -658,8 +666,20 @@ h2:focus-visible {
     stroke-width: 1.5;
 }
 
-.chart-wrap .national-bar {
-    transition: fill var(--transition-hover), stroke var(--transition-hover), filter var(--transition-hover);
+.chart-wrap .national-point {
+    stroke: var(--surface);
+    stroke-width: 1.6;
+}
+
+.chart-wrap .national-point.is-top-year {
+    stroke: var(--series-orange);
+    stroke-width: 2.5;
+}
+
+.chart-wrap .national-point:hover,
+.chart-wrap .national-point:focus-visible {
+    stroke: var(--focus-ring);
+    stroke-width: 3;
 }
 .chart-wrap .annotation-group { cursor: help; }
 .chart-wrap .annotation-group:focus-visible { outline: none; }
@@ -741,7 +761,7 @@ h2:focus-visible {
 .trajectory-label { fill: var(--chart-label) !important; font-size: 9px !important; font-weight: 700; paint-order: stroke; stroke: var(--card-nested-background); stroke-width: 3px; stroke-linejoin: round; }
 .trajectory-legend text { fill: var(--chart-text); font-size: var(--font-size-svg-small); }
 .national-key { display: inline-flex; align-items: center; gap: 7px; margin: 4px 0 0 54px; color: var(--navy-soft); font-size: var(--font-size-tiny); }
-.national-key-swatch { width: 18px; height: 12px; border: 1px solid var(--series-orange); background: repeating-linear-gradient(135deg, var(--series-orange) 0 4px, var(--pattern-contrast) 4px 5px); }
+.national-key-swatch { width: 12px; height: 12px; flex: 0 0 12px; border: 2.5px solid var(--series-orange); border-radius: 50%; background: var(--surface); }
 
 .chart-wrap svg .series-line,
 .chart-wrap svg .series-point,
@@ -1919,4 +1939,400 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
     #cycling-policies .cp-case > header { min-height: 0; }
     #cycling-policies .cp-design { min-height: 0; }
 }
+/* Cyclist dashboard. */
+#cyclist-dashboard {
+    --trajectory-male-fill: var(--ratio-male);
+    --trajectory-female-fill: var(--ratio-female);
+    --sex-male-fill: var(--ratio-male);
+    --sex-female-fill: var(--ratio-female);
+}
 
+#cyclist-dashboard .chapter-heading {
+    max-width: 100%;
+}
+
+.demographic-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1.2rem 0;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.demographic-toolbar .filter-control {
+    flex: 1 1 200px;
+    max-width: 330px;
+    min-width: 0;
+    margin: 0;
+}
+
+.demographic-toolbar .text-button {
+    min-height: 42px;
+    padding: 0.5rem;
+}
+
+.demographic-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.demographic-kpi {
+    min-width: 0;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.demographic-kpi-focus {
+    border-top: 3px solid var(--chart-primary);
+}
+
+.demographic-kpi .summary-value {
+    margin: 0.3rem 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.demographic-kpi .summary-note {
+    margin-bottom: 0;
+}
+
+.demographic-scope {
+    margin: 1rem 0 0.6rem;
+    color: var(--teal);
+    font-size: 0.85rem;
+    font-weight: 750;
+}
+
+#cyclist-dashboard .demographic-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 1rem;
+}
+
+#cyclist-dashboard .demographic-chart-grid > .age-trajectory-panel,
+#cyclist-dashboard .demographic-chart-grid > .demographic-sex-detail {
+    grid-column: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+#cyclist-dashboard .demographic-chart-grid h3 {
+    font-size: 1rem;
+    line-height: 1.4;
+    text-align: left;
+}
+
+#cyclist-dashboard .chart-description {
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+
+#cyclist-dashboard #age-sex-trajectory-chart {
+    min-height: 0;
+    margin-top: 0.8rem;
+}
+
+#cyclist-dashboard #age-sex-trajectory-chart > svg {
+    max-height: none;
+    width: 100%;
+    height: auto;
+}
+
+.age-selection-band {
+    fill: var(--chart-primary);
+    fill-opacity: 0.08;
+    pointer-events: none;
+}
+
+.demographic-insight {
+    margin: 1rem 0 0;
+    padding: 0.8rem;
+    border-left: 3px solid var(--chart-primary);
+    background: var(--card-nested-background);
+    color: var(--navy);
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+#cyclist-dashboard .unified-sex-donut {
+    min-height: 0;
+    width: 100%;
+    overflow: visible;
+}
+
+#cyclist-dashboard .unified-sex-donut svg {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+}
+
+#cyclist-dashboard .donut-center-title {
+    font-size: 13px;
+}
+
+#cyclist-dashboard .donut-center-count {
+    font-size: 16px;
+}
+
+#cyclist-dashboard .donut-center-instruction {
+    font-size: 9px;
+}
+
+#cyclist-dashboard .pictogram-panel {
+    margin: 0.3rem 0 0;
+    padding: 0.8rem 0 0;
+    text-align: left;
+}
+
+#cyclist-dashboard .ratio-label {
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+#cyclist-dashboard .ratio-legend {
+    justify-content: flex-start;
+    font-size: 0.8rem;
+}
+
+#cyclist-dashboard .pictogram-panel .chart-wrap {
+    min-height: 0;
+}
+
+.demographic-data-note {
+    margin: 1rem 0 0;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+    #cyclist-dashboard .demographic-chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .demographic-kpis {
+        gap: 0.5rem;
+    }
+
+    .demographic-kpi {
+        padding: 0.75rem;
+    }
+
+    .demographic-kpi .summary-label {
+        font-size: 0.65rem;
+    }
+
+    .demographic-kpi .summary-note {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .demographic-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .demographic-toolbar {
+        align-items: stretch;
+        gap: 0.6rem;
+    }
+
+    .demographic-toolbar .filter-control {
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    #cyclist-dashboard .demographic-chart-grid > .age-trajectory-panel,
+    #cyclist-dashboard .demographic-chart-grid > .demographic-sex-detail {
+        padding: 0.65rem;
+    }
+}
+/* Road-user dashboard. */
+#road-user-dashboard > .chapter-heading {
+    max-width: 100%;
+}
+
+#road-user-dashboard .relative-change-sidebar {
+    margin: 0 0 1rem;
+}
+
+#road-user-dashboard #filters {
+    padding: 1rem;
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+#road-user-dashboard #filters .filter-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+#road-user-dashboard #filters .filter-control select {
+    min-height: 42px;
+}
+
+#road-user-dashboard .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 0;
+}
+
+#road-user-dashboard .summary-card {
+    min-width: 0;
+    min-height: 130px;
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+#road-user-dashboard .summary-card:last-child {
+    grid-column: auto;
+}
+
+#road-user-dashboard .summary-value {
+    margin: 0.3rem 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+#road-user-dashboard .summary-note {
+    margin-bottom: 0;
+}
+
+#road-user-dashboard .relative-change-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+}
+
+#road-user-dashboard .relative-change-main,
+#road-user-dashboard .relative-change-trend {
+    display: grid;
+    grid-template-rows: 100px 80px 340px 1fr;
+    min-width: 0;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+#road-user-dashboard .road-dashboard-card-heading {
+    margin: 0;
+}
+
+#road-user-dashboard .road-dashboard-card-heading h3 {
+    margin: 0 0 0.45rem;
+    color: var(--navy);
+    font-size: 1rem;
+    line-height: 1.4;
+    letter-spacing: normal;
+}
+
+#road-user-dashboard .chart-description,
+#road-user-dashboard .chart-data-note {
+    margin: 0;
+    max-width: none;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+
+#road-user-dashboard .road-dashboard-chart-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.5rem 0;
+}
+
+#road-user-dashboard .road-dashboard-series-note {
+    margin: 0;
+    color: var(--navy-soft);
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+#road-user-dashboard .trend-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.4rem 1rem;
+    margin: 0;
+}
+
+#road-user-dashboard .trend-legend-item {
+    font-size: 0.75rem;
+}
+
+#road-user-dashboard #road-user-chart,
+#road-user-dashboard #road-user-trend-chart {
+    width: 100%;
+    height: 340px;
+    min-height: 0;
+    margin: 0;
+}
+
+#road-user-dashboard #road-user-chart > svg,
+#road-user-dashboard #road-user-trend-chart > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+}
+
+#road-user-dashboard .road-dashboard-card-footer {
+    padding-top: 0.9rem;
+}
+
+#road-user-dashboard .road-dashboard-card-footer .empty-state {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 900px) {
+    #road-user-dashboard .relative-change-layout {
+        grid-template-columns: 1fr;
+    }
+
+    #road-user-dashboard .relative-change-main,
+    #road-user-dashboard .relative-change-trend {
+        grid-template-rows: auto auto 340px auto;
+    }
+
+    #road-user-dashboard .road-dashboard-chart-meta {
+        min-height: 60px;
+    }
+}
+
+@media (max-width: 600px) {
+    #road-user-dashboard .summary-grid,
+    #road-user-dashboard #filters .filter-controls {
+        grid-template-columns: 1fr;
+    }
+
+    #road-user-dashboard .summary-card {
+        min-height: 0;
+    }
+
+    #road-user-dashboard .relative-change-main,
+    #road-user-dashboard .relative-change-trend {
+        padding: 0.7rem;
+    }
+}

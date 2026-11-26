@@ -61,19 +61,19 @@
                 <header class="chapter-heading">
                     <p class="eyebrow">STEP 1 &middot; NATIONAL OVERVIEW (2011&ndash;2021)</p>
                     <h2 id="national-chart-title" tabindex="0">National overview: hospitalised road injuries</h2>
-                    <p class="chapter-deck">Recorded hospitalisations rise overall across the period. The five peak years are patterned; Victoria&rsquo;s 2012 and New South Wales&rsquo; June 2017 markers identify reporting breaks, not national events.</p>
+                    <p class="chapter-deck">Recorded hospitalisations rise overall across the period. The five highest annual totals have larger outlined markers; Victoria&rsquo;s 2012 and New South Wales&rsquo; June 2017 markers identify reporting breaks, not national events.</p>
                 </header>
                 <div id="national-chart" class="chart-wrap" role="group" aria-labelledby="national-chart-title" aria-describedby="national-chart-description"></div>
-                <p id="national-chart-description" class="chart-description">Annual national totals. Focus a bar and use arrow keys to explore values.</p>
+                <p id="national-chart-description" class="chart-description">Annual national totals connected by year. Hover over a point, or focus it and use arrow keys to explore values.</p>
                 <div class="national-key"><span class="national-key-swatch" aria-hidden="true"></span><span>Five highest annual totals</span></div>
                 <p id="national-empty" class="empty-state" hidden></p>
             </article>
 
-            <article class="story-chapter" aria-labelledby="road-user-chart-title">
+            <article id="road-user-dashboard" class="story-chapter" aria-labelledby="road-user-chart-title">
                 <header class="chapter-heading">
-                    <p class="eyebrow">STEP 2 &middot; ROAD-USER CHANGE &amp; RELATIVE GROWTH</p>
+                    <p class="eyebrow">STEP 2 &middot; ROAD-USER DASHBOARD</p>
                     <h2 id="road-user-chart-title" tabindex="0">Which groups contributed to the change?</h2>
-                    <p class="chapter-deck">Pedal cyclists stand out: +2,772 hospitalisations, alongside increases and decreases across the other road-user groups.</p>
+                    <p class="chapter-deck">Explore changes across road-user groups and compare the focused group with the national trend.</p>
                 </header>
                 <aside class="relative-change-sidebar" aria-label="Explore the change filters and summary statistics">
                     <section id="filters" class="filter-panel" aria-labelledby="filters-title">
@@ -112,25 +112,35 @@
                     </section>
                 </aside>
                 <div class="relative-change-layout">
-                    <section class="relative-change-main" aria-labelledby="road-user-chart-title">
-                        <p id="road-user-chart-description" class="chart-description">Absolute change between 2011 and the selected comparison year. Cyclists account for 50.7% of national net increase from 2011 to 2021.</p>
-                        <p id="road-user-chart-unit" class="chart-data-note"></p>
-                        <div id="road-user-chart" class="chart-wrap step-chart-wrap" role="group" aria-labelledby="road-user-chart-title" aria-describedby="road-user-chart-description"></div>
-                        <p id="road-user-data-note" class="chart-data-note"></p>
-                        <p id="road-user-empty" class="empty-state" hidden></p>
+                    <section class="relative-change-main" aria-labelledby="road-user-bars-title">
+                        <header class="road-dashboard-card-heading">
+                            <h3 id="road-user-bars-title">Which road users changed the most?</h3>
+                            <p id="road-user-chart-description" class="chart-description">Compare absolute changes in recorded hospitalisations from 2011 to the selected year. All-years mode shows cumulative totals.</p>
+                        </header>
+                        <div class="road-dashboard-chart-meta">
+                            <p id="road-user-chart-unit" class="chart-data-note"></p>
+                            <p class="road-dashboard-series-note">All road-user groups</p>
+                        </div>
+                        <div id="road-user-chart" class="chart-wrap step-chart-wrap" role="group" aria-labelledby="road-user-bars-title" aria-describedby="road-user-chart-description"></div>
+                        <div class="road-dashboard-card-footer">
+                            <p id="road-user-data-note" class="chart-data-note"></p>
+                            <p id="road-user-empty" class="empty-state" hidden></p>
+                        </div>
                     </section>
                     <section class="relative-change-trend" aria-labelledby="road-user-trend-title">
-                        <header class="chapter-heading trend-chapter-heading">
-                            <h2 id="road-user-trend-title" tabindex="0">Did the focused group rise faster?</h2>
-                            <p class="chapter-deck">Both lines show indexed hospitalisation counts. Pedal cyclist is compared with all road users; the selected base year equals 100.</p>
+                        <header class="road-dashboard-card-heading">
+                            <h3 id="road-user-trend-title" tabindex="0">Did the focused group rise faster?</h3>
+                            <p class="chart-description">Compare the focused road user with the national trend. Both series start at 100 in the selected base year.</p>
                         </header>
-                        <div class="trend-chart-heading">
+                        <div class="trend-chart-heading road-dashboard-chart-meta">
                             <p id="road-user-trend-unit" class="chart-data-note"></p>
                             <div id="road-user-trend-legend" class="trend-legend" role="group" aria-label="Road-user trend series"></div>
                         </div>
                         <div id="road-user-trend-chart" class="chart-wrap step-chart-wrap" role="group" aria-labelledby="road-user-trend-title" aria-describedby="road-user-trend-description"></div>
-                        <p id="road-user-trend-description" class="chart-description">Pedal cyclist and National (all road users) are indexed counts, not population-adjusted rates. Hover either line to highlight it.</p>
-                        <p id="road-user-trend-empty" class="empty-state" hidden></p>
+                        <div class="road-dashboard-card-footer">
+                            <p id="road-user-trend-description" class="chart-description">Indexed counts show relative change, not population-adjusted rates. The selected comparison year is the index base; all-years mode uses 2011. Hover either line to highlight it.</p>
+                            <p id="road-user-trend-empty" class="empty-state" hidden></p>
+                        </div>
                     </section>
                 </div>
                 <aside class="chapter-aside" aria-labelledby="road-user-context-title">
@@ -139,39 +149,76 @@
                 </aside>
             </article>
 
-            <article class="story-chapter demographic-comparison" aria-labelledby="demographic-title">
+            <article id="cyclist-dashboard" class="story-chapter demographic-comparison" aria-labelledby="demographic-title">
                 <header class="chapter-heading">
-                    <p class="eyebrow">STEP 3 &middot; AGE AND GENDER</p>
-                    <h2 id="demographic-title" tabindex="0">Cyclist age and sex breakdown</h2>
-                    <p id="demographic-description" class="chapter-deck">Explore the Male/Female split and the age groups represented in pedal cyclist hospitalisations.</p>
+                    <p class="eyebrow">STEP 3 &middot; CYCLIST DASHBOARD</p>
+                    <h2 id="demographic-title" tabindex="0">Which cyclists record the most hospitalisations?</h2>
+                    <p id="demographic-description" class="chapter-deck">Explore how recorded cyclist hospitalisations vary by year, age group and sex.</p>
                 </header>
-                <label id="demographic-year-control" class="filter-control demographic-year-control">
-                    <span>Step 3 year</span>
-                    <select id="demographic-year-filter"><option value="">All Years Total (2011&ndash;2021)</option></select>
-                </label>
 
+                <div class="demographic-toolbar" role="group" aria-label="Cyclist dashboard filters">
+                    <label id="demographic-year-control" class="filter-control demographic-year-control">
+                        <span>Year</span>
+                        <select id="demographic-year-filter"><option value="">All Years Total (2011&ndash;2021)</option></select>
+                    </label>
+                    <label class="filter-control">
+                        <span>Age group</span>
+                        <select id="demographic-age-filter">
+                            <option value="">All ages</option>
+                            <option value="0-7">0&ndash;7</option>
+                            <option value="8-16">8&ndash;16</option>
+                            <option value="17-25">17&ndash;25</option>
+                            <option value="26-39">26&ndash;39</option>
+                            <option value="40-64" selected>40&ndash;64</option>
+                            <option value="65-74">65&ndash;74</option>
+                            <option value="75+">75+</option>
+                        </select>
+                    </label>
+                    <button id="demographic-reset" class="text-button" type="button">Reset dashboard</button>
+                </div>
+
+                <div class="demographic-kpis" role="group" aria-label="Cyclist dashboard summary" aria-live="polite" aria-atomic="true">
+                    <div class="demographic-kpi">
+                        <p class="summary-label">Total cyclist hospitalisations</p>
+                        <p id="demographic-total" class="summary-value">Loading</p>
+                        <p id="demographic-total-note" class="summary-note"></p>
+                    </div>
+                    <div class="demographic-kpi demographic-kpi-focus">
+                        <p id="demographic-selected-label" class="summary-label">40&ndash;64 hospitalisations</p>
+                        <p id="demographic-selected" class="summary-value">Loading</p>
+                        <p id="demographic-selected-note" class="summary-note"></p>
+                    </div>
+                    <div class="demographic-kpi">
+                        <p class="summary-label">Male-to-female ratio</p>
+                        <p id="demographic-ratio" class="summary-value">Loading</p>
+                        <p id="demographic-ratio-note" class="summary-note"></p>
+                    </div>
+                </div>
+
+                <p id="demographic-scope" class="demographic-scope"></p>
                 <div class="demographic-chart-grid">
                     <section class="age-trajectory-panel" aria-labelledby="age-trajectory-title">
-                    <h3 id="age-trajectory-title">Age-group area chart by sex</h3>
-                    <p class="chart-description">Adults aged 40–64 are highlighted. Male and Female pedal cyclist hospitalisations are shown by age group.</p>
-                    <div id="age-sex-trajectory-chart" class="chart-wrap" role="group" aria-labelledby="age-trajectory-title" aria-describedby="age-trajectory-description"></div>
-                    <p class="chart-description">Top five age groups are ranked by Male plus Female pedal cyclist hospitalisations across the selected year or all years. Suppressed records are excluded; counts are not rates.</p>
-                    <p id="age-trajectory-description" class="chart-description">Both sex areas use the same zero baseline so their heights show comparable recorded counts. Suppressed age and sex counts are left out.</p>
-                </section>
+                        <h3 id="age-trajectory-title">How do counts differ across age groups?</h3>
+                        <p id="age-trajectory-description" class="chart-description">Compare Male and Female counts across all seven age groups. Select a point to update the sex split and ratio.</p>
+                        <div id="age-sex-trajectory-chart" class="chart-wrap" role="group" aria-labelledby="age-trajectory-title" aria-describedby="age-trajectory-description"></div>
+                        <p id="demographic-insight" class="demographic-insight"></p>
+                    </section>
                     <div class="demographic-sex-detail">
-                <div class="demographic-view">
-                    <div class="unified-sex-layout">
-                        <div id="cyclist-sex-chart" class="chart-wrap unified-sex-donut" role="group" aria-label="Cyclist hospitalisations by sex; click a segment to view age groups"></div>
+                        <section aria-labelledby="demographic-donut-title">
+                            <h3 id="demographic-donut-title">What is the sex split?</h3>
+                            <p id="demographic-donut-note" class="chart-description"></p>
+                            <div id="cyclist-sex-chart" class="chart-wrap unified-sex-donut" role="group" tabindex="-1" aria-labelledby="demographic-donut-title" aria-describedby="demographic-donut-note"></div>
+                        </section>
+                        <section class="pictogram-panel" aria-labelledby="ratio-title">
+                            <h3 id="ratio-title">How do male and female counts compare?</h3>
+                            <p id="ratio-caption" class="ratio-label"></p>
+                            <div id="ratio-legend" class="ratio-legend" role="group" aria-label="Pictorial fraction legend"></div>
+                            <div id="sex-ratio-chart" class="chart-wrap" role="group" aria-label="Male and Female pictorial fraction"></div>
+                            <p class="chart-description">30 icons approximate the proportions; the values above show the recorded counts.</p>
+                        </section>
                     </div>
                 </div>
-                <section class="pictogram-panel" aria-labelledby="ratio-title">
-                    <h3 id="ratio-title">Pictorial fraction chart</h3>
-                    <p id="ratio-caption" class="ratio-label"></p>
-                    <div id="ratio-legend" class="ratio-legend" role="group" aria-label="Pictorial fraction legend"></div>
-                            <div id="sex-ratio-chart" class="chart-wrap" role="img" aria-label="Pictorial fraction using Male and Female person icons"></div>
-                </section>
-                    </div>
-                </div>
+                <p class="demographic-data-note">Counts are hospitalised cases, not population-adjusted rates or unique people. Cards and sex comparisons use Male + Female records; other or unspecified sex is excluded. All-age totals include missing age. The area chart shows the seven published age groups on a shared zero baseline. Missing or suppressed counts remain unknown.</p>
             </article>
         </section>
 
